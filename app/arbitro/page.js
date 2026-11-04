@@ -37,6 +37,14 @@ export default function Arbitro() {
 
   const entrar = () => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/arbitro` } });
   const salir = () => supabase.auth.signOut();
+  
+  const sincronizar = async () => {
+    const r = await fetch("/api/sync", { headers: { Authorization: `Bearer ${sesion.access_token}` } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return alert(`Error: ${j.error || r.status}`);
+    alert(`Sincronizado: ${j.equipos} equipos, ${j.jugadores} jugadores, ${j.partidos} partidos`);
+    window.location.reload();
+  };
 
   if (sesion === undefined) return <main><p>Cargando…</p></main>;
   if (!sesion) return (
@@ -66,8 +74,8 @@ export default function Arbitro() {
           <div className="suave">Jornada {p.jornada} · {fmt(p.fecha)}{p.estado === "cerrado" ? " · Cerrado" : ""}</div>
         </button>
       ))}
-      <p><button className="mini" onClick={salir}>Salir</button></p>
-    </main>
+{yo.rol === "admin" && <p><button onClick={sincronizar}>Sincronizar con Clupik</button></p>}
+<p><button className="mini" onClick={salir}>Salir</button></p>    </main>
   );
 }
 
