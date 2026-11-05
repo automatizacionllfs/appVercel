@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const fmt = (f) => new Date(f).toLocaleString("es-ES", { timeZone: "Europe/Madrid", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const fechaInput = (fecha) => String(fecha).slice(0, 10);
 const reloj = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const TIPOS = { gol: "Gol", amarilla: "Amarilla", roja: "Roja" };
 const tiempoJuego = (e) => (e.parte - 1) * 1320 + (1320 - e.restante_seg);
@@ -13,6 +14,8 @@ export default function Arbitro() {
   const [yo, setYo] = useState(undefined);
   const [partidos, setPartidos] = useState([]);
   const [abierto, setAbierto] = useState(null);
+  const [desde, setDesde] = useState(() => fechaInput(process.env.FECHA_DESDE || "2026-09-01"));
+  const [hasta, setHasta] = useState(() => fechaInput(process.env.FECHA_HASTA || "2027-06-30"));
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSesion(data.session));
@@ -38,25 +41,12 @@ export default function Arbitro() {
   const entrar = () => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/arbitro` } });
   const salir = () => supabase.auth.signOut();
   
-  async function obtenerPartidos() {
-  const desde = new Date(FECHA_DESDE || "2026-09-01T00:00:00.000Z").getTime();
-  const hasta = new Date(FECHA_HASTA || "2027-06-30T23:59:59.999Z").getTime();
-  const semana = 7 * 24 * 3600 * 1000;
-  const tramos = [];
-  for (let t = desde; t < hasta; t += semana) {
-    tramos.push([new Date(t).toISOString(), new Date(Math.min(t + semana - 1, hasta)).toISOString()]);
-  }
-  const mapa = new Map();
-  for (let i = 0; i < tramos.length; i += 10) {
-    const lote = await Promise.all(tramos.slice(i, i + 10).map(([d, h]) =>
-      getJson(`${API}/clubs/${CLUB_ID}/stats/organizer?firstLoad=true&exactDates=true&from=${d}&to=${h}`)));
-    lote.forEach((r) => (r.games || []).forEach((g) => mapa.set(String(g.id), g)));
-  }
-  return [...mapa.values()];
-  }
-
   const sincronizar = async () => {
-    const r = await fetch("/api/sync", { headers: { Authorization: `Bearer ${sesion.access_token}` } });
+    const r = await fetch("/api/sync", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${sesion.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ desde, hasta }),
+    });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) return alert(`Error: ${j.error || r.status}`);
     alert(`Sincronizado: ${j.equipos} equipos, ${j.jugadores} jugadores, ${j.partidos} partidos`);
@@ -91,8 +81,15 @@ export default function Arbitro() {
           <div className="suave">Jornada {p.jornada} · {fmt(p.fecha)}{p.estado === "cerrado" ? " · Cerrado" : ""}</div>
         </button>
       ))}
-{yo.rol === "admin" && <p><button onClick={sincronizar}>Sincronizar con Clupik</button></p>}
-<p><button className="mini" onClick={salir}>Salir</button></p>    </main>
+      {yo.rol === "admin" && (
+        <form className="rango-fechas" onSubmit={(e) => { e.preventDefault(); sincronizar(); }}>
+          <label>Fecha desde<input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} required /></label>
+          <label>Fecha hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} required /></label>
+          <button type="submit">Sincronizar con Clupik</button>
+        </form>
+      )}
+      <p><button className="mini" onClick={salir}>Salir</button></p>
+    </main>
   );
 }
 

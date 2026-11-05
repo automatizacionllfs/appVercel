@@ -49,10 +49,41 @@ async function autorizado(req, db) {
   return !!u;
 }
 
-async function sincronizar(db) {
+async function obtenerPartidos(desdeValor, hastaValor) {
+  const fechaMs = (valor, respaldo, final) => {
+    const entrada = String(valor || respaldo);
+    const fecha = /^\d{4}-\d{2}-\d{2}$/.test(entrada)
+      ? `${entrada}T${final ? "23:59:59.999" : "00:00:00.000"}Z`
+      : entrada;
+    const timestamp = Date.parse(fecha);
+    if (!Number.isFinite(timestamp)) throw new Error("El rango de fechas no es válido");
+    return timestamp;
+  };
+  const desde = fechaMs(desdeValor, FECHA_DESDE || "2026-09-01T00:00:00.000Z", false);
+  const hasta = fechaMs(hastaValor, FECHA_HASTA || "2027-06-30T23:59:59.999Z", true);
+  if (desde > hasta) throw new Error("La fecha desde debe ser anterior a la fecha hasta");
+
+  const semana = 7 * 24 * 3600 * 1000;
+  const tramos = [];
+  for (let t = desde; t <= hasta; t += semana) {
+    tramos.push([new Date(t).toISOString(), new Date(Math.min(t + semana - 1, hasta)).toISOString()]);
+  }
+  const mapa = new Map();
+  for (let i = 0; i < tramos.length; i += 10) {
+    const lote = await Promise.all(tramos.slice(i, i + 10).map(([d, h]) => {
+      const url = new URL(`${API}/clubs/${CLUB_ID}/stats/organizer`);
+      url.search = new URLSearchParams({ firstLoad: "true", exactDates: "true", from: d, to: h });
+      return getJson(url.toString());
+    }));
+    lote.forEach((r) => (r.games || []).forEach((g) => mapa.set(String(g.id), g)));
+  }
+  return [...mapa.values()];
+}
+
+async function sincronizar(db, fechas) {
   const equiposApi = await getJson(`${API}/clubs/${CLUB_ID}/teamsForTableBySections?seasonId=${SEASON_ID}&visibility=true&sections=${SECTIONS}`);
   if (!Array.isArray(equiposApi) || !equiposApi.length) throw new Error("La API no devolvió equipos");
-const partidosApi = await obtenerPartidos();
+  const partidosApi = await obtenerPartidos(fechas.desde, fechas.hasta);
   // Temporada
   const titulo = equiposApi[0]?.team?.season?.title || SEASON_ID;
   const temp = ok(await db.from("temporadas").upsert({ id_clupik: SEASON_ID, nombre: titulo, activa: true }, { onConflict: "id_clupik" }).select("id").single());
@@ -117,12 +148,21 @@ const partidosApi = await obtenerPartidos();
   return { equipos: filasEq.size, jugadores: personas.size, plantillas: filasPl.size, partidos: filasP.length };
 }
 
-export async function GET(req) {
+async function ejecutarSync(req) {
   const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
   if (!(await autorizado(req, db))) return Response.json({ error: "No autorizado" }, { status: 401 });
   try {
-    return Response.json({ ok: true, ...(await sincronizar(db)) });
+    const body = req.method === "POST" ? await req.json() : {};
+    return Response.json({ ok: true, ...(await sincronizar(db, body)) });
   } catch (e) {
     return Response.json({ ok: false, error: e.message }, { status: 500 });
   }
+}
+
+export async function GET(req) {
+  return ejecutarSync(req);
+}
+
+export async function POST(req) {
+  return ejecutarSync(req);
 }

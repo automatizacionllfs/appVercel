@@ -4,5 +4,7 @@ module.exports = {
   env: {
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+    FECHA_DESDE: process.env.FECHA_DESDE,
+    FECHA_HASTA: process.env.FECHA_HASTA,
   },
 };
