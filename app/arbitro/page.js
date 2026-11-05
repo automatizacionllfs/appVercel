@@ -38,6 +38,23 @@ export default function Arbitro() {
   const entrar = () => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/arbitro` } });
   const salir = () => supabase.auth.signOut();
   
+  async function obtenerPartidos() {
+  const desde = new Date(FECHA_DESDE || "2026-09-01T00:00:00.000Z").getTime();
+  const hasta = new Date(FECHA_HASTA || "2027-06-30T23:59:59.999Z").getTime();
+  const semana = 7 * 24 * 3600 * 1000;
+  const tramos = [];
+  for (let t = desde; t < hasta; t += semana) {
+    tramos.push([new Date(t).toISOString(), new Date(Math.min(t + semana - 1, hasta)).toISOString()]);
+  }
+  const mapa = new Map();
+  for (let i = 0; i < tramos.length; i += 10) {
+    const lote = await Promise.all(tramos.slice(i, i + 10).map(([d, h]) =>
+      getJson(`${API}/clubs/${CLUB_ID}/stats/organizer?firstLoad=true&exactDates=true&from=${d}&to=${h}`)));
+    lote.forEach((r) => (r.games || []).forEach((g) => mapa.set(String(g.id), g)));
+  }
+  return [...mapa.values()];
+  }
+
   const sincronizar = async () => {
     const r = await fetch("/api/sync", { headers: { Authorization: `Bearer ${sesion.access_token}` } });
     const j = await r.json().catch(() => ({}));

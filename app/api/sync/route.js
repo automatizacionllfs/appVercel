@@ -52,8 +52,7 @@ async function autorizado(req, db) {
 async function sincronizar(db) {
   const equiposApi = await getJson(`${API}/clubs/${CLUB_ID}/teamsForTableBySections?seasonId=${SEASON_ID}&visibility=true&sections=${SECTIONS}`);
   if (!Array.isArray(equiposApi) || !equiposApi.length) throw new Error("La API no devolvió equipos");
-  const partidosApi = (await getJson(`${API}/clubs/${CLUB_ID}/stats/organizer?firstLoad=true&exactDates=true&from=${FECHA_DESDE}&to=${FECHA_HASTA}`)).games || [];
-
+const partidosApi = await obtenerPartidos();
   // Temporada
   const titulo = equiposApi[0]?.team?.season?.title || SEASON_ID;
   const temp = ok(await db.from("temporadas").upsert({ id_clupik: SEASON_ID, nombre: titulo, activa: true }, { onConflict: "id_clupik" }).select("id").single());
