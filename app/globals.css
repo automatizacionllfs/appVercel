@@ -351,6 +351,32 @@ table {
 .tabla-con-podio tbody tr.podio-1 td.num:first-child { color: #fff; }
 .tabla-con-podio tbody tr.podio-1 td.num:last-child strong { background: #ff0000; color: #fff; }
 .tabla-goleadores tbody tr.podio-1 td { padding-top: 17px; padding-bottom: 17px; font-size: 1.12rem; }
+.enlace-historial-goleador { display: inline-flex; margin-top: 3px; color: var(--acento); font-size: .78rem; font-weight: 750; }
+.enlace-historial-goleador:hover { color: #b4232e; }
+.historial-jugador-cabecera {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0 28px;
+  padding: 18px;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: var(--papel);
+  box-shadow: var(--sombra);
+}
+.historial-jugador-foto { width: 84px; height: 84px; border: 1px solid #b4232e; border-radius: 50%; object-fit: cover; }
+.historial-jugador-escudo { width: 48px; height: 48px; object-fit: contain; }
+.historial-jugador-identidad { display: grid; justify-items: start; gap: 3px; min-width: 0; }
+.historial-jugador-identidad h2 { margin: 0; }
+.historial-jugador-dorsal { color: var(--acento); font-weight: 750; }
+.historial-jugador-resumen { display: flex; grid-column: 1 / -1; gap: 12px; margin: 0; }
+.historial-jugador-resumen > div { flex: 1; padding: 12px; border-radius: 12px; background: var(--acento-claro); }
+.historial-jugador-resumen dt { color: var(--suave); font-size: .8rem; font-weight: 650; }
+.historial-jugador-resumen dd { margin: 2px 0 0; color: var(--acento); font-size: 1.3rem; font-weight: 800; }
+.historial-goles ol { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.historial-goles li { display: grid; grid-template-columns: minmax(95px, .7fr) minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--borde); border-radius: 12px; background: var(--papel); }
+.historial-goles li > strong:last-child { color: var(--acento); white-space: nowrap; }
 .tabla-con-podio tbody tr.podio-2 { background-image: linear-gradient(100deg, #e1edf7, #f8fbff); }
 .tabla-con-podio tbody tr.podio-3 { background-image: linear-gradient(100deg, #f0f5fa, #fff); }
 .tabla-con-podio tbody tr.podio-2 td:first-child,
@@ -619,6 +645,11 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   .evento .mini { flex: 0 0 auto; }
   .tabla-scroll table { min-width: 440px; }
   .tabla-goleadores { min-width: 0 !important; }
+  .historial-jugador-cabecera { grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 14px; }
+  .historial-jugador-foto { width: 68px; height: 68px; }
+  .historial-jugador-escudo { display: none; }
+  .historial-goles li { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 10px; padding: 12px; }
+  .historial-goles li > span { grid-column: 1 / -1; grid-row: 2; }
   .metricas { gap: 8px; }
   .metricas > div { padding: 10px; }
   .metricas dd { font-size: 1.25rem; }

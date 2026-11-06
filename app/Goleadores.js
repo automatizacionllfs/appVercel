@@ -19,7 +19,10 @@ function TablaGoleadores({ filas }) {
           {filas.map((fila, i) => (
             <tr key={`${fila.jugador_id}-${fila.equipo_id}`} className={posiciones[i] <= 3 ? `podio podio-${posiciones[i]}` : ""}>
               <td className="num">{posiciones[i]}</td>
-              <td>{fila.jugador}<div className="suave">{fila.equipo}</div></td>
+              <td>
+                {fila.jugador}<div className="suave">{fila.equipo}</div>
+                <a className="enlace-historial-goleador" href={`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}`}>Historial</a>
+              </td>
               <td className="num"><strong>{fila.goles}</strong></td>
             </tr>
           ))}
