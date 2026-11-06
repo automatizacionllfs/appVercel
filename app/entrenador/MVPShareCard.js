@@ -71,6 +71,7 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
         ctx.roundRect(x, y, 520, 250, 22);
         ctx.fill();
         const jugador = candidato.mvp?.jugador;
+        let fotoCargada = false;
         if (jugador?.foto) {
           const foto = await cargarImagen(jugador.foto);
           if (foto) {
@@ -80,7 +81,19 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
             ctx.clip();
             ctx.drawImage(foto, x + 34, y + 42, 116, 116);
             ctx.restore();
+            fotoCargada = true;
           }
+        }
+        if (!fotoCargada) {
+          ctx.fillStyle = "rgba(255,255,255,.2)";
+          ctx.beginPath();
+          ctx.arc(x + 92, y + 100, 58, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#fff";
+          ctx.font = "800 40px system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(jugador?.nombre?.slice(0, 1) || "?", x + 92, y + 114);
+          ctx.textAlign = "start";
         }
         ctx.fillStyle = "#d7e8f7";
         ctx.font = "700 17px system-ui, sans-serif";
