@@ -76,7 +76,7 @@ export function leerSesionEntrenador(request) {
     if (!/^\d+$/.test(sesion.equipoId) || typeof sesion.pinCreadoEn !== "string" ||
         !Number.isInteger(sesion.exp) ||
         sesion.exp <= Math.floor(Date.now() / 1000)) return null;
-    return { equipoId: sesion.equipoId };
+    return { equipoId: sesion.equipoId, pinCreadoEn: sesion.pinCreadoEn };
   } catch {
     return null;
   }
