@@ -36,7 +36,7 @@ export default async function Inicio() {
           </tbody>
         </table>
       )}
-      <p><a href="/arbitro">Acceso de árbitros</a></p>
+      <p><a className="acceso-arbitro" href="/arbitro">Acceso de árbitros <span aria-hidden="true">→</span></a></p>
     </main>
   );
 }

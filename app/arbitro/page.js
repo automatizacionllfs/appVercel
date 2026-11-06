@@ -58,6 +58,14 @@ export default function Arbitro() {
     <main>
       <h1>Acceso de árbitros</h1>
       <button className="primario" onClick={entrar}>Entrar con Google</button>
+      <p>
+        <a className="boton-inicio" href="/" aria-label="Volver a la clasificación">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none">
+            <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          </svg>
+          Volver a la clasificación
+        </a>
+      </p>
     </main>
   );
   if (yo === undefined) return <main><p>Cargando…</p></main>;
