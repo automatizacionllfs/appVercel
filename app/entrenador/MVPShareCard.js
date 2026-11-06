@@ -155,10 +155,9 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
           ctx.fillText(jugador?.nombre?.slice(0, 1) || "?", x + 165, y + 383);
           ctx.textAlign = "start";
         }
-        ctx.fillStyle = ROJO;
         ctx.font = "800 20px system-ui, sans-serif";
         ctx.fillText(jugador ? "MVP ELEGIDO POR EL EQUIPO RIVAL" : "MVP PENDIENTE DE SELECCIÓN", x + 300, y + 342);
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = "#000000";
         ctx.font = "850 40px system-ui, sans-serif";
         texto(ctx, jugador?.nombre || "Aún no seleccionado", x + 300, y + 405, 600);
       }
