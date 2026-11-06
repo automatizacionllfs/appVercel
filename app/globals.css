@@ -68,6 +68,60 @@ body {
 .site-nav a.activa { border-color: #b4232e; background: #b4232e; box-shadow: 0 3px 9px rgb(180 35 46 / 20%); color: #fff; }
 .site-nav a.activa:hover { border-color: #921d27; background: #921d27; }
 
+.entrenador-login { display: grid; gap: 18px; width: min(100%, 440px); }
+.entrenador-login label, .entrenador-voto label { display: grid; gap: 7px; font-weight: 700; }
+.entrenador-login button { justify-self: start; min-width: 150px; }
+.entrenador-jornada { margin-top: 30px; }
+.entrenador-partidos { display: grid; gap: 14px; }
+.entrenador-partido, .admin-pin-equipo {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: var(--papel);
+  box-shadow: var(--sombra);
+}
+.entrenador-partido p { margin: 0; }
+.entrenador-partido-titulo { display: grid; gap: 5px; }
+.entrenador-partido-titulo > strong { font-size: 1.08rem; }
+.entrenador-estado { width: fit-content; padding: 3px 9px; border-radius: 99px; font-size: .79rem; font-weight: 750; }
+.entrenador-estado.pendiente { background: #eef2f6; color: #536271; }
+.entrenador-estado.abierta, .entrenador-estado.votada { background: #e6f4ea; color: #176b35; }
+.entrenador-estado.cerrada { background: #fff0e8; color: #93420d; }
+.entrenador-plazo { color: var(--suave); }
+.entrenador-voto { display: grid; gap: 12px; }
+.entrenador-voto button { justify-self: start; }
+.entrenador-mensaje, .pin-generado { padding: 12px 15px; border: 1px solid #b5dcc1; border-radius: 12px; background: #effaf2; color: #176b35; }
+.admin-pins-lista { display: grid; gap: 10px; }
+.admin-pin-equipo { grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; }
+.pin-activo, .pin-inactivo { font-size: .85rem; font-weight: 700; }
+.pin-activo { color: #176b35; }
+.pin-inactivo { color: var(--suave); }
+.pin-generado { display: grid; gap: 8px; margin: 18px 0; }
+.pin-generado code { width: fit-content; padding: 7px 12px; border-radius: 8px; background: #fff; font-size: 1.7rem; font-weight: 800; letter-spacing: .16em; }
+.pin-generado p { margin: 0; }
+.acta-mvp { margin: 24px 0; }
+.acta-mvp h2, .mvp-compartir h2 { margin-top: 0; }
+.acta-mvp-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.acta-mvp-equipo { display: flex; min-width: 0; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--borde); border-radius: 15px; background: var(--papel); }
+.acta-mvp-equipo img, .acta-mvp-inicial { width: 58px; height: 58px; flex: 0 0 58px; border-radius: 50%; object-fit: cover; }
+.acta-mvp-inicial { display: grid; place-items: center; background: var(--acento-claro); color: var(--acento); font-size: 1.4rem; font-weight: 800; }
+.acta-mvp-equipo div { display: grid; gap: 2px; min-width: 0; }
+.acta-mvp-equipo strong { overflow-wrap: anywhere; }
+.mvp-compartir { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0 28px; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); }
+.mvp-compartir p { margin: 0; color: var(--suave); }
+.mvp-compartir h2 { margin-bottom: 5px; }
+.mvp-compartir .error { flex-basis: 100%; }
+.estadistica-mvp { margin: 24px 0; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); }
+.estadistica-mvp h2 { margin-top: 0; }
+
+@media (max-width: 600px) {
+  .acta-mvp-lista { grid-template-columns: 1fr; }
+  .admin-pin-equipo { grid-template-columns: 1fr auto; }
+  .admin-pin-equipo button { grid-column: 1 / -1; }
+}
+
 main {
   width: min(100% - 32px, 760px);
   margin: 0 auto;

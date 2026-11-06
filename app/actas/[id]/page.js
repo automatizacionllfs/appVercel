@@ -36,7 +36,7 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
 
   const [resultadoEquipos, resultadoEventos] = await Promise.all([
     db.from("equipos")
-      .select("id,nombre,escudo_url")
+      .select("id,id_clupik,nombre,escudo_url")
       .in("id", [partido.local_id, partido.visitante_id]),
     db.from("eventos")
       .select("id,tipo,parte,restante_seg,equipo_id,jugador_id,jugador:jugadores(nombre)")
@@ -48,7 +48,22 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
   if (resultadoEquipos.error) throw new Error(`No se pudieron cargar los equipos: ${resultadoEquipos.error.message}`);
   if (resultadoEventos.error) throw new Error(`No se pudieron cargar los eventos del acta: ${resultadoEventos.error.message}`);
 
+  const { data: votosMvp, error: errorMvp } = await db.from("mvp")
+    .select("equipo_votante_id,jugador:jugadores(id,id_clupik,nombre,image_id)")
+    .eq("partido_id", partido.id);
+  if (errorMvp) throw new Error(`No se pudieron cargar los MVP del partido: ${errorMvp.message}`);
+
   const equipoPorId = new Map((resultadoEquipos.data || []).map((equipo) => [equipo.id, equipo]));
+  const mvpPorEquipo = new Map();
+  (votosMvp || []).forEach((voto) => {
+    const equipoId = voto.equipo_votante_id === partido.local_id ? partido.visitante_id : partido.local_id;
+    const equipo = equipoPorId.get(equipoId);
+    const jugador = voto.jugador;
+    const foto = process.env.CLUB_ID && equipo?.id_clupik && jugador?.id_clupik && jugador?.image_id
+      ? `https://api.clupik.com/clubs/${process.env.CLUB_ID}/teams/${equipo.id_clupik}/players/${jugador.id_clupik}/picture/${jugador.image_id}.medium.jpg`
+      : null;
+    mvpPorEquipo.set(equipoId, jugador ? { ...jugador, foto } : null);
+  });
   const origenEstadisticas = query?.desde === "estadisticas" && /^\d+$/.test(String(query?.equipo || ""))
     ? `/estadisticas?equipo=${encodeURIComponent(query.equipo)}`
     : "/actas";
@@ -60,6 +75,8 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
         local={equipoPorId.get(partido.local_id)}
         visitante={equipoPorId.get(partido.visitante_id)}
         eventos={resultadoEventos.data || []}
+        mvpLocal={mvpPorEquipo.get(partido.local_id) || null}
+        mvpVisitante={mvpPorEquipo.get(partido.visitante_id) || null}
         actaDigitalizada={partido.estado === "cerrado" || (resultadoEventos.data || []).length > 0}
         volver={origenEstadisticas}
       />

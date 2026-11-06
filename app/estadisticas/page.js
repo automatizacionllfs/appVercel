@@ -16,6 +16,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
   let partidos = [];
   let eventos = [];
   let plantilla = [];
+  let rankingMvp = [];
   if (temporada) {
     const [resultadoEquipos, resultadoPartidos] = await Promise.all([
       db.from("equipos").select("id,id_clupik,nombre,escudo_url,grupo:grupos(nombre)").eq("temporada_id", temporada.id).order("nombre"),
@@ -43,6 +44,36 @@ export default async function PaginaEstadisticas({ searchParams }) {
       });
     }
     if (partidos.length) {
+      const { data: votos, error: errorMvp } = await db.from("mvp")
+        .select("partido_id,equipo_votante_id,jugador_id,jugador:jugadores(id,id_clupik,nombre,image_id)")
+        .in("partido_id", partidos.map((partido) => partido.id));
+      if (errorMvp) throw new Error(`No se pudieron cargar los MVP: ${errorMvp.message}`);
+      const equipoPorId = new Map(equipos.map((equipo) => [equipo.id, equipo]));
+      const partidoPorId = new Map(partidos.map((partido) => [partido.id, partido]));
+      const premios = new Map();
+      (votos || []).forEach((voto) => {
+        const partido = partidoPorId.get(voto.partido_id);
+        const equipoId = voto.equipo_votante_id === partido?.local_id ? partido.visitante_id : partido?.local_id;
+        const equipo = equipoPorId.get(equipoId);
+        if (!equipo || !voto.jugador) return;
+        const clave = `${voto.jugador_id}:${equipo.id}`;
+        const actual = premios.get(clave) || {
+          jugadorId: voto.jugador_id,
+          jugador: voto.jugador.nombre,
+          equipoId: equipo.id,
+          equipo: equipo.nombre,
+          premios: 0,
+          foto: process.env.CLUB_ID && equipo.id_clupik && voto.jugador.id_clupik && voto.jugador.image_id
+            ? `https://api.clupik.com/clubs/${process.env.CLUB_ID}/teams/${equipo.id_clupik}/players/${voto.jugador.id_clupik}/picture/${voto.jugador.image_id}.medium.jpg`
+            : null,
+        };
+        actual.premios += 1;
+        premios.set(clave, actual);
+      });
+      rankingMvp = [...premios.values()].sort((a, b) =>
+        b.premios - a.premios || a.jugador.localeCompare(b.jugador, "es"),
+      );
+
       for (let desde = 0; ; desde += 1000) {
         const { data: pagina, error } = await db.from("eventos")
           .select("partido_id,equipo_id,jugador_id,tipo,parte,restante_seg,jugador:jugadores(id,nombre)")
@@ -60,7 +91,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
     <main>
       <h1>Estadísticas{temporada ? ` ${temporada.nombre}` : ""}</h1>
       <InfoDatosPublicos />
-      <Estadisticas equipos={equipos} partidos={partidos} eventos={eventos} plantilla={plantilla} equipoInicial={query?.equipo || ""} />
+      <Estadisticas equipos={equipos} partidos={partidos} eventos={eventos} plantilla={plantilla} rankingMvp={rankingMvp} equipoInicial={query?.equipo || ""} />
     </main>
   );
 }

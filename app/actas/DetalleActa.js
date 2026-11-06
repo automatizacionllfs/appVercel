@@ -1,3 +1,5 @@
+import MVPShareCard from "../entrenador/MVPShareCard";
+
 const duracionParte = 22 * 60;
 const reloj = (segundos) => `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
 const fecha = (valor) => valor
@@ -28,7 +30,7 @@ function IconoSilbato() {
   );
 }
 
-export default function DetalleActa({ partido, local, visitante, eventos, actaDigitalizada, volver }) {
+export default function DetalleActa({ partido, local, visitante, eventos, mvpLocal, mvpVisitante, actaDigitalizada, volver }) {
   const golesLocal = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.local_id).length;
   const golesVisitante = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.visitante_id).length;
   const resultadoSincronizado = partido.goles_local_clupik !== null && partido.goles_visitante_clupik !== null;
@@ -76,6 +78,31 @@ export default function DetalleActa({ partido, local, visitante, eventos, actaDi
           <span>🟥 <strong>{eventos.filter((evento) => evento.tipo === "roja").length}</strong> rojas</span>
         </div>
       </header>
+
+      <section className="acta-mvp" aria-label="MVP del partido">
+        <h2>MVP del partido</h2>
+        <div className="acta-mvp-lista">
+          {[
+            { equipo: local, jugador: mvpLocal },
+            { equipo: visitante, jugador: mvpVisitante },
+          ].map(({ equipo, jugador }) => (
+            <article className="acta-mvp-equipo" key={equipo?.id || equipo?.nombre}>
+              {jugador?.foto
+                ? <img src={jugador.foto} alt="" width="68" height="68" loading="lazy" />
+                : <span className="acta-mvp-inicial" aria-hidden="true">{equipo?.nombre?.slice(0, 1) || "M"}</span>}
+              <div>
+                <span className="suave">MVP de {equipo?.nombre || "equipo"}</span>
+                <strong>{jugador?.nombre || "Aún no seleccionado"}</strong>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+      <MVPShareCard
+        partido={{ ...partido, local, visitante }}
+        mvpLocal={mvpLocal ? { jugador: mvpLocal } : null}
+        mvpVisitante={mvpVisitante ? { jugador: mvpVisitante } : null}
+      />
 
       {partido.descripcion && (
         <section className="acta-descripcion-publica" aria-labelledby="acta-descripcion-titulo">
