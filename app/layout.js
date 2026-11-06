@@ -6,12 +6,20 @@ export const metadata = {
   title: "LLFS Puerto Real",
   description: "Goleadores y actas de la liga",
   icons: {
-    icon: "/logo-llfs.png",
-    apple: "/logo-llfs.png",
+    icon: [
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: "/icon-192.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "LLFS Puerto Real",
+    statusBarStyle: "default",
   },
 };
-export const viewport = { width: "device-width", initialScale: 1 };
-const VERSION = "1.5.4";
+export const viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
+const VERSION = "2.0.0";
 const FECHA_ACTUALIZACION = "06/11/2026";
 
 export default function RootLayout({ children }) {
