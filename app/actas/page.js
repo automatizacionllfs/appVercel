@@ -62,12 +62,12 @@ export default async function ActasDigitales() {
     });
 
     partidosConActa = (partidos || [])
-      .filter((partido) => partido.estado === "cerrado" || resumenEventos.has(partido.id))
       .map((partido) => ({
         ...partido,
         local: equipoPorId.get(partido.local_id),
         visitante: equipoPorId.get(partido.visitante_id),
         resumen: resumenEventos.get(partido.id) || { goles: 0, tarjetas: 0, eventos: 0 },
+        actaDigitalizada: partido.estado === "cerrado" || resumenEventos.has(partido.id),
       }));
   }
 
@@ -75,21 +75,21 @@ export default async function ActasDigitales() {
     <main>
       <h1>Actas digitales{temporada ? ` · ${temporada.nombre}` : ""}</h1>
       <InfoDatosPublicos />
-      <p className="suave">Consulta los partidos con acta cerrada o con eventos registrados y repasa cada acción en orden cronológico.</p>
+      <p className="suave">Consulta todos los partidos y repasa en orden cronológico los eventos de las actas digitalizadas.</p>
       {!partidosConActa.length ? (
         <section className="actas-vacio">
           <span aria-hidden="true">📋</span>
-          <h2>Aún no hay actas digitales disponibles</h2>
-          <p className="suave">Cuando se registre o cierre un acta, el partido aparecerá aquí.</p>
+          <h2>Aún no hay partidos disponibles</h2>
+          <p className="suave">Los partidos aparecerán aquí cuando se sincronicen.</p>
         </section>
       ) : (
-        <section className="actas-lista" aria-label="Partidos con acta digital">
+        <section className="actas-lista" aria-label="Todos los partidos">
           {partidosConActa.map((partido) => (
             <a className="acta-partido" href={`/actas/${partido.id}`} key={partido.id}>
               <span className="acta-partido-meta">
                 Jornada {partido.jornada || "—"} <span aria-hidden="true">·</span> {fecha(partido.fecha)}
-                <span className={`acta-estado ${partido.estado === "cerrado" ? "cerrada" : ""}`}>
-                  {partido.estado === "cerrado" ? "Acta cerrada" : "Acta en curso"}
+                <span className={`acta-estado ${partido.estado === "cerrado" ? "cerrada" : ""} ${!partido.actaDigitalizada ? "pendiente" : ""}`}>
+                  {partido.estado === "cerrado" ? "Acta cerrada" : partido.actaDigitalizada ? "Acta en curso" : "Sin acta digital"}
                 </span>
               </span>
               <span className="acta-cruce">
@@ -106,7 +106,7 @@ export default async function ActasDigitales() {
                 </span>
               </span>
               <span className="acta-partido-pie">
-                <span>{partido.resumen.eventos} eventos registrados</span>
+                <span>{partido.actaDigitalizada ? `${partido.resumen.eventos} eventos registrados` : "Acta pendiente de digitalizar"}</span>
                 <span className="acta-ver-cronologia">Ver cronología <span aria-hidden="true">→</span></span>
               </span>
             </a>

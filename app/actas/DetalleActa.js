@@ -28,7 +28,7 @@ function IconoSilbato() {
   );
 }
 
-export default function DetalleActa({ partido, local, visitante, eventos, volver }) {
+export default function DetalleActa({ partido, local, visitante, eventos, actaDigitalizada, volver }) {
   const golesLocal = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.local_id).length;
   const golesVisitante = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.visitante_id).length;
   const resultadoSincronizado = partido.goles_local_clupik !== null && partido.goles_visitante_clupik !== null;
@@ -51,7 +51,7 @@ export default function DetalleActa({ partido, local, visitante, eventos, volver
     <>
       <a className="boton-inicio acta-volver" href={volver}>← Volver</a>
       <header className="acta-cabecera">
-        <span className="acta-kicker">ACTA DIGITAL · JORNADA {partido.jornada || "—"}</span>
+        <span className="acta-kicker">{actaDigitalizada ? "ACTA DIGITAL" : "ACTA PENDIENTE DE DIGITALIZAR"} · JORNADA {partido.jornada || "—"}</span>
         <p className="acta-fecha">{fecha(partido.fecha)}</p>
         <div className="acta-marcador-grande">
           <div className="acta-equipo-grande">
@@ -77,12 +77,14 @@ export default function DetalleActa({ partido, local, visitante, eventos, volver
         </div>
       </header>
 
-      <aside className={`acta-aviso ${hayDesajuste ? "desajuste" : ""}`}>
-        <span className="acta-aviso-icono" aria-hidden="true">{hayDesajuste ? "ⓘ" : "✓"}</span>
+      <aside className={`acta-aviso ${!actaDigitalizada ? "sin-digitalizar" : hayDesajuste ? "desajuste" : ""}`}>
+        <span className="acta-aviso-icono" aria-hidden="true">{!actaDigitalizada ? "!" : hayDesajuste ? "ⓘ" : "✓"}</span>
         <div>
-          <strong>{hayDesajuste ? "Diferencia entre el acta y el marcador sincronizado" : "Información sobre los datos del partido"}</strong>
+          <strong>{!actaDigitalizada ? "Este partido todavía no tiene acta digitalizada" : hayDesajuste ? "Diferencia entre el acta y el marcador sincronizado" : "Información sobre los datos del partido"}</strong>
           <p>
-            {hayDesajuste
+            {!actaDigitalizada
+              ? "La cronología estará disponible cuando se digitalice el acta."
+              : hayDesajuste
               ? "El acta digital y el marcador procedente de Clupik no coinciden. Se muestran ambos datos para facilitar su revisión; la información puede estar pendiente de sincronización."
               : "La cronología recoge los eventos anotados en el acta digital. El marcador se sincroniza desde Clupik y ambos registros pueden actualizarse en momentos distintos."}
           </p>
@@ -98,9 +100,13 @@ export default function DetalleActa({ partido, local, visitante, eventos, volver
           <span className="acta-total-eventos">{eventos.length} {eventos.length === 1 ? "evento" : "eventos"}</span>
         </div>
         {!eventos.length && (
-          <p className="acta-sin-eventos">Todavía no hay goles ni tarjetas registrados en el acta de este partido.</p>
+          <p className="acta-sin-eventos">
+            {actaDigitalizada
+              ? "Todavía no hay goles ni tarjetas registrados en el acta de este partido."
+              : "Este partido aún no tiene acta digitalizada; su cronología se completará cuando se registre."}
+          </p>
         )}
-        <ol className="acta-timeline">
+        {actaDigitalizada && <ol className="acta-timeline">
           {cronologia.map((item, indice) => item.tipo === "silbato" ? (
             <li className="acta-hito" key={item.titulo}>
               <span className="acta-hito-espacio" aria-hidden="true" />
@@ -128,7 +134,7 @@ export default function DetalleActa({ partido, local, visitante, eventos, volver
               <span className="sr-only">Evento {indice + 1}</span>
             </li>
           ))}
-        </ol>
+        </ol>}
       </section>
       <a className="boton-inicio acta-volver-final" href={volver}>← Volver</a>
     </>

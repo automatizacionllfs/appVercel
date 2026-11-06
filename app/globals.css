@@ -500,6 +500,7 @@ main > p > a {
 .acta-partido-meta, .acta-partido-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--suave); font-size: .82rem; }
 .acta-estado { margin-left: auto; padding: 4px 9px; border-radius: 999px; background: #fff4d8; color: #795800; font-size: .73rem; font-weight: 750; }
 .acta-estado.cerrada { background: #e7f5ec; color: #17653b; }
+.acta-estado.pendiente { background: #eef0f3; color: #515966; }
 .acta-cruce { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
 .acta-equipo { display: flex; align-items: center; gap: 9px; min-width: 0; }
 .acta-equipo img { flex: 0 0 auto; object-fit: contain; }
@@ -539,6 +540,7 @@ main > p > a {
 .acta-metricas strong { color: #fff; }
 .acta-aviso { display: flex; gap: 11px; margin: 16px 0 24px; padding: 14px 16px; border: 1px solid #d5e4ef; border-left: 4px solid #3475a8; border-radius: 12px; background: #edf5fb; color: #254761; }
 .acta-aviso.desajuste { border-color: #f0d69a; border-left-color: #d09100; background: #fff8e8; color: #6d5114; }
+.acta-aviso.sin-digitalizar { border-color: #d9dee5; border-left-color: #687386; background: #f2f4f7; color: #424b59; }
 .acta-aviso-icono { display: grid; width: 25px; height: 25px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: rgb(0 50 97 / 9%); font-weight: 850; }
 .acta-aviso strong { display: block; font-size: .89rem; }
 .acta-aviso p { margin: 3px 0 0; font-size: .82rem; line-height: 1.5; }

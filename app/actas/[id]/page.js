@@ -45,6 +45,7 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
         local={equipoPorId.get(partido.local_id)}
         visitante={equipoPorId.get(partido.visitante_id)}
         eventos={resultadoEventos.data || []}
+        actaDigitalizada={partido.estado === "cerrado" || (resultadoEventos.data || []).length > 0}
         volver={origenEstadisticas}
       />
     </main>
