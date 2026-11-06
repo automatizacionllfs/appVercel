@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import InfoDatosPublicos from "../InfoDatosPublicos";
 
 export const revalidate = 60;
 
@@ -73,6 +74,7 @@ export default async function ActasDigitales() {
   return (
     <main>
       <h1>Actas digitales{temporada ? ` · ${temporada.nombre}` : ""}</h1>
+      <InfoDatosPublicos />
       <p className="suave">Consulta los partidos con acta cerrada o con eventos registrados y repasa cada acción en orden cronológico.</p>
       {!partidosConActa.length ? (
         <section className="actas-vacio">

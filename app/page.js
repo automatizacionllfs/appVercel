@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import Goleadores from "./Goleadores";
+import InfoDatosPublicos from "./InfoDatosPublicos";
 
 export const revalidate = 60;
 
@@ -26,6 +27,7 @@ export default async function Inicio() {
   return (
     <main>
       <h1>Máximos goleadores{temp ? ` ${temp.nombre}` : ""}</h1>
+      <InfoDatosPublicos />
       <Goleadores goleadores={filas} equipos={equipos} />
     </main>
   );

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import Estadisticas from "./estadisticas";
+import InfoDatosPublicos from "../InfoDatosPublicos";
 
 export const revalidate = 60;
 
@@ -41,6 +42,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
   return (
     <main>
       <h1>Estadísticas{temporada ? ` ${temporada.nombre}` : ""}</h1>
+      <InfoDatosPublicos />
       <Estadisticas equipos={equipos} partidos={partidos} eventos={eventos} equipoInicial={query?.equipo || ""} />
     </main>
   );

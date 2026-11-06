@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import ClasificacionLiga from "../ClasificacionLiga";
+import InfoDatosPublicos from "../InfoDatosPublicos";
 
 export const revalidate = 60;
 
@@ -29,6 +30,7 @@ export default async function PaginaClasificacion() {
   return (
     <main>
       <h1>Clasificación{temporada ? ` ${temporada.nombre}` : ""}</h1>
+      <InfoDatosPublicos />
       <ClasificacionLiga equipos={equipos} partidos={partidos} />
     </main>
   );

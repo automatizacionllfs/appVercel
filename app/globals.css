@@ -61,6 +61,8 @@ body {
   transition: background-color .16s ease, border-color .16s ease, transform .16s ease;
 }
 .site-nav a:hover { transform: translateY(-1px); border-color: var(--acento); background: var(--acento-claro); }
+.site-nav a.nav-actas { gap: 7px; border-color: #b4232e; background: #b4232e; box-shadow: 0 3px 9px rgb(180 35 46 / 20%); color: #fff; }
+.site-nav a.nav-actas:hover { transform: translateY(-1px); border-color: #921d27; background: #921d27; }
 
 main {
   width: min(100% - 32px, 760px);
@@ -466,6 +468,21 @@ main > p > a {
   font-size: .8rem;
 }
 
+.info-datos-publicos { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 20px; margin: -6px 0 22px; padding: 16px; border: 1px solid var(--borde); border-left: 4px solid #b4232e; border-radius: 14px; background: var(--papel); box-shadow: 0 5px 16px rgb(0 50 97 / 5%); }
+.info-datos-cabecera { display: flex; align-items: flex-start; gap: 10px; grid-column: 1 / -1; }
+.info-datos-icono { display: grid; width: 25px; height: 25px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #edf3f8; color: var(--acento); font-size: .82rem; font-weight: 850; }
+.info-datos-cabecera strong { color: var(--acento-oscuro); font-size: .91rem; }
+.info-datos-cabecera p { margin: 1px 0 0; color: var(--suave); font-size: .81rem; }
+.info-datos-detalles { display: grid; gap: 7px; }
+.info-datos-detalles p { display: flex; align-items: flex-start; gap: 8px; margin: 0; color: var(--suave); font-size: .79rem; line-height: 1.45; }
+.info-datos-detalles strong { color: var(--tinta); }
+.info-datos-punto { width: 9px; height: 9px; flex: 0 0 auto; margin-top: 4px; border-radius: 50%; }
+.info-datos-punto.clupik { background: #3978a8; box-shadow: 0 0 0 3px rgb(57 120 168 / 13%); }
+.info-datos-punto.acta { background: #b4232e; box-shadow: 0 0 0 3px rgb(180 35 46 / 12%); }
+.info-datos-punto.revision { background: #d09100; box-shadow: 0 0 0 3px rgb(208 145 0 / 14%); }
+.boton-ver-actas { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; align-self: center; gap: 9px; padding: 0 13px; border: 1px solid #b4232e; border-radius: 10px; background: #fff5f5; color: #a21f29; font-size: .82rem; font-weight: 800; text-decoration: none; transition: background-color .16s ease, color .16s ease, transform .16s ease; white-space: nowrap; }
+.boton-ver-actas:hover { transform: translateY(-1px); background: #b4232e; color: #fff; }
+
 .actas-lista { display: grid; gap: 12px; margin-top: 20px; }
 .acta-partido {
   display: grid;
@@ -581,6 +598,9 @@ main > p > a {
   .pie { width: min(100% - 24px, 760px); }
   .filtros-partidos { grid-template-columns: 1fr; }
   .acta-partido { padding: 14px; }
+  .info-datos-publicos { grid-template-columns: 1fr; gap: 12px; margin-bottom: 18px; padding: 14px; }
+  .info-datos-cabecera { grid-column: auto; }
+  .boton-ver-actas { justify-self: start; }
   .acta-cruce { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 7px; }
   .acta-equipo { gap: 5px; font-size: .82rem; }
   .acta-equipo img { width: 27px; height: 27px; }

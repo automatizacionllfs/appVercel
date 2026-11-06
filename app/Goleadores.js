@@ -98,7 +98,6 @@ export default function Goleadores({ goleadores, equipos }) {
         </section>
       )}
 
-      <p className="aviso-datos">Aviso: pueden faltar goles en estas tablas porque todavía no todas las actas de la temporada están informatizadas.</p>
     </>
   );
 }

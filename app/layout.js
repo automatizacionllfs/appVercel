@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
             <a href="/">Máximos goleadores</a>
             <a href="/clasificacion">Clasificación</a>
             <a href="/estadisticas">Estadísticas</a>
-            <a href="/actas">Actas digitales</a>
+            <a className="nav-actas" href="/actas">Ver actas <span aria-hidden="true">→</span></a>
             <a href="/arbitro">Árbitros</a>
           </nav>
         </header>
