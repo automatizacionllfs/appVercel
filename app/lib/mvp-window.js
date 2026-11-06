@@ -1,5 +1,5 @@
 export const MVP_VOTING_OPEN_OFFSET_MINUTES = Number(process.env.MVP_VOTING_OPEN_OFFSET_MINUTES ?? 0);
-export const MVP_VOTING_CLOSE_AFTER_HOURS = Number(process.env.MVP_VOTING_CLOSE_AFTER_HOURS ?? 168);
+export const MVP_VOTING_CLOSE_AFTER_HOURS = Number(process.env.MVP_VOTING_CLOSE_AFTER_HOURS ?? 1440);
 
 export function ventanaMvp(fechaPartido) {
   if (!fechaPartido) return null;
