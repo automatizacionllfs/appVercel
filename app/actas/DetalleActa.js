@@ -103,8 +103,9 @@ export default function DetalleActa({ partido, local, visitante, eventos, volver
         <ol className="acta-timeline">
           {cronologia.map((item, indice) => item.tipo === "silbato" ? (
             <li className="acta-hito" key={item.titulo}>
+              <span className="acta-hito-espacio" aria-hidden="true" />
               <span className="acta-hito-icono"><IconoSilbato /></span>
-              <div><strong>{item.titulo}</strong><span>{item.texto} · {reloj(item.segundo)}</span></div>
+              <div className="acta-hito-texto"><strong>{item.titulo}</strong><span>{item.texto} · {reloj(item.segundo)}</span></div>
             </li>
           ) : (
             <li className={`acta-evento acta-evento-${item.evento.tipo}`} key={item.evento.id}>

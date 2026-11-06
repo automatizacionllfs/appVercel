@@ -547,8 +547,9 @@ main > p > a {
 .acta-evento-equipo { color: var(--suave); font-size: .74rem; text-align: right; }
 .acta-hito { position: relative; display: grid; grid-template-columns: 76px 40px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 65px; padding: 5px 0; }
 .acta-hito::before { position: absolute; top: 0; bottom: 0; left: 107px; width: 2px; background: #e7edf3; content: ""; }
+.acta-hito-espacio { grid-column: 1; }
 .acta-hito-icono { z-index: 1; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid #d5e1eb; border-radius: 50%; background: #f3f7fa; color: var(--acento); }
-.acta-hito > div { display: grid; gap: 1px; }
+.acta-hito-texto { grid-column: 3; display: grid; min-width: 0; gap: 1px; text-align: left; }
 .acta-hito strong { color: var(--acento); font-size: .84rem; }
 .acta-hito > div span { color: var(--suave); font-size: .76rem; }
 .acta-volver-final { margin-top: 16px; }
