@@ -49,14 +49,43 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
       if (!ctx) throw new Error("Este navegador no permite crear la imagen.");
 
       const fondo = ctx.createLinearGradient(0, 0, ANCHO, ALTO);
-      fondo.addColorStop(0, "#00264a");
-      fondo.addColorStop(1, "#124f83");
+      fondo.addColorStop(0, "#07152e");
+      fondo.addColorStop(0.48, "#123b68");
+      fondo.addColorStop(1, "#071a37");
       ctx.fillStyle = fondo;
       ctx.fillRect(0, 0, ANCHO, ALTO);
+
+      const luz = ctx.createRadialGradient(550, 630, 30, 550, 630, 800);
+      luz.addColorStop(0, "rgba(40,132,205,.27)");
+      luz.addColorStop(1, "rgba(5,20,45,0)");
+      ctx.fillStyle = luz;
+      ctx.fillRect(0, 0, ANCHO, ALTO);
       ctx.fillStyle = "rgba(255,255,255,.035)";
+      for (let i = -700; i < 1800; i += 190) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + 65, 0);
+        ctx.lineTo(i + 780, ALTO);
+        ctx.lineTo(i + 715, ALTO);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.fillStyle = "rgba(197,31,50,.34)";
       ctx.beginPath();
-      ctx.arc(950, 100, 360, 0, Math.PI * 2);
+      ctx.moveTo(0, 460);
+      ctx.lineTo(22, 440);
+      ctx.lineTo(700, ALTO);
+      ctx.lineTo(620, ALTO);
+      ctx.closePath();
       ctx.fill();
+      ctx.strokeStyle = "rgba(132,202,255,.16)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(540, 940, 470, 730, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(540, 940, 380, 640, 0, 0, Math.PI * 2);
+      ctx.stroke();
 
       const logo = await cargarImagen("/logo-llfs.png");
       if (logo) ctx.drawImage(logo, 74, 52, 150, 78);
@@ -120,65 +149,68 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
           ? await cargarImagen(`/api/mvp/escudo?equipo=${encodeURIComponent(candidato.equipo.id)}`)
           : null;
         if (candidato.equipo?.escudo_url && !escudo) escudoNoDisponible = true;
-        ctx.fillStyle = "rgba(255,255,255,.12)";
-        ctx.beginPath();
-        ctx.arc(x + 165, y + 155, 94, 0, Math.PI * 2);
-        ctx.fill();
-        if (circulo(ctx, escudo, x + 165, y + 155, 86)) {
-          ctx.strokeStyle = "rgba(255,255,255,.7)";
-          ctx.lineWidth = 5;
-          ctx.beginPath();
-          ctx.arc(x + 165, y + 155, 90, 0, Math.PI * 2);
-          ctx.stroke();
+        if (escudo) {
+          const ratio = Math.min(150 / escudo.width, 112 / escudo.height);
+          const anchoEscudo = escudo.width * ratio;
+          const altoEscudo = escudo.height * ratio;
+          ctx.drawImage(escudo, x + 46, y + (150 - altoEscudo) / 2, anchoEscudo, altoEscudo);
         } else {
-          ctx.fillStyle = "#fff";
-          ctx.font = "800 56px system-ui, sans-serif";
-          ctx.textAlign = "center";
-          ctx.fillText(candidato.equipo?.nombre?.slice(0, 1) || "E", x + 165, y + 174);
-          ctx.textAlign = "start";
+          ctx.fillStyle = ROJO;
+          ctx.beginPath();
+          ctx.roundRect(x + 55, y + 38, 12, 86, 6);
+          ctx.fill();
         }
 
         ctx.fillStyle = "#d7e8f7";
         ctx.font = "700 23px system-ui, sans-serif";
-        texto(ctx, candidato.equipo?.nombre || "Equipo", x + 300, y + 140, 600);
+        texto(ctx, candidato.equipo?.nombre || "Equipo", x + 232, y + 94, 660);
+        ctx.fillStyle = ROJO;
+        ctx.fillRect(x + 232, y + 113, 90, 5);
 
         const jugador = candidato.mvp?.jugador;
         const foto = jugador?.foto ? await cargarImagen(jugador.foto) : null;
         ctx.fillStyle = "rgba(255,255,255,.17)";
         ctx.beginPath();
-        ctx.arc(x + 165, y + 366, 82, 0, Math.PI * 2);
+        ctx.arc(x + 165, y + 350, 94, 0, Math.PI * 2);
         ctx.fill();
-        if (!circulo(ctx, foto, x + 165, y + 366, 74)) {
+        if (circulo(ctx, foto, x + 165, y + 350, 86)) {
+          ctx.strokeStyle = "rgba(255,255,255,.7)";
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.arc(x + 165, y + 350, 90, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
           ctx.fillStyle = "#fff";
           ctx.font = "800 48px system-ui, sans-serif";
           ctx.textAlign = "center";
-          ctx.fillText(jugador?.nombre?.slice(0, 1) || "?", x + 165, y + 383);
+          ctx.fillText(jugador?.nombre?.slice(0, 1) || "?", x + 165, y + 367);
           ctx.textAlign = "start";
         }
+        ctx.fillStyle = "#ffd166";
         ctx.font = "800 20px system-ui, sans-serif";
-        ctx.fillText(jugador ? "MVP ELEGIDO POR EL EQUIPO RIVAL" : "MVP PENDIENTE DE SELECCIÓN", x + 300, y + 342);
-        ctx.fillStyle = "#000000";
+        ctx.fillText(jugador ? "MVP ELEGIDO POR EL EQUIPO RIVAL" : "MVP PENDIENTE DE SELECCIÓN", x + 300, y + 332);
+        ctx.fillStyle = "#ffffff";
         ctx.font = "850 40px system-ui, sans-serif";
-        texto(ctx, jugador?.nombre || "Aún no seleccionado", x + 300, y + 405, 600);
+        texto(ctx, jugador?.nombre || "Aún no seleccionado", x + 300, y + 391, 600);
       }
 
       ctx.fillStyle = ROJO;
       ctx.fillRect(64, 1650, 952, 5);
-      ctx.fillStyle = "#fff";
-      ctx.font = "650 25px system-ui, sans-serif";
-      ctx.fillText("llfspuertoreal.es", 68, 1710);
       ctx.fillStyle = "#d7e8f7";
-      ctx.font = "550 23px system-ui, sans-serif";
-      ctx.fillText("Instagram  @dlfsptoreal", 68, 1765);
-      ctx.fillText("YouTube  LLFS Puerto Real", 68, 1820);
+      ctx.font = "650 23px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("LIGA LOCAL DE FÚTBOL SALA", ANCHO / 2, 1742);
       ctx.fillStyle = ROJO;
-      ctx.beginPath();
-      ctx.arc(46, 1757, 6, 0, Math.PI * 2);
-      ctx.arc(46, 1812, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#d7e8f7";
-      ctx.font = "650 20px system-ui, sans-serif";
-      ctx.fillText("LIGA LOCAL DE FÚTBOL SALA", 68, 1870);
+      ctx.fillRect(64, 1770, 952, 4);
+      ctx.fillStyle = "#fff";
+      ctx.font = "650 19px system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("llfspuertoreal.es", 78, 1828);
+      ctx.textAlign = "center";
+      ctx.fillText("Instagram  @dlfsptoreal", ANCHO / 2, 1828);
+      ctx.textAlign = "right";
+      ctx.fillText("YouTube  LLFS Puerto Real", 1002, 1828);
+      ctx.textAlign = "start";
 
       if (escudoNoDisponible) {
         setError("No se pudo cargar algún escudo. Comprueba CLUPIK_IMAGE_HOSTS en la configuración del servidor.");
