@@ -351,8 +351,7 @@ table {
 .tabla-con-podio tbody tr.podio-1 td.num:first-child { color: #fff; }
 .tabla-con-podio tbody tr.podio-1 td.num:last-child strong { background: #ff0000; color: #fff; }
 .tabla-goleadores tbody tr.podio-1 td { padding-top: 17px; padding-bottom: 17px; font-size: 1.12rem; }
-.enlace-historial-goleador { display: inline-flex; margin-top: 3px; color: #b4232e; font-size: .78rem; font-weight: 750; }
-.enlace-historial-goleador:hover { font-weight: 850; }
+.goleador-goles { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; }
 .historial-jugador-cabecera {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);

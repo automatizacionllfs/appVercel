@@ -11,7 +11,7 @@ export const metadata = {
   },
 };
 export const viewport = { width: "device-width", initialScale: 1 };
-const VERSION = "1.5.1";
+const VERSION = "1.5.2";
 const FECHA_ACTUALIZACION = "06/11/2026";
 
 export default function RootLayout({ children }) {

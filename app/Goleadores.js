@@ -21,9 +21,13 @@ function TablaGoleadores({ filas }) {
               <td className="num">{posiciones[i]}</td>
               <td>
                 {fila.jugador}<div className="suave">{fila.equipo}</div>
-                <a className="enlace-historial-goleador" href={`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}`}>Historial</a>
               </td>
-              <td className="num"><strong>{fila.goles}</strong></td>
+              <td className="num">
+                <span className="goleador-goles">
+                  <a className="enlace-acta-estadisticas" href={`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}`}>Historial</a>
+                  <strong>{fila.goles}</strong>
+                </span>
+              </td>
             </tr>
           ))}
         </tbody>
