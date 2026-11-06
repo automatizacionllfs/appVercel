@@ -85,7 +85,11 @@ export default function Arbitro() {
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) return alert(`Error: ${j.error || r.status}`);
-    alert(`Sincronizado: ${j.equipos} equipos, ${j.jugadores} jugadores, ${j.partidos} partidos`);
+    alert(
+      `Sincronizado: ${j.equipos} equipos, ${j.jugadores} jugadores, ${j.partidos} partidos.\n` +
+      `Fotos recibidas de Clupik: ${j.jugadoresConFotoRecibida ?? "no disponible"}.\n` +
+      `Fotos guardadas en Supabase: ${j.jugadoresConFotoGuardada ?? "no disponible"}`,
+    );
     window.location.reload();
   };
   const golesActaPorPartido = new Map();

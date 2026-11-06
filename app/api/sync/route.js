@@ -133,7 +133,7 @@ async function sincronizar(db, fechas) {
       plantillas.push({ teamId, jug: String(p.id), dorsal: Number.isNaN(d) ? null : d });
     }
   }
-  const jugDb = await upsertTrozos(db, "jugadores", [...personas.values()], "id_clupik", "id,id_clupik");
+  const jugDb = await upsertTrozos(db, "jugadores", [...personas.values()], "id_clupik", "id,id_clupik,image_id");
   const jugId = new Map(jugDb.map((j) => [j.id_clupik, j.id]));
   const filasPl = new Map();
   plantillas.forEach((x) => {
@@ -153,7 +153,8 @@ async function sincronizar(db, fechas) {
   return {
     equipos: filasEq.size,
     jugadores: personas.size,
-    jugadoresConFoto: [...personas.values()].filter((jugador) => jugador.image_id).length,
+    jugadoresConFotoRecibida: [...personas.values()].filter((jugador) => jugador.image_id).length,
+    jugadoresConFotoGuardada: jugDb.filter((jugador) => jugador.image_id).length,
     plantillas: filasPl.size,
     partidos: filasP.length,
   };
