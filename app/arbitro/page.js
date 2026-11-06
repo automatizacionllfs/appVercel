@@ -16,6 +16,9 @@ export default function Arbitro() {
   const [golesActa, setGolesActa] = useState([]);
   const [errorPartidos, setErrorPartidos] = useState("");
   const [abierto, setAbierto] = useState(null);
+  const [modo, setModo] = useState("movil");
+  const [filtroJornada, setFiltroJornada] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
   const [desde, setDesde] = useState(() => fechaInput(process.env.FECHA_DESDE || "2026-09-01"));
   const [hasta, setHasta] = useState(() => fechaInput(process.env.FECHA_HASTA || "2027-06-30"));
 
@@ -91,6 +94,11 @@ export default function Arbitro() {
     porEquipo.set(gol.equipo_id, (porEquipo.get(gol.equipo_id) || 0) + 1);
     golesActaPorPartido.set(gol.partido_id, porEquipo);
   });
+  const jornadas = [...new Set(partidos.map((p) => p.jornada).filter((j) => j !== null))].sort((a, b) => a - b);
+  const partidosFiltrados = partidos.filter((p) =>
+    (!filtroJornada || String(p.jornada) === filtroJornada) &&
+    (!filtroEstado || p.estado === filtroEstado)
+  );
 
   if (sesion === undefined) return <main><p>Cargando…</p></main>;
   if (!sesion) return (
@@ -115,12 +123,28 @@ export default function Arbitro() {
       <button onClick={salir}>Salir</button>
     </main>
   );
-  if (abierto) return <Partido id={abierto} yo={yo} volver={() => setAbierto(null)} />;
+  if (abierto) return <Partido id={abierto} yo={yo} volver={() => setAbierto(null)} modo={modo} cambiarModo={setModo} />;
 
   return (
     <main>
       <h1>Hola, {yo.nombre}</h1>
       <h2>{yo.rol === "admin" ? "Partidos" : "Tus partidos"}</h2>
+      <SelectorModo modo={modo} cambiar={setModo} />
+      <div className="filtros-partidos">
+        <label>Jornada
+          <select value={filtroJornada} onChange={(e) => setFiltroJornada(e.target.value)}>
+            <option value="">Todas</option>
+            {jornadas.map((jornada) => <option key={jornada} value={jornada}>Jornada {jornada}</option>)}
+          </select>
+        </label>
+        <label>Estado del acta
+          <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
+            <option value="">Todos</option>
+            <option value="programado">Abierta</option>
+            <option value="cerrado">Cerrada</option>
+          </select>
+        </label>
+      </div>
       <div className="leyenda-semaforo" aria-label="Estados de los partidos">
         <span><i className="semaforo-luz futuro" />Futuro, sin resultado Clupik</span>
         <span><i className="semaforo-luz incompleto" />Resultado disponible, acta pendiente</span>
@@ -129,7 +153,8 @@ export default function Arbitro() {
       <p className="nota-datos">El estado completo compara el marcador y el cierre del acta; la sincronización disponible no permite contrastar las tarjetas con Clupik.</p>
       {errorPartidos && <p className="error">{errorPartidos}</p>}
       {partidos.length === 0 && <p className="suave">No tienes partidos asignados.</p>}
-      {partidos.map((p) => {
+      {partidos.length > 0 && partidosFiltrados.length === 0 && <p className="suave">No hay partidos con esos filtros.</p>}
+      {partidosFiltrados.map((p) => {
         const acta = golesActaPorPartido.get(p.id);
         const golesLocalActa = acta?.get(p.local_id) || 0;
         const golesVisitanteActa = acta?.get(p.visitante_id) || 0;
@@ -170,7 +195,17 @@ export default function Arbitro() {
   );
 }
 
-function Partido({ id, yo, volver }) {
+function SelectorModo({ modo, cambiar }) {
+  return (
+    <div className={`selector-modo ${modo}`} role="radiogroup" aria-label="Modo de anotación">
+      <span className="selector-modo-indicador" />
+      <button type="button" role="radio" aria-checked={modo === "movil"} onClick={() => cambiar("movil")}>Móvil</button>
+      <button type="button" role="radio" aria-checked={modo === "pc"} onClick={() => cambiar("pc")}>PC</button>
+    </div>
+  );
+}
+
+function Partido({ id, yo, volver, modo, cambiarModo }) {
   const [p, setP] = useState(null);
   const [pl, setPl] = useState([]);
   const [ev, setEv] = useState([]);
@@ -182,6 +217,9 @@ function Partido({ id, yo, volver }) {
   const [min, setMin] = useState(0);
   const [seg, setSeg] = useState(0);
   const [msg, setMsg] = useState("");
+  const [paso, setPaso] = useState("acciones");
+  const [golPropio, setGolPropio] = useState(false);
+  const [ultimaAccion, setUltimaAccion] = useState("");
 
   const cargar = useCallback(async () => {
     const { data: part, error: errorPartido } = await supabase.from("partidos")
@@ -219,16 +257,28 @@ function Partido({ id, yo, volver }) {
     setJug(x);
   };
 
-  const guardar = async () => {
+  const guardar = async (jugador = jug) => {
     setMsg("");
-    if (!jug) return setMsg("Elige un jugador.");
+    if (!golPropio && !jugador) return setMsg("Elige un jugador.");
     if (restante > 1320) return setMsg("El reloj no puede pasar de 22:00.");
     const { error } = await supabase.from("eventos").insert({
-      partido_id: id, equipo_id: eq, jugador_id: jug.jugador.id, tipo, parte, restante_seg: restante, creado_por: yo.id,
+      partido_id: id, equipo_id: eq, jugador_id: golPropio ? null : jugador.jugador.id, tipo, parte, restante_seg: restante, creado_por: yo.id,
     });
     if (error) return setMsg(error.message);
-    setJug(null); setBusca("");
+    const accion = golPropio ? "Gol en propia puerta" : TIPOS[tipo];
+    const autor = jugador ? ` · ${jugador.jugador.nombre}` : "";
+    setUltimaAccion(`${accion} · ${reloj(restante)} · ${eq === p.local_id ? p.local.nombre : p.visitante.nombre}${autor}`);
+    setMsg(`${accion} registrado.`);
+    setJug(null); setBusca(""); setGolPropio(false); setPaso("acciones");
     cargar();
+  };
+
+  const elegirAccion = (tipoElegido, esGolPropio = false) => {
+    setTipo(tipoElegido);
+    setGolPropio(esGolPropio);
+    setJug(null);
+    setMsg("");
+    setPaso(modo === "movil" ? "tiempo" : "acciones");
   };
 
   const anular = async (e) => {
@@ -257,27 +307,98 @@ function Partido({ id, yo, volver }) {
   };
 
   return (
-    <main>
-      <button className="mini" onClick={volver}>‹ Mis partidos</button>
-      <h1>Jornada {p.jornada}</h1>
-      <div className="marcador">
-        <span>{p.local.nombre}</span><strong>{goles(p.local_id)} – {goles(p.visitante_id)}</strong><span>{p.visitante.nombre}</span>
+    <main className={modo === "movil" ? "vista-movil" : ""}>
+      <div className={`cabecera-partido ${modo === "movil" ? "modo-movil" : ""}`}>
+        <button className="mini" onClick={volver}>‹ Mis partidos</button>
+        <h1>Jornada {p.jornada}</h1>
+        <div className="marcador">
+          <span>{p.local.nombre}</span><strong>{goles(p.local_id)} – {goles(p.visitante_id)}</strong><span>{p.visitante.nombre}</span>
+        </div>
+        <div className="marcador-clupik">
+          Marcador Clupik: <strong>{p.goles_local_clupik ?? "—"} – {p.goles_visitante_clupik ?? "—"}</strong>
+          {diferenciaLocal !== null && diferenciaVisitante !== null && (diferenciaLocal < 0 || diferenciaVisitante < 0
+            ? <span>· Revisar exceso en acta: {Math.max(0, -diferenciaLocal)} local, {Math.max(0, -diferenciaVisitante)} visitante</span>
+            : <span>· Pendientes de añadir al acta: {diferenciaLocal} local, {diferenciaVisitante} visitante</span>)}
+        </div>
+        <SelectorModo modo={modo} cambiar={(nuevoModo) => { setPaso("acciones"); cambiarModo(nuevoModo); }} />
+        {p.estado === "cerrado" && <p className="suave">Acta cerrada.</p>}
       </div>
-      <div className="marcador-clupik">
-        Marcador Clupik: <strong>{p.goles_local_clupik ?? "—"} – {p.goles_visitante_clupik ?? "—"}</strong>
-        {diferenciaLocal !== null && diferenciaVisitante !== null && (diferenciaLocal < 0 || diferenciaVisitante < 0
-          ? <span>· Revisar exceso en acta: {Math.max(0, -diferenciaLocal)} local, {Math.max(0, -diferenciaVisitante)} visitante</span>
-          : <span>· Pendientes de añadir al acta: {diferenciaLocal} local, {diferenciaVisitante} visitante</span>)}
-      </div>
-      {p.estado === "cerrado" && <p className="suave">Acta cerrada.</p>}
 
-      {editable && (
-        <>
+      {editable && (modo === "movil" ? (
+        <section className="captura-movil" aria-label="Registro rápido de eventos">
+          {paso === "acciones" && (
+            <>
+              <p className="paso-movil">Registrar evento</p>
+              <div className="acciones-movil">
+                <button className="accion-gol" onClick={() => elegirAccion("gol")}>Gol</button>
+                <button className="accion-amarilla" onClick={() => elegirAccion("amarilla")}>Tarjeta amarilla</button>
+                <button className="accion-roja" onClick={() => elegirAccion("roja")}>Tarjeta roja</button>
+                <button className="accion-propio" onClick={() => elegirAccion("gol", true)}>Gol en propia puerta</button>
+              </div>
+              {ultimaAccion && <p className="ultima-accion">Última acción: {ultimaAccion}</p>}
+              {msg && <p aria-live="polite" className={msg.includes("registrado.") ? "mensaje-ok" : "error"}>{msg}</p>}
+            </>
+          )}
+          {paso === "tiempo" && (
+            <>
+              <p className="paso-movil">1. Hora del evento</p>
+              <div className="fila">
+                <button className={parte === 1 ? "on" : ""} onClick={() => setParte(1)}>1ª parte</button>
+                <button className={parte === 2 ? "on" : ""} onClick={() => setParte(2)}>2ª parte</button>
+              </div>
+              <div className="fila">
+                <select aria-label="Minutos restantes" value={min} onChange={(e) => setMin(+e.target.value)}>
+                  {Array.from({ length: 23 }, (_, i) => <option key={i} value={i}>{i} min</option>)}
+                </select>
+                <select aria-label="Segundos restantes" value={seg} onChange={(e) => setSeg(+e.target.value)}>
+                  {Array.from({ length: 12 }, (_, i) => i * 5).map((s) => <option key={s} value={s}>{String(s).padStart(2, "0")} s</option>)}
+                </select>
+              </div>
+              <p className="suave">Quedan {reloj(restante)}</p>
+              <button className="primario boton-paso" onClick={() => setPaso("equipo")}>Continuar</button>
+              <button className="mini" onClick={() => setPaso("acciones")}>Volver</button>
+            </>
+          )}
+          {paso === "equipo" && (
+            <>
+              <p className="paso-movil">2. Equipo</p>
+              <div className="equipos-movil">
+                {[[p.local_id, p.local.nombre], [p.visitante_id, p.visitante.nombre]].map(([t, n]) => (
+                  <button key={t} className={eq === t ? "on" : ""} onClick={() => { setEq(t); setJug(null); setBusca(""); }}>{n}</button>
+                ))}
+              </div>
+              {golPropio
+                ? <button className="primario boton-paso" onClick={() => guardar(null)}>Registrar gol en propia puerta</button>
+                : <button className="primario boton-paso" onClick={() => setPaso("jugador")}>Continuar</button>}
+              <button className="mini" onClick={() => setPaso("tiempo")}>Volver</button>
+            </>
+          )}
+          {paso === "jugador" && (
+            <>
+              <p className="paso-movil">3. Jugador</p>
+              <input placeholder="Buscar jugador" value={busca} onChange={(e) => setBusca(e.target.value)} />
+              <div className="lista jugadores-movil">
+                {lista.map((x) => (
+                  <button key={x.id} onClick={() => {
+                    if (x.baja && !confirm(`${x.jugador.nombre} está de baja. ¿Asignarle el evento igualmente?`)) return;
+                    guardar(x);
+                  }}>#{x.dorsal ?? "–"} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
+                ))}
+              </div>
+              <button className="mini" onClick={sinFicha}>¿No aparece? Sin ficha</button>
+              {msg && <p aria-live="polite" className="error">{msg}</p>}
+              <button className="mini" onClick={() => setPaso("equipo")}>Volver</button>
+            </>
+          )}
+        </section>
+      ) : (
+        editable && <>
           <h2>Nuevo evento</h2>
           <div className="fila">
             {Object.entries(TIPOS).map(([k, v]) => (
-              <button key={k} className={tipo === k ? "on" : ""} onClick={() => setTipo(k)}>{v}</button>
+              <button key={k} className={tipo === k && !golPropio ? "on" : ""} onClick={() => elegirAccion(k)}>{v}</button>
             ))}
+            <button className={golPropio ? "on" : ""} onClick={() => elegirAccion("gol", true)}>Gol en propia</button>
           </div>
           <div className="fila" style={{ marginTop: 8 }}>
             {[[p.local_id, p.local.nombre], [p.visitante_id, p.visitante.nombre]].map(([t, n]) => (
@@ -285,7 +406,7 @@ function Partido({ id, yo, volver }) {
             ))}
           </div>
 
-          {jug ? (
+          {golPropio ? <p className="suave">El gol suma al marcador del equipo seleccionado y no se asigna a un jugador.</p> : jug ? (
             <p style={{ marginTop: 12 }}><strong>#{jug.dorsal ?? "–"} {jug.jugador.nombre}</strong>{" "}
               <button className="mini" onClick={() => setJug(null)}>Cambiar</button></p>
           ) : (
@@ -314,17 +435,17 @@ function Partido({ id, yo, volver }) {
             </select>
           </div>
           <p className="suave">Quedan {reloj(restante)} · minuto de juego {reloj(1320 - restante)}</p>
-          {msg && <p className="error">{msg}</p>}
-          <button className="primario" style={{ width: "100%" }} onClick={guardar}>Guardar {TIPOS[tipo].toLowerCase()}</button>
+          {msg && <p className={msg.includes("registrado.") ? "mensaje-ok" : "error"}>{msg}</p>}
+          <button className="primario" style={{ width: "100%" }} onClick={() => guardar()}>{golPropio ? "Guardar gol en propia puerta" : `Guardar ${TIPOS[tipo].toLowerCase()}`}</button>
         </>
-      )}
+      ))}
 
       <h2>Eventos del partido</h2>
       {orden.length === 0 && <p className="suave">Aún no hay eventos.</p>}
       {orden.map((e) => (
         <div key={e.id} className={`evento ${e.anulado ? "anulado" : ""}`}>
           <span className={`tipo-${e.tipo}`}>
-            {e.parte}ª · {reloj(e.restante_seg)} · {TIPOS[e.tipo]} · {e.jugador.nombre}
+            {e.parte}ª · {reloj(e.restante_seg)} · {e.jugador ? `${TIPOS[e.tipo]} · ${e.jugador.nombre}` : "Gol en propia puerta"}
           </span>
           {editable && <button className="mini" onClick={() => anular(e)}>{e.anulado ? "Restaurar" : "Anular"}</button>}
         </div>

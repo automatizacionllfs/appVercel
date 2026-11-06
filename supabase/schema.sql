@@ -112,7 +112,7 @@ create table eventos (
   id           bigint generated always as identity primary key,
   partido_id   bigint not null references partidos(id),
   equipo_id    bigint not null references equipos(id),
-  jugador_id   bigint not null references jugadores(id),
+  jugador_id   bigint references jugadores(id),
   tipo         tipo_evento not null,
   parte        smallint not null check (parte in (1, 2)),
   restante_seg int not null check (restante_seg between 0 and 1320),
@@ -177,7 +177,10 @@ begin
                      and new.equipo_id in (p.local_id, p.visitante_id)) then
       raise exception 'Ese equipo no juega este partido';
     end if;
-    if not exists (select 1 from plantilla pl
+    if new.jugador_id is null and new.tipo <> 'gol' then
+      raise exception 'Solo un gol puede registrarse sin jugador';
+    end if;
+    if new.jugador_id is not null and not exists (select 1 from plantilla pl
                    where pl.equipo_id = new.equipo_id and pl.jugador_id = new.jugador_id) then
       raise exception 'El jugador no esta en la plantilla de ese equipo';
     end if;

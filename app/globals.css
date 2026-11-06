@@ -212,8 +212,51 @@ select, input {
 .leyenda-semaforo span { display: inline-flex; align-items: center; gap: 7px; }
 .comparacion-goles { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 9px; color: var(--suave); font-size: .82rem; }
 .comparacion-goles strong { margin-left: 4px; color: var(--acento); font-variant-numeric: tabular-nums; }
+.selector-modo {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(100%, 360px);
+  min-height: 48px;
+  margin: 12px 0 18px;
+  padding: 4px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: #e7edf2;
+}
+.selector-modo button { z-index: 1; min-height: 38px; border: 0; background: transparent; box-shadow: none; color: var(--suave); font-weight: 700; }
+.selector-modo button[aria-checked="true"] { color: var(--acento-oscuro); }
+.selector-modo-indicador { position: absolute; inset: 4px auto 4px 4px; width: calc(50% - 4px); border: 1px solid var(--borde); border-radius: 9px; background: var(--papel); box-shadow: 0 2px 6px rgb(23 36 49 / 9%); transition: transform .18s ease; }
+.selector-modo.pc .selector-modo-indicador { transform: translateX(100%); }
+.filtros-partidos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+.filtros-partidos label { display: grid; gap: 5px; color: var(--suave); font-size: .83rem; font-weight: 650; }
 .marcador-clupik { margin: 10px 0 16px; padding: 11px 14px; border: 1px solid var(--borde); border-radius: 12px; background: var(--acento-claro); color: var(--acento-oscuro); font-size: .9rem; }
 .marcador-clupik strong { margin: 0 4px; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+
+.cabecera-partido h1 { position: relative; overflow: hidden; margin: 12px 0 24px; padding: 30px 30px 28px; border-radius: 20px; background: linear-gradient(120deg, #00264a, #003261 72%, #124f83); box-shadow: var(--sombra); color: #fff; font-size: clamp(1.7rem, 5vw, 2.35rem); font-weight: 800; letter-spacing: -.045em; line-height: 1.12; }
+.cabecera-partido h1::before { display: block; margin-bottom: 10px; color: #d7e8f7; content: "LLFS · PUERTO REAL"; font-size: .72rem; font-weight: 750; letter-spacing: .14em; }
+.cabecera-partido h1::after { position: absolute; right: -34px; bottom: -90px; width: 220px; height: 220px; border: 1px solid rgb(255 255 255 / 13%); border-radius: 50%; box-shadow: 0 0 0 26px rgb(255 255 255 / 5%), 0 0 0 54px rgb(255 255 255 / 4%); content: ""; pointer-events: none; }
+.cabecera-partido.modo-movil h1 { margin: 10px 0; padding: 0; border-radius: 0; background: none; box-shadow: none; color: var(--acento-oscuro); font-size: 1.3rem; line-height: 1.25; }
+.cabecera-partido.modo-movil h1::before, .cabecera-partido.modo-movil h1::after { display: none; }
+.cabecera-partido.modo-movil .marcador { padding: 12px 10px; border-radius: 12px; box-shadow: none; }
+.cabecera-partido.modo-movil .marcador strong { font-size: 1.8rem; }
+.cabecera-partido.modo-movil .marcador-clupik { margin: 8px 0; padding: 8px 10px; font-size: .8rem; }
+.cabecera-partido .selector-modo { margin: 8px 0 0; }
+.captura-movil { margin: 16px 0 24px; padding: 16px; border: 1px solid var(--borde); border-radius: 12px; background: var(--papel); box-shadow: var(--sombra); }
+.paso-movil { margin: 0 0 12px; color: var(--acento-oscuro); font-size: 1rem; font-weight: 800; }
+.acciones-movil { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.acciones-movil button { min-height: 92px; padding: 10px; border-width: 2px; font-size: 1.03rem; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; }
+.acciones-movil .accion-gol { border-color: #16834a; background: #e9f6ee; color: #11643a; }
+.acciones-movil .accion-amarilla { border-color: #d29a00; background: #fff6d8; color: #745300; }
+.acciones-movil .accion-roja { border-color: #d92e2e; background: #fff0f0; color: #a51d1d; }
+.acciones-movil .accion-propio { border-color: var(--acento); background: var(--acento-claro); color: var(--acento-oscuro); }
+.equipos-movil { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.equipos-movil button { min-height: 84px; padding: 10px; overflow-wrap: anywhere; font-weight: 750; }
+.jugadores-movil { max-height: min(42vh, 360px); }
+.boton-paso { width: 100%; margin-top: 12px; }
+.captura-movil > .mini { margin-top: 10px; }
+.ultima-accion { margin: 12px 0 0; padding: 10px; border-left: 4px solid #16834a; background: #e9f6ee; color: #11643a; font-size: .85rem; font-weight: 650; overflow-wrap: anywhere; }
+.mensaje-ok { color: #11643a; font-weight: 700; }
 
 .tarjeta strong { display: block; font-size: 1.03rem; }
 .suave { color: var(--suave); font-size: .9rem; }
@@ -429,6 +472,7 @@ main > p > a {
   .site-nav a { min-height: 38px; padding: 0 10px; font-size: .8rem; }
   main { width: min(100% - 24px, 760px); padding-top: 16px; }
   main > h1 { margin-bottom: 18px; padding: 24px 20px; border-radius: 16px; }
+  .cabecera-partido:not(.modo-movil) h1 { margin-bottom: 18px; padding: 24px 20px; border-radius: 16px; }
   h2 { margin-top: 24px; }
   th, td { padding: 12px 10px; }
   .marcador { gap: 8px; padding: 17px 10px; }
@@ -444,6 +488,15 @@ main > p > a {
   .partido-info { grid-column: 1 / -1; display: flex; justify-content: space-between; }
   .partido-rival { font-size: .9rem; }
   .pie { width: min(100% - 24px, 760px); }
+  .filtros-partidos { grid-template-columns: 1fr; }
+  .vista-movil { padding-top: 8px; }
+  .vista-movil .cabecera-partido { position: sticky; top: 0; z-index: 5; margin: -8px -2px 0; padding: 8px 2px 10px; border-bottom: 1px solid var(--borde); background: rgb(243 246 250 / 96%); backdrop-filter: blur(10px); }
+  .vista-movil .cabecera-partido .marcador { gap: 6px; padding: 8px 5px; }
+  .vista-movil .cabecera-partido .marcador span { font-size: .8rem; }
+  .vista-movil .cabecera-partido .marcador strong { font-size: 1.55rem; }
+  .vista-movil .cabecera-partido .marcador-clupik { margin-bottom: 0; }
+  .captura-movil { margin-top: 12px; padding: 12px; }
+  .acciones-movil button { min-height: 82px; font-size: .96rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
