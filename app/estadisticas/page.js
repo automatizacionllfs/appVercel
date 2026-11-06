@@ -18,7 +18,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
   let plantilla = [];
   if (temporada) {
     const [resultadoEquipos, resultadoPartidos] = await Promise.all([
-      db.from("equipos").select("id,nombre,escudo_url,grupo:grupos(nombre)").eq("temporada_id", temporada.id).order("nombre"),
+      db.from("equipos").select("id,id_clupik,nombre,escudo_url,grupo:grupos(nombre)").eq("temporada_id", temporada.id).order("nombre"),
       db.from("partidos").select("id,jornada,fecha,estado,local_id,visitante_id,goles_local_clupik,goles_visitante_clupik")
         .eq("temporada_id", temporada.id),
     ]);
