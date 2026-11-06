@@ -170,7 +170,7 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
         const y = candidato.y;
         const anchoTarjeta = 952;
         panel(ctx, x, y, anchoTarjeta, 510);
-        linea(ctx, x + 224, y + 86, 126, ROJO, 6);
+        linea(ctx, x + 224, y + 112, 126, ROJO, 6);
 
         const escudo = candidato.equipo?.id
           ? await cargarImagen(`/api/mvp/escudo?equipo=${encodeURIComponent(candidato.equipo.id)}`)
