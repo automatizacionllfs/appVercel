@@ -353,6 +353,7 @@ table {
 .tabla-goleadores tbody tr.podio-1 td { padding-top: 17px; padding-bottom: 17px; font-size: 1.12rem; }
 .goleador-goles { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; }
 .goleador-flecha { color: #b4232e; font-size: 1.15rem; font-weight: 850; }
+.tabla-goleadores tbody tr.podio-1 .goleador-flecha { color: #fff; }
 .tabla-goleadores tbody tr { cursor: pointer; }
 .tabla-goleadores tbody tr:focus-visible { outline: 3px solid #b4232e; outline-offset: -3px; }
 .tabla-goleadores tbody tr:not(.podio):hover { background: #eaf1f8; }
