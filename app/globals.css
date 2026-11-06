@@ -466,6 +466,96 @@ main > p > a {
   font-size: .8rem;
 }
 
+.actas-lista { display: grid; gap: 12px; margin-top: 20px; }
+.acta-partido {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: var(--papel);
+  box-shadow: var(--sombra);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-shadow: 0 16px 30px rgb(0 50 97 / 12%); }
+.acta-partido-meta, .acta-partido-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--suave); font-size: .82rem; }
+.acta-estado { margin-left: auto; padding: 4px 9px; border-radius: 999px; background: #fff4d8; color: #795800; font-size: .73rem; font-weight: 750; }
+.acta-estado.cerrada { background: #e7f5ec; color: #17653b; }
+.acta-cruce { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
+.acta-equipo { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.acta-equipo img { flex: 0 0 auto; object-fit: contain; }
+.acta-equipo strong { overflow-wrap: anywhere; }
+.acta-equipo.visitante { justify-content: flex-end; text-align: right; }
+.acta-marcador { padding: 7px 10px; border-radius: 10px; background: var(--acento-claro); color: var(--acento); font-size: 1.05rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.acta-partido-pie { color: var(--acento); font-weight: 700; }
+.actas-vacio { margin-top: 24px; padding: 30px 20px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); text-align: center; }
+.actas-vacio > span { font-size: 2rem; }
+.actas-vacio h2 { margin: 8px 0; }
+.acta-volver { margin: 0 0 14px; }
+.acta-cabecera {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border-radius: 20px;
+  background: linear-gradient(125deg, #00264a, #003261 72%, #124f83);
+  box-shadow: var(--sombra);
+  color: #fff;
+}
+.acta-cabecera::after { position: absolute; right: -72px; bottom: -155px; width: 290px; height: 290px; border: 1px solid rgb(255 255 255 / 13%); border-radius: 50%; box-shadow: 0 0 0 28px rgb(255 255 255 / 5%), 0 0 0 58px rgb(255 255 255 / 4%); content: ""; pointer-events: none; }
+.acta-kicker { color: #c8dff2; font-size: .72rem; font-weight: 800; letter-spacing: .13em; }
+.acta-fecha { margin: 5px 0 18px; color: #e0ebf5; font-size: .87rem; text-transform: capitalize; }
+.acta-marcador-grande { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 18px; }
+.acta-equipo-grande { display: grid; justify-items: center; gap: 9px; text-align: center; }
+.acta-equipo-grande img { object-fit: contain; }
+.acta-equipo-grande strong { max-width: 220px; overflow-wrap: anywhere; }
+.acta-resultados { display: grid; justify-items: center; gap: 3px; white-space: nowrap; }
+.acta-resultado-oficial { font-size: clamp(2.5rem, 9vw, 4rem); font-weight: 850; font-variant-numeric: tabular-nums; letter-spacing: -.06em; line-height: 1; }
+.acta-resultado-oficial i { color: #b7cde0; font-style: normal; font-weight: 400; }
+.acta-resultados-etiqueta { color: #d3e2ef; font-size: .69rem; }
+.acta-resultado-acta { margin-top: 4px; padding: 4px 9px; border: 1px solid rgb(255 255 255 / 24%); border-radius: 999px; background: rgb(255 255 255 / 10%); font-size: .8rem; font-weight: 700; }
+.acta-metricas { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.acta-metricas span { padding: 7px 11px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 999px; background: rgb(255 255 255 / 8%); color: #f0f5fa; font-size: .82rem; }
+.acta-metricas strong { color: #fff; }
+.acta-aviso { display: flex; gap: 11px; margin: 16px 0 24px; padding: 14px 16px; border: 1px solid #d5e4ef; border-left: 4px solid #3475a8; border-radius: 12px; background: #edf5fb; color: #254761; }
+.acta-aviso.desajuste { border-color: #f0d69a; border-left-color: #d09100; background: #fff8e8; color: #6d5114; }
+.acta-aviso-icono { display: grid; width: 25px; height: 25px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: rgb(0 50 97 / 9%); font-weight: 850; }
+.acta-aviso strong { display: block; font-size: .89rem; }
+.acta-aviso p { margin: 3px 0 0; font-size: .82rem; line-height: 1.5; }
+.acta-cronologia { padding: 20px; border: 1px solid var(--borde); border-radius: 18px; background: var(--papel); box-shadow: var(--sombra); }
+.acta-cronologia-titulo { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.acta-cronologia-titulo h2 { margin: 4px 0 0; color: var(--acento-oscuro); }
+.acta-total-eventos { padding: 5px 9px; border-radius: 999px; background: var(--acento-claro); color: var(--acento); font-size: .76rem; font-weight: 750; white-space: nowrap; }
+.acta-sin-eventos { padding: 12px; border-radius: 11px; background: #f5f8fb; color: var(--suave); font-size: .9rem; }
+.acta-timeline { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.acta-evento { position: relative; display: grid; grid-template-columns: 76px 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 76px; padding: 10px 0; }
+.acta-evento::before { position: absolute; top: 0; bottom: 0; left: 107px; width: 2px; background: #e7edf3; content: ""; }
+.acta-evento:first-child::before { top: 50%; }
+.acta-evento:nth-last-child(2)::before { bottom: 50%; }
+.acta-tiempo { z-index: 1; display: grid; justify-items: end; gap: 2px; color: var(--suave); font-size: .62rem; font-weight: 750; letter-spacing: .04em; }
+.acta-tiempo strong { color: var(--acento); font-size: .95rem; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.evento-icono, .evento-tarjeta { z-index: 1; display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid var(--borde); border-radius: 50%; background: #fff; }
+.evento-icono.gol { border-color: #c4d8e9; background: #edf5fb; font-size: 1.25rem; }
+.evento-tarjeta { width: 19px; height: 27px; justify-self: center; border-radius: 4px; }
+.evento-tarjeta.amarilla { border-color: #d8a914; background: #f1c232; }
+.evento-tarjeta.roja { border-color: #d43d3d; background: #e34d4d; }
+.acta-evento-detalle { display: grid; gap: 2px; }
+.acta-evento-detalle strong { color: var(--acento-oscuro); font-size: .92rem; }
+.acta-evento-detalle > span { color: var(--suave); font-size: .82rem; }
+.acta-evento-gol .acta-evento-detalle strong { color: #17653b; }
+.acta-evento-equipo { color: var(--suave); font-size: .74rem; text-align: right; }
+.acta-hito { position: relative; display: grid; grid-template-columns: 76px 40px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 65px; padding: 5px 0; }
+.acta-hito::before { position: absolute; top: 0; bottom: 0; left: 107px; width: 2px; background: #e7edf3; content: ""; }
+.acta-hito-icono { z-index: 1; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid #d5e1eb; border-radius: 50%; background: #f3f7fa; color: var(--acento); }
+.acta-hito > div { display: grid; gap: 1px; }
+.acta-hito strong { color: var(--acento); font-size: .84rem; }
+.acta-hito > div span { color: var(--suave); font-size: .76rem; }
+.acta-volver-final { margin-top: 16px; }
+.enlace-acta-estadisticas { grid-column: 1 / -1; justify-self: start; color: var(--acento); font-size: .8rem; font-weight: 750; text-decoration: none; }
+.enlace-acta-estadisticas:hover { text-decoration: underline; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+
 @media (max-width: 540px) {
   .site-header { padding-top: 10px; }
   .site-nav { gap: 6px; }
@@ -489,6 +579,33 @@ main > p > a {
   .partido-rival { font-size: .9rem; }
   .pie { width: min(100% - 24px, 760px); }
   .filtros-partidos { grid-template-columns: 1fr; }
+  .acta-partido { padding: 14px; }
+  .acta-cruce { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 7px; }
+  .acta-equipo { gap: 5px; font-size: .82rem; }
+  .acta-equipo img { width: 27px; height: 27px; }
+  .acta-marcador { padding: 6px 7px; font-size: .9rem; }
+  .acta-partido-meta { font-size: .74rem; }
+  .acta-estado { margin-left: 0; }
+  .acta-cabecera { padding: 20px 14px; }
+  .acta-marcador-grande { gap: 8px; }
+  .acta-equipo-grande img { width: 42px; height: 42px; }
+  .acta-equipo-grande strong { font-size: .82rem; }
+  .acta-resultado-oficial { font-size: 2.45rem; }
+  .acta-resultados-etiqueta { max-width: 92px; text-align: center; line-height: 1.2; }
+  .acta-resultados-etiqueta { font-size: .61rem; }
+  .acta-metricas { gap: 6px; margin-top: 16px; }
+  .acta-metricas span { padding: 6px 8px; font-size: .74rem; }
+  .acta-cronologia { padding: 16px 12px; }
+  .acta-cronologia-titulo { align-items: start; }
+  .acta-evento, .acta-hito { grid-template-columns: 58px 34px minmax(0, 1fr); gap: 8px; }
+  .acta-evento::before, .acta-hito::before { left: 83px; }
+  .evento-icono { width: 34px; height: 34px; }
+  .evento-tarjeta { width: 17px; height: 24px; }
+  .acta-tiempo { font-size: .56rem; }
+  .acta-tiempo strong { font-size: .85rem; }
+  .acta-evento-equipo { display: none; }
+  .acta-evento-detalle strong { font-size: .85rem; }
+  .acta-evento-detalle > span { font-size: .75rem; }
   .vista-movil { padding-top: 8px; }
   .vista-movil .cabecera-partido { position: sticky; top: 0; z-index: 5; margin: -8px -2px 0; padding: 8px 2px 10px; border-bottom: 1px solid var(--borde); background: rgb(243 246 250 / 96%); backdrop-filter: blur(10px); }
   .vista-movil .cabecera-partido .marcador { gap: 6px; padding: 8px 5px; }

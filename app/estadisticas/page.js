@@ -3,7 +3,8 @@ import Estadisticas from "./estadisticas";
 
 export const revalidate = 60;
 
-export default async function PaginaEstadisticas() {
+export default async function PaginaEstadisticas({ searchParams }) {
+  const query = await searchParams;
   const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
   });
@@ -40,7 +41,7 @@ export default async function PaginaEstadisticas() {
   return (
     <main>
       <h1>Estadísticas{temporada ? ` ${temporada.nombre}` : ""}</h1>
-      <Estadisticas equipos={equipos} partidos={partidos} eventos={eventos} />
+      <Estadisticas equipos={equipos} partidos={partidos} eventos={eventos} equipoInicial={query?.equipo || ""} />
     </main>
   );
 }

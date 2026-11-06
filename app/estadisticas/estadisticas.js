@@ -56,8 +56,8 @@ function formatFecha(fecha) {
   });
 }
 
-export default function Estadisticas({ equipos, partidos, eventos }) {
-  const [equipoId, setEquipoId] = useState("");
+export default function Estadisticas({ equipos, partidos, eventos, equipoInicial = "" }) {
+  const [equipoId, setEquipoId] = useState(String(equipoInicial));
   const equipo = equipos.find((item) => String(item.id) === equipoId);
   const partidosEquipo = equipo
     ? partidos.filter((partido) =>
@@ -133,6 +133,9 @@ export default function Estadisticas({ equipos, partidos, eventos }) {
                       <strong className="resultado-partido" aria-label={`${golesEquipo} a ${golesRival}`}>
                         {golesEquipo} – {golesRival}
                       </strong>
+                      <a className="enlace-acta-estadisticas" href={`/actas/${partido.id}?desde=estadisticas&equipo=${equipo.id}`}>
+                        Ver acta y cronología <span aria-hidden="true">→</span>
+                      </a>
                     </article>
                   );
                 })}
