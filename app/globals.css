@@ -116,6 +116,7 @@ h2 {
 }
 
 button, select, input { font: inherit; color: inherit; }
+textarea { font: inherit; color: inherit; }
 
 button {
   min-height: 50px;
@@ -136,7 +137,7 @@ button:hover {
 
 button:active { transform: translateY(0); }
 
-button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible {
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
   outline: 3px solid #ff0000;
   outline-offset: 3px;
 }
@@ -173,6 +174,19 @@ select, input {
   border-radius: 12px;
   background: var(--papel);
 }
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 120px;
+  margin: 8px 0 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: #fff;
+  line-height: 1.5;
+  resize: vertical;
+}
+textarea:disabled { background: #f5f8fb; color: var(--suave); }
 
 .fila { display: flex; gap: 10px; }
 .fila > * { min-width: 0; flex: 1; }
@@ -574,6 +588,11 @@ main > p > a {
 .acta-hito strong { color: var(--acento); font-size: .84rem; }
 .acta-hito > div span { color: var(--suave); font-size: .76rem; }
 .acta-volver-final { margin-top: 16px; }
+.acta-descripcion-publica, .acta-descripcion-form { margin: 16px 0 24px; padding: 18px 20px; border: 1px solid var(--borde); border-radius: 14px; background: var(--papel); }
+.acta-descripcion-publica h2, .acta-descripcion-form h2 { margin: 0 0 8px; color: var(--acento-oscuro); }
+.acta-descripcion-publica p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.acta-descripcion-form label { display: block; color: var(--suave); font-size: .88rem; font-weight: 650; }
+.acta-descripcion-form button:disabled { cursor: wait; opacity: .7; }
 .enlace-acta-estadisticas { grid-column: 1 / -1; justify-self: start; color: var(--acento); font-size: .8rem; font-weight: 750; text-decoration: none; }
 .enlace-acta-estadisticas:hover { text-decoration: underline; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }

@@ -77,6 +77,13 @@ export default function DetalleActa({ partido, local, visitante, eventos, actaDi
         </div>
       </header>
 
+      {partido.descripcion && (
+        <section className="acta-descripcion-publica" aria-labelledby="acta-descripcion-titulo">
+          <h2 id="acta-descripcion-titulo">Incidencias</h2>
+          <p>{partido.descripcion}</p>
+        </section>
+      )}
+
       <aside className={`acta-aviso ${!actaDigitalizada ? "sin-digitalizar" : hayDesajuste ? "desajuste" : ""}`}>
         <span className="acta-aviso-icono" aria-hidden="true">{!actaDigitalizada ? "!" : hayDesajuste ? "ⓘ" : "✓"}</span>
         <div>

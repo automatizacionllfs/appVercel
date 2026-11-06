@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
@@ -217,13 +217,17 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const [min, setMin] = useState(0);
   const [seg, setSeg] = useState(0);
   const [msg, setMsg] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [msgDescripcion, setMsgDescripcion] = useState("");
+  const [guardandoDescripcion, setGuardandoDescripcion] = useState(false);
   const [paso, setPaso] = useState("acciones");
   const [golPropio, setGolPropio] = useState(false);
   const [ultimaAccion, setUltimaAccion] = useState("");
+  const descripcionCargada = useRef(false);
 
   const cargar = useCallback(async () => {
     const { data: part, error: errorPartido } = await supabase.from("partidos")
-      .select("id,jornada,fecha,estado,local_id,visitante_id,goles_local_clupik,goles_visitante_clupik,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
+      .select("id,jornada,fecha,estado,descripcion,local_id,visitante_id,goles_local_clupik,goles_visitante_clupik,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
       .eq("id", id).single();
     if (errorPartido) {
       setMsg(`No se pudo cargar el partido: ${errorPartido.message}`);
@@ -236,6 +240,10 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
       .select("id,tipo,parte,restante_seg,anulado,equipo_id,jugador:jugadores(nombre)")
       .eq("partido_id", id);
     setP(part); setPl(plan || []); setEv(eventos || []);
+    if (!descripcionCargada.current) {
+      setDescripcion(part.descripcion || "");
+      descripcionCargada.current = true;
+    }
     setEq((e) => e ?? part.local_id);
   }, [id]);
   useEffect(() => { cargar(); }, [cargar]);
@@ -304,6 +312,29 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const reabrir = async () => {
     const { error } = await supabase.rpc("reabrir_acta", { p_partido: id });
     if (error) setMsg(error.message); else cargar();
+  };
+  const guardarDescripcion = async () => {
+    setMsgDescripcion("");
+    setGuardandoDescripcion(true);
+    const texto = descripcion.trim();
+    try {
+      const { error } = await supabase.rpc("guardar_descripcion_acta", {
+        p_partido: id,
+        p_descripcion: texto || null,
+      });
+      if (error) {
+        setMsgDescripcion(`No se pudieron guardar las incidencias: ${error.message}`);
+        return;
+      }
+      setDescripcion(texto);
+      setP((partido) => ({ ...partido, descripcion: texto || null }));
+      setMsgDescripcion("Incidencias guardadas.");
+    } catch (error) {
+      const detalle = error instanceof Error ? error.message : String(error);
+      setMsgDescripcion(`No se pudieron guardar las incidencias: ${detalle}`);
+    } finally {
+      setGuardandoDescripcion(false);
+    }
   };
 
   return (
@@ -450,6 +481,25 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
           {editable && <button className="mini" onClick={() => anular(e)}>{e.anulado ? "Restaurar" : "Anular"}</button>}
         </div>
       ))}
+
+      <section className="acta-descripcion-form">
+        <h2>Incidencias</h2>
+        <label htmlFor="descripcion-acta">Redacta las incidencias del partido</label>
+        <textarea
+          id="descripcion-acta"
+          rows={5}
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          disabled={!editable || guardandoDescripcion}
+          placeholder="Anota aquí las incidencias del encuentro."
+        />
+        {editable && (
+          <button className="primario" style={{ width: "100%" }} onClick={guardarDescripcion} disabled={guardandoDescripcion}>
+            {guardandoDescripcion ? "Guardando…" : "Guardar incidencias"}
+          </button>
+        )}
+        {msgDescripcion && <p aria-live="polite" className={msgDescripcion === "Incidencias guardadas." ? "mensaje-ok" : "error"}>{msgDescripcion}</p>}
+      </section>
 
       <h2>Acta</h2>
       {p.estado === "programado"

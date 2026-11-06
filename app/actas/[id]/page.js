@@ -13,7 +13,7 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
     auth: { persistSession: false },
   });
   const { data: partido, error: errorPartido } = await db.from("partidos")
-    .select("id,jornada,fecha,estado,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id")
+    .select("id,jornada,fecha,estado,descripcion,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id")
     .eq("id", id)
     .maybeSingle();
   if (errorPartido) throw new Error(`No se pudo cargar el partido: ${errorPartido.message}`);

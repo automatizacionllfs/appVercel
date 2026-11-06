@@ -98,6 +98,7 @@ create table partidos (
   visitante_id            bigint not null references equipos(id),
   goles_local_clupik      int,                  -- informativo, lo escribe Clupik
   goles_visitante_clupik  int,
+  descripcion             text,
   arbitro_id              bigint references usuarios(id),   -- asignacion interna
   estado                  estado_partido not null default 'programado',
   cerrado_por             bigint references usuarios(id),
@@ -164,7 +165,7 @@ end $$;
 create trigger aud_eventos after insert or update or delete on eventos
   for each row execute function auditar();
 -- Solo cambios hechos por personas (la sincronizacion no toca estas columnas)
-create trigger aud_partidos after update of arbitro_id, estado on partidos
+create trigger aud_partidos after update of arbitro_id, estado, descripcion on partidos
   for each row execute function auditar();
 
 -- ---------- VALIDACION DE EVENTOS ----------
@@ -254,6 +255,16 @@ begin
    where id = p_partido;
 end $$;
 
+create or replace function guardar_descripcion_acta(p_partido bigint, p_descripcion text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  update partidos
+     set descripcion = nullif(btrim(p_descripcion), '')
+   where id = p_partido
+     and (es_admin() or (estado = 'programado' and arbitro_id = usuario_actual()));
+  if not found then raise exception 'No se puede guardar la descripción de este acta'; end if;
+end $$;
+
 -- Cuando un jugador sin ficha se inscribe en Clupik: se fusiona con su ficha real
 create or replace function fusionar_jugador(p_origen bigint, p_destino bigint) returns void
 language plpgsql security definer set search_path = public as $$
@@ -268,9 +279,9 @@ begin
   delete from jugadores where id = p_origen;
 end $$;
 
-revoke execute on function crear_jugador_sin_ficha, cerrar_acta, reabrir_acta, fusionar_jugador
+revoke execute on function crear_jugador_sin_ficha, cerrar_acta, reabrir_acta, guardar_descripcion_acta, fusionar_jugador
   from public, anon;
-grant execute on function crear_jugador_sin_ficha, cerrar_acta, reabrir_acta, fusionar_jugador
+grant execute on function crear_jugador_sin_ficha, cerrar_acta, reabrir_acta, guardar_descripcion_acta, fusionar_jugador
   to authenticated;
 
 -- ---------- SEGURIDAD (RLS) ----------
