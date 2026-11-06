@@ -123,7 +123,12 @@ async function sincronizar(db, fechas) {
     for (const p of lista) {
       const nombre = [normalizar(p.firstName), normalizar(p.lastName), normalizar(p.secondSurname)].filter(Boolean).join(" ");
       if (!p.id || !nombre) continue;
-      personas.set(String(p.id), { id_clupik: String(p.id), nombre, apodo: limpiar(p.playerOne?.sportsName) || null });
+      personas.set(String(p.id), {
+        id_clupik: String(p.id),
+        nombre,
+        apodo: limpiar(p.playerOne?.sportsName) || null,
+        image_id: p.playerOne?.imageId || null,
+      });
       const d = parseInt(p.playerOne?.number, 10);
       plantillas.push({ teamId, jug: String(p.id), dorsal: Number.isNaN(d) ? null : d });
     }

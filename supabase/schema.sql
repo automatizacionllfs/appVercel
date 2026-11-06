@@ -70,6 +70,7 @@ create table jugadores (
   id_clupik          text unique,
   nombre             text not null,
   apodo              text,
+  image_id           text,
   sin_ficha          boolean not null default false,
   pendiente_revision boolean not null default false,
   creado_por         bigint references usuarios(id),

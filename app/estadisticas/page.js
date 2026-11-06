@@ -15,6 +15,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
   let equipos = [];
   let partidos = [];
   let eventos = [];
+  let plantilla = [];
   if (temporada) {
     const [resultadoEquipos, resultadoPartidos] = await Promise.all([
       db.from("equipos").select("id,nombre,escudo_url,grupo:grupos(nombre)").eq("temporada_id", temporada.id).order("nombre"),
@@ -25,6 +26,22 @@ export default async function PaginaEstadisticas({ searchParams }) {
     if (resultadoPartidos.error) throw new Error(`No se pudieron cargar los partidos: ${resultadoPartidos.error.message}`);
     equipos = resultadoEquipos.data || [];
     partidos = resultadoPartidos.data || [];
+    if (equipos.length) {
+      const { data, error } = await db.from("plantilla")
+        .select("equipo_id,dorsal,baja,jugador:jugadores(id,id_clupik,nombre,image_id)")
+        .in("equipo_id", equipos.map((equipo) => equipo.id))
+        .not("jugador.id_clupik", "is", null);
+      if (error) throw new Error(`No se pudo cargar la plantilla de jugadores: ${error.message}`);
+      const equipoClupikPorId = new Map(equipos.map((equipo) => [equipo.id, equipo.id_clupik]));
+      plantilla = (data || []).map((fila) => {
+        const teamId = equipoClupikPorId.get(fila.equipo_id);
+        const { jugador } = fila;
+        const foto = process.env.CLUB_ID && teamId && jugador?.image_id
+          ? `https://api.clupik.com/clubs/${process.env.CLUB_ID}/teams/${teamId}/players/${jugador.id_clupik}/picture/${jugador.image_id}.medium.jpg`
+          : null;
+        return { ...fila, jugador: jugador ? { ...jugador, foto } : null };
+      });
+    }
     if (partidos.length) {
       for (let desde = 0; ; desde += 1000) {
         const { data: pagina, error } = await db.from("eventos")
@@ -43,7 +60,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
     <main>
       <h1>Estadísticas{temporada ? ` ${temporada.nombre}` : ""}</h1>
       <InfoDatosPublicos />
-      <Estadisticas equipos={equipos} partidos={partidos} eventos={eventos} equipoInicial={query?.equipo || ""} />
+      <Estadisticas equipos={equipos} partidos={partidos} eventos={eventos} plantilla={plantilla} equipoInicial={query?.equipo || ""} />
     </main>
   );
 }

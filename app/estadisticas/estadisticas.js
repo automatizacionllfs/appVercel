@@ -56,7 +56,7 @@ function formatFecha(fecha) {
   });
 }
 
-export default function Estadisticas({ equipos, partidos, eventos, equipoInicial = "" }) {
+export default function Estadisticas({ equipos, partidos, eventos, plantilla, equipoInicial = "" }) {
   const [equipoId, setEquipoId] = useState(String(equipoInicial));
   const equipo = equipos.find((item) => String(item.id) === equipoId);
   const partidosConActa = new Set(eventos.map((evento) => evento.partido_id));
@@ -71,18 +71,25 @@ export default function Estadisticas({ equipos, partidos, eventos, equipoInicial
   const resumenEquipo = useMemo(() => resumen(eventosEquipo, partidosEquipo.length), [eventosEquipo, partidosEquipo.length]);
 
   const usuarios = useMemo(() => {
-    const porJugador = new Map();
+    const eventosPorJugador = new Map();
     eventosEquipo.forEach((evento) => {
-      if (!evento.jugador) return;
-      if (!porJugador.has(evento.jugador_id)) porJugador.set(evento.jugador_id, []);
-      porJugador.get(evento.jugador_id).push(evento);
+      if (!eventosPorJugador.has(evento.jugador_id)) eventosPorJugador.set(evento.jugador_id, []);
+      eventosPorJugador.get(evento.jugador_id).push(evento);
     });
-    return [...porJugador.entries()].map(([id, filas]) => ({
-      id,
-      nombre: filas[0].jugador.nombre,
-      ...resumen(filas, partidosEquipo.length),
-    })).sort((a, b) => b.goles - a.goles || a.nombre.localeCompare(b.nombre, "es"));
-  }, [eventosEquipo, partidosEquipo.length]);
+    return plantilla
+      .filter((fila) => fila.equipo_id === equipo?.id && fila.jugador?.id_clupik)
+      .map((fila) => {
+        const filas = eventosPorJugador.get(fila.jugador.id) || [];
+        return {
+          id: fila.jugador.id,
+          nombre: fila.jugador.nombre,
+          dorsal: fila.dorsal,
+          foto: fila.jugador.foto,
+          ...resumen(filas, partidosEquipo.length),
+        };
+      })
+      .sort((a, b) => b.goles - a.goles || (a.dorsal ?? 999) - (b.dorsal ?? 999) || a.nombre.localeCompare(b.nombre, "es"));
+  }, [plantilla, equipo?.id, eventosEquipo, partidosEquipo.length]);
 
   return (
     <>
@@ -147,15 +154,23 @@ export default function Estadisticas({ equipos, partidos, eventos, equipoInicial
           </section>
           <section>
             <h2>Estadísticas por jugador</h2>
-            {!usuarios.length ? <p className="suave">Todavía no hay eventos registrados para este equipo.</p> : (
+            {!usuarios.length ? <p className="suave">No hay jugadores de Clupik sincronizados para este equipo.</p> : (
               <div className="tabla-scroll">
                 <table className="tabla-con-podio">
-                  <thead><tr><th className="num">#</th><th>Jugador</th><th className="num">1.er gol</th><th className="num">Goles/partido</th><th className="num">🟨</th><th className="num">🟥</th></tr></thead>
+                  <thead><tr><th className="num">#</th><th className="num">Dorsal</th><th>Jugador</th><th className="num">1.er gol</th><th className="num">Goles/partido</th><th className="num">🟨</th><th className="num">🟥</th></tr></thead>
                   <tbody>
                     {usuarios.map((usuario, indice) => (
                       <tr key={usuario.id} className={indice < 3 ? `podio podio-${indice + 1}` : ""}>
                         <td className="num">{indice + 1}</td>
-                        <td>{usuario.nombre}</td>
+                        <td className="num">{usuario.dorsal ?? "–"}</td>
+                        <td>
+                          <span className="estadistica-jugador">
+                            <span className="estadistica-jugador-foto">
+                              {usuario.foto && <img src={usuario.foto} alt="" loading="lazy" />}
+                            </span>
+                            {usuario.nombre}
+                          </span>
+                        </td>
                         <td className="num">{reloj(usuario.primerGol)}</td>
                         <td className="num">{usuario.mediaGoles.toFixed(2)}</td>
                         <td className="num">{usuario.amarillas}</td>
@@ -166,7 +181,7 @@ export default function Estadisticas({ equipos, partidos, eventos, equipoInicial
                 </table>
               </div>
             )}
-            <p className="nota-datos">La media individual se calcula sobre los partidos con resultado del equipo. Las fotos personales de Clupik no están disponibles en los datos sincronizados.</p>
+            <p className="nota-datos">Se muestran los jugadores de la plantilla sincronizada desde Clupik. La media individual se calcula sobre los partidos con resultado del equipo.</p>
           </section>
         </>
       )}
