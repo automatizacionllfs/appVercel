@@ -5,6 +5,8 @@ create table if not exists entrenador_pins (
   creado_en timestamptz not null default now()
 );
 
+drop policy if exists "lectura publica" on mvp;
+
 alter table entrenador_pins enable row level security;
 
 create table if not exists entrenador_pin_intentos (

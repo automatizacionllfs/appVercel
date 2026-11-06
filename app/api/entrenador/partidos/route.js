@@ -1,19 +1,13 @@
-import { createServiceDb, errorRespuesta, leerSesionEntrenador } from "../../../lib/entrenador";
+import { createServiceDb, errorRespuesta, validarSesionEntrenador } from "../../../lib/entrenador";
 import { ventanaMvp } from "../../../lib/mvp-window";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  let sesion;
-  try {
-    sesion = leerSesionEntrenador(request);
-  } catch (error) {
-    return errorRespuesta(error);
-  }
-  if (!sesion) return Response.json({ error: "La sesión ha caducado. Vuelve a iniciar sesión." }, { status: 401 });
-
   try {
     const db = createServiceDb();
+    const sesion = await validarSesionEntrenador(request, db);
+    if (!sesion) return Response.json({ error: "La sesión ha caducado o el PIN se ha regenerado. Vuelve a iniciar sesión." }, { status: 401 });
     const { data: partidos, error: errorPartidos } = await db.from("partidos")
       .select("id,jornada,fecha,local_id,visitante_id,local:equipos!partidos_local_id_fkey(id,nombre,escudo_url),visitante:equipos!partidos_visitante_id_fkey(id,nombre,escudo_url)")
       .or(`local_id.eq.${sesion.equipoId},visitante_id.eq.${sesion.equipoId}`)
@@ -66,7 +60,7 @@ export async function GET(request) {
           cierra,
         };
       }),
-    });
+    }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     return errorRespuesta(error);
   }

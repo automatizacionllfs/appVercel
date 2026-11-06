@@ -27,12 +27,25 @@ function firmar(payload) {
   return createHmac("sha256", sessionSecret()).update(payload).digest("base64url");
 }
 
-export function crearSesionEntrenador(equipoId) {
+export function crearSesionEntrenador(equipoId, pinCreadoEn) {
   const payload = Buffer.from(JSON.stringify({
     equipoId: String(equipoId),
+    pinCreadoEn,
     exp: Math.floor(Date.now() / 1000) + SESSION_SECONDS,
   })).toString("base64url");
   return `${payload}.${firmar(payload)}`;
+}
+
+export async function validarSesionEntrenador(request, db) {
+  const sesion = leerSesionEntrenador(request);
+  if (!sesion) return null;
+  const { data: pin, error } = await db.from("entrenador_pins")
+    .select("creado_en,activo")
+    .eq("equipo_id", sesion.equipoId)
+    .maybeSingle();
+  if (error) throw new Error(`No se pudo validar la sesión: ${error.message}`);
+  if (!pin?.activo || pin.creado_en !== sesion.pinCreadoEn) return null;
+  return sesion;
 }
 
 export function leerSesionEntrenador(request) {
@@ -52,7 +65,8 @@ export function leerSesionEntrenador(request) {
 
   try {
     const sesion = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
-    if (!/^\d+$/.test(sesion.equipoId) || !Number.isInteger(sesion.exp) ||
+    if (!/^\d+$/.test(sesion.equipoId) || typeof sesion.pinCreadoEn !== "string" ||
+        !Number.isInteger(sesion.exp) ||
         sesion.exp <= Math.floor(Date.now() / 1000)) return null;
     return { equipoId: sesion.equipoId };
   } catch {

@@ -1,8 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import Estadisticas from "./estadisticas";
 import InfoDatosPublicos from "../InfoDatosPublicos";
+import { createServiceDb } from "../lib/entrenador";
+import { urlFotoMvp } from "../lib/foto-mvp";
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 export default async function PaginaEstadisticas({ searchParams }) {
   const query = await searchParams;
@@ -44,7 +46,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
       });
     }
     if (partidos.length) {
-      const { data: votos, error: errorMvp } = await db.from("mvp")
+      const { data: votos, error: errorMvp } = await createServiceDb().from("mvp")
         .select("partido_id,equipo_votante_id,jugador_id,jugador:jugadores(id,id_clupik,nombre,image_id)")
         .in("partido_id", partidos.map((partido) => partido.id));
       if (errorMvp) throw new Error(`No se pudieron cargar los MVP: ${errorMvp.message}`);
@@ -63,9 +65,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
           equipoId: equipo.id,
           equipo: equipo.nombre,
           premios: 0,
-          foto: process.env.CLUB_ID && equipo.id_clupik && voto.jugador.id_clupik && voto.jugador.image_id
-            ? `https://api.clupik.com/clubs/${process.env.CLUB_ID}/teams/${equipo.id_clupik}/players/${voto.jugador.id_clupik}/picture/${voto.jugador.image_id}.medium.jpg`
-            : null,
+          foto: urlFotoMvp(equipo.id_clupik, voto.jugador),
         };
         actual.premios += 1;
         premios.set(clave, actual);

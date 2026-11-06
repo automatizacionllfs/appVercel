@@ -26,7 +26,7 @@ export async function POST(request) {
   try {
     const db = createServiceDb();
     const { data: pinEquipo, error: errorPin } = await db.from("entrenador_pins")
-      .select("pin_hash,activo")
+      .select("pin_hash,activo,creado_en")
       .eq("equipo_id", equipoId)
       .maybeSingle();
     if (errorPin) throw new Error(`No se pudo validar el acceso: ${errorPin.message}`);
@@ -51,7 +51,10 @@ export async function POST(request) {
       .upsert({ equipo_id: equipoId, intentos: 0, bloqueado_hasta: null }, { onConflict: "equipo_id" });
     if (errorReset) throw new Error(`No se pudo iniciar la sesión: ${errorReset.message}`);
     return new Response(JSON.stringify({ ok: true }), {
-      headers: { "Content-Type": "application/json", "Set-Cookie": cookieSesion(crearSesionEntrenador(equipoId)) },
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": cookieSesion(crearSesionEntrenador(equipoId, pinEquipo.creado_en)),
+      },
     });
   } catch (error) {
     return errorRespuesta(error);

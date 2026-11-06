@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const fecha = (valor, conHora = true) => new Date(valor).toLocaleString("es-ES", {
+const fecha = (valor, conHora = true) => valor ? new Date(valor).toLocaleString("es-ES", {
   timeZone: "Europe/Madrid",
   weekday: "long",
   day: "numeric",
   month: "long",
   year: "numeric",
   ...(conHora ? { hour: "2-digit", minute: "2-digit" } : {}),
-});
+}) : "Fecha por confirmar";
 
 export default function Entrenador() {
   const router = useRouter();

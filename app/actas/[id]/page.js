@@ -1,8 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import DetalleActa from "../DetalleActa";
+import { createServiceDb } from "../../lib/entrenador";
+import { urlFotoMvp } from "../../lib/foto-mvp";
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 const camposPartido = "id,jornada,fecha,estado,descripcion,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id";
 const camposPartidoSinDescripcion = "id,jornada,fecha,estado,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id";
@@ -48,7 +50,7 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
   if (resultadoEquipos.error) throw new Error(`No se pudieron cargar los equipos: ${resultadoEquipos.error.message}`);
   if (resultadoEventos.error) throw new Error(`No se pudieron cargar los eventos del acta: ${resultadoEventos.error.message}`);
 
-  const { data: votosMvp, error: errorMvp } = await db.from("mvp")
+  const { data: votosMvp, error: errorMvp } = await createServiceDb().from("mvp")
     .select("equipo_votante_id,jugador:jugadores(id,id_clupik,nombre,image_id)")
     .eq("partido_id", partido.id);
   if (errorMvp) throw new Error(`No se pudieron cargar los MVP del partido: ${errorMvp.message}`);
@@ -59,9 +61,7 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
     const equipoId = voto.equipo_votante_id === partido.local_id ? partido.visitante_id : partido.local_id;
     const equipo = equipoPorId.get(equipoId);
     const jugador = voto.jugador;
-    const foto = process.env.CLUB_ID && equipo?.id_clupik && jugador?.id_clupik && jugador?.image_id
-      ? `https://api.clupik.com/clubs/${process.env.CLUB_ID}/teams/${equipo.id_clupik}/players/${jugador.id_clupik}/picture/${jugador.image_id}.medium.jpg`
-      : null;
+    const foto = urlFotoMvp(equipo?.id_clupik, jugador);
     mvpPorEquipo.set(equipoId, jugador ? { ...jugador, foto } : null);
   });
   const origenEstadisticas = query?.desde === "estadisticas" && /^\d+$/.test(String(query?.equipo || ""))

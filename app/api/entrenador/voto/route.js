@@ -1,8 +1,8 @@
 import {
   createServiceDb,
   errorRespuesta,
-  leerSesionEntrenador,
   origenValido,
+  validarSesionEntrenador,
 } from "../../../lib/entrenador";
 import { ventanaMvp } from "../../../lib/mvp-window";
 
@@ -11,12 +11,14 @@ export const dynamic = "force-dynamic";
 export async function POST(request) {
   if (!origenValido(request)) return Response.json({ error: "Solicitud no válida." }, { status: 403 });
   let sesion;
+  let db;
   try {
-    sesion = leerSesionEntrenador(request);
+    db = createServiceDb();
+    sesion = await validarSesionEntrenador(request, db);
   } catch (error) {
     return errorRespuesta(error);
   }
-  if (!sesion) return Response.json({ error: "La sesión ha caducado. Vuelve a iniciar sesión." }, { status: 401 });
+  if (!sesion) return Response.json({ error: "La sesión ha caducado o el PIN se ha regenerado. Vuelve a iniciar sesión." }, { status: 401 });
 
   let cuerpo;
   try {
@@ -31,7 +33,6 @@ export async function POST(request) {
   }
 
   try {
-    const db = createServiceDb();
     const { data: partido, error: errorPartido } = await db.from("partidos")
       .select("id,fecha,local_id,visitante_id")
       .eq("id", partidoId)

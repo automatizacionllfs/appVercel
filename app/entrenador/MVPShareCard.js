@@ -5,7 +5,7 @@ import { useState } from "react";
 function cargarImagen(src) {
   return new Promise((resolve) => {
     const imagen = new Image();
-    if (!src.startsWith(window.location.origin)) imagen.crossOrigin = "anonymous";
+    if (new URL(src, window.location.origin).origin !== window.location.origin) imagen.crossOrigin = "anonymous";
     imagen.onload = () => resolve(imagen);
     imagen.onerror = () => resolve(null);
     imagen.src = src;

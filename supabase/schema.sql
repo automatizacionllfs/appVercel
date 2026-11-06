@@ -342,13 +342,17 @@ grant execute on function crear_jugador_sin_ficha, cerrar_acta, reabrir_acta, gu
 do $$
 declare t text;
 begin
-  foreach t in array array['temporadas','grupos','equipos','jugadores','plantilla','partidos','mvp']
+  foreach t in array array['temporadas','grupos','equipos','jugadores','plantilla','partidos']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('create policy "lectura publica" on %I for select to anon, authenticated using (true)', t);
     execute format('create policy "admin escribe" on %I for all to authenticated using (es_admin()) with check (es_admin())', t);
   end loop;
 end $$;
+
+alter table mvp enable row level security;
+create policy "admin gestiona mvp" on mvp for all to authenticated
+  using (es_admin()) with check (es_admin());
 
 alter table entrenador_pins enable row level security;
 alter table entrenador_pin_intentos enable row level security;
