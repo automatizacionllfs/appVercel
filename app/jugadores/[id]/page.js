@@ -66,7 +66,6 @@ export default async function HistorialJugador({ params, searchParams }) {
 
   return (
     <main>
-      <a className="boton-inicio" href="/">← Volver a máximos goleadores</a>
       <h1>Historial del jugador</h1>
       <section className="historial-jugador-cabecera">
         {foto && <img className="historial-jugador-foto" src={foto} alt={`Foto de ${jugador.nombre}`} />}
@@ -97,6 +96,7 @@ export default async function HistorialJugador({ params, searchParams }) {
           </ol>
         )}
       </section>
+      <a className="boton-inicio" href="/">← Volver a máximos goleadores</a>
     </main>
   );
 }
