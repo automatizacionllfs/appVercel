@@ -46,6 +46,16 @@ function TarjetasResumen({ titulo, datos, partidosJugados, nota }) {
   );
 }
 
+function formatFecha(fecha) {
+  if (!fecha) return "Fecha no disponible";
+  return new Date(fecha).toLocaleDateString("es-ES", {
+    timeZone: "Europe/Madrid",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export default function Estadisticas({ equipos, partidos, eventos }) {
   const [equipoId, setEquipoId] = useState("");
   const equipo = equipos.find((item) => String(item.id) === equipoId);
@@ -54,7 +64,7 @@ export default function Estadisticas({ equipos, partidos, eventos }) {
       (partido.local_id === equipo.id || partido.visitante_id === equipo.id) &&
       partido.goles_local_clupik !== null &&
       partido.goles_visitante_clupik !== null,
-    )
+    ).sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0))
     : [];
   const eventosEquipo = equipo ? eventos.filter((evento) => evento.equipo_id === equipo.id) : [];
   const resumenEquipo = useMemo(() => resumen(eventosEquipo, partidosEquipo.length), [eventosEquipo, partidosEquipo.length]);
@@ -86,12 +96,49 @@ export default function Estadisticas({ equipos, partidos, eventos }) {
 
       {equipo && (
         <>
+          <div className="equipo-destacado">
+            {equipo.escudo_url && <img src={equipo.escudo_url} alt={`Escudo de ${equipo.nombre}`} width="76" height="76" />}
+            <div>
+              <span className="suave">{equipo.grupo?.nombre || "Equipo"}</span>
+              <h2>{equipo.nombre}</h2>
+            </div>
+          </div>
           <TarjetasResumen
-            titulo={equipo.nombre}
+            titulo="Resumen del equipo"
             datos={resumenEquipo}
             partidosJugados={partidosEquipo.length}
             nota="estadísticas de eventos registrados en acta"
           />
+          <section>
+            <h2>Partidos disputados</h2>
+            {!partidosEquipo.length ? <p className="suave">Todavía no hay resultados registrados para este equipo.</p> : (
+              <div className="partidos-equipo">
+                {partidosEquipo.map((partido) => {
+                  const local = equipos.find((item) => item.id === partido.local_id);
+                  const visitante = equipos.find((item) => item.id === partido.visitante_id);
+                  const esLocal = partido.local_id === equipo.id;
+                  const rival = esLocal ? visitante : local;
+                  const golesEquipo = Number(esLocal ? partido.goles_local_clupik : partido.goles_visitante_clupik);
+                  const golesRival = Number(esLocal ? partido.goles_visitante_clupik : partido.goles_local_clupik);
+                  return (
+                    <article className="partido-equipo" key={partido.id}>
+                      <div className="partido-info">
+                        <strong>Jornada {partido.jornada || "—"}</strong>
+                        <span className="suave">{formatFecha(partido.fecha)}</span>
+                      </div>
+                      <span className="partido-rival">
+                        {rival?.escudo_url && <img src={rival.escudo_url} alt="" width="30" height="30" />}
+                        <span>{esLocal ? "vs" : "en"} {rival?.nombre || "Rival"}</span>
+                      </span>
+                      <strong className="resultado-partido" aria-label={`${golesEquipo} a ${golesRival}`}>
+                        {golesEquipo} – {golesRival}
+                      </strong>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
           <section>
             <h2>Estadísticas por jugador</h2>
             {!usuarios.length ? <p className="suave">Todavía no hay eventos registrados para este equipo.</p> : (
@@ -116,7 +163,6 @@ export default function Estadisticas({ equipos, partidos, eventos }) {
           </section>
         </>
       )}
-      <p><a className="boton-inicio" href="/">← Volver a la clasificación</a></p>
     </>
   );
 }

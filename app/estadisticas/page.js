@@ -16,7 +16,7 @@ export default async function PaginaEstadisticas() {
   if (temporada) {
     const [resultadoEquipos, resultadoPartidos] = await Promise.all([
       db.from("equipos").select("id,nombre,escudo_url,grupo:grupos(nombre)").eq("temporada_id", temporada.id).order("nombre"),
-      db.from("partidos").select("id,local_id,visitante_id,goles_local_clupik,goles_visitante_clupik")
+      db.from("partidos").select("id,jornada,fecha,local_id,visitante_id,goles_local_clupik,goles_visitante_clupik")
         .eq("temporada_id", temporada.id),
     ]);
     if (resultadoEquipos.error) throw new Error(`No se pudieron cargar los equipos: ${resultadoEquipos.error.message}`);

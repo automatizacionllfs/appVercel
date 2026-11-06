@@ -21,6 +21,12 @@ export default function RootLayout({ children }) {
           <a className="site-brand" href="/" aria-label="LLFS Puerto Real, inicio">
             <Image src="/logo-llfs.png" alt="LLFS Puerto Real" width={216} height={113} priority />
           </a>
+          <nav className="site-nav" aria-label="Navegación principal">
+            <a href="/">Máximos goleadores</a>
+            <a href="/clasificacion">Clasificación</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/arbitro">Árbitros</a>
+          </nav>
         </header>
         {children}
         <footer className="pie">Versión {VERSION} · Actualizado el {FECHA_ACTUALIZACION}</footer>
