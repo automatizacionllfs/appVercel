@@ -4,6 +4,13 @@ import DetalleActa from "../DetalleActa";
 
 export const revalidate = 60;
 
+const camposPartido = "id,jornada,fecha,estado,descripcion,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id";
+const camposPartidoSinDescripcion = "id,jornada,fecha,estado,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id";
+
+function columnaDescripcionNoDisponible(error) {
+  return ["42703", "PGRST204"].includes(error.code) && /descripcion/i.test(error.message || "");
+}
+
 export default async function PaginaDetalleActa({ params, searchParams }) {
   const { id } = await params;
   const query = await searchParams;
@@ -12,10 +19,18 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
   const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
   });
-  const { data: partido, error: errorPartido } = await db.from("partidos")
-    .select("id,jornada,fecha,estado,descripcion,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id")
+  let resultadoPartido = await db.from("partidos")
+    .select(camposPartido)
     .eq("id", id)
     .maybeSingle();
+  if (resultadoPartido.error && columnaDescripcionNoDisponible(resultadoPartido.error)) {
+    console.error("Falta aplicar la migración de descripcion del acta en Supabase.", resultadoPartido.error);
+    resultadoPartido = await db.from("partidos")
+      .select(camposPartidoSinDescripcion)
+      .eq("id", id)
+      .maybeSingle();
+  }
+  const { data: partido, error: errorPartido } = resultadoPartido;
   if (errorPartido) throw new Error(`No se pudo cargar el partido: ${errorPartido.message}`);
   if (!partido) notFound();
 
