@@ -37,6 +37,10 @@ body {
 
 .site-brand { display: inline-flex; border-radius: 12px; }
 .site-brand img { display: block; width: min(216px, 52vw); height: auto; object-fit: contain; }
+.header-enlaces { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.header-enlaces a { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; gap: 6px; color: var(--acento); font-size: .82rem; font-weight: 700; text-decoration: none; }
+.header-enlaces a:hover { color: #b4232e; }
+.header-enlaces svg { width: 20px; height: 20px; }
 .site-nav {
   display: flex;
   justify-content: center;
