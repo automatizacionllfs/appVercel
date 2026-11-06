@@ -65,7 +65,7 @@ function TablaLiga({ filas }) {
           <tr>
             <th className="num">#</th><th>Equipo</th><th className="num">PJ</th>
             <th className="num">PG</th><th className="num">PE</th><th className="num">PP</th>
-            <th className="num">Goles a favor</th><th className="num">Goles en contra</th><th className="num">Puntos</th>
+            <th className="num" title="Goles a favor">GF</th><th className="num" title="Goles en contra">GC</th><th className="num">Puntos</th>
           </tr>
         </thead>
         <tbody>
