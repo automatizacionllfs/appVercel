@@ -17,10 +17,18 @@ export function createServiceDb() {
 
 function sessionSecret() {
   const secret = process.env.ENTRENADOR_SESSION_SECRET;
-  if (!secret || secret.length < 32) {
+  if (secret && secret.length < 32) {
     throw new Error("ENTRENADOR_SESSION_SECRET debe tener al menos 32 caracteres.");
   }
-  return secret;
+  if (secret) return secret;
+
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    throw new Error("Configura SUPABASE_SERVICE_ROLE_KEY o define ENTRENADOR_SESSION_SECRET.");
+  }
+  return createHmac("sha256", serviceRoleKey)
+    .update("llfs-entrenador-session-v1")
+    .digest();
 }
 
 function firmar(payload) {
