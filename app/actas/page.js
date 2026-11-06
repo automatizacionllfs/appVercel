@@ -106,7 +106,8 @@ export default async function ActasDigitales() {
                 </span>
               </span>
               <span className="acta-partido-pie">
-                {partido.resumen.eventos} eventos registrados <span aria-hidden="true">·</span> Ver cronología <span aria-hidden="true">→</span>
+                <span>{partido.resumen.eventos} eventos registrados</span>
+                <span className="acta-ver-cronologia">Ver cronología <span aria-hidden="true">→</span></span>
               </span>
             </a>
           ))}

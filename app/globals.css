@@ -506,7 +506,9 @@ main > p > a {
 .acta-equipo strong { overflow-wrap: anywhere; }
 .acta-equipo.visitante { justify-content: flex-end; text-align: right; }
 .acta-marcador { padding: 7px 10px; border-radius: 10px; background: var(--acento-claro); color: var(--acento); font-size: 1.05rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.acta-partido-pie { color: var(--acento); font-weight: 700; }
+.acta-partido-pie { justify-content: space-between; color: var(--suave); font-weight: 650; }
+.acta-ver-cronologia { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 8px; padding: 0 13px; border: 1px solid #b4232e; border-radius: 10px; background: #b4232e; box-shadow: 0 3px 8px rgb(180 35 46 / 18%); color: #fff; font-size: .82rem; font-weight: 800; transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+.acta-partido:hover .acta-ver-cronologia { transform: translateY(-1px); border-color: #921d27; background: #921d27; box-shadow: 0 5px 12px rgb(180 35 46 / 25%); }
 .actas-vacio { margin-top: 24px; padding: 30px 20px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); text-align: center; }
 .actas-vacio > span { font-size: 2rem; }
 .actas-vacio h2 { margin: 8px 0; }
@@ -606,6 +608,8 @@ main > p > a {
   .acta-equipo img { width: 27px; height: 27px; }
   .acta-marcador { padding: 6px 7px; font-size: .9rem; }
   .acta-partido-meta { font-size: .74rem; }
+  .acta-partido-pie { align-items: flex-start; }
+  .acta-ver-cronologia { min-height: 36px; }
   .acta-estado { margin-left: 0; }
   .acta-cabecera { padding: 20px 14px; }
   .acta-marcador-grande { gap: 8px; }
