@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const ANCHO = 1080;
 const ALTO = 1920;
-const ROJO = "#c51f32";
+const ROJO = "#C8202F";
 
 function cargarImagen(src) {
   return new Promise((resolve) => {
@@ -32,14 +32,35 @@ function circulo(contexto, imagen, x, y, radio) {
   return true;
 }
 
-function panel(ctx, x, y, ancho, alto, radio = 28, relleno = "rgba(15, 47, 78, 0.82)", borde = "rgba(233, 51, 70, 0.9)", grosor = 4) {
+function panel(ctx, x, y, ancho, alto) {
+  const relleno = ctx.createLinearGradient(0, y, 0, y + alto);
+  relleno.addColorStop(0, "rgba(23, 58, 106, 0.9)");
+  relleno.addColorStop(1, "rgba(16, 42, 82, 0.9)");
+
+  ctx.save();
   ctx.beginPath();
-  ctx.roundRect(x, y, ancho, alto, radio);
+  ctx.roundRect(x, y, ancho, alto, 28);
+  ctx.shadowColor = "rgba(0, 5, 18, 0.55)";
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 16;
   ctx.fillStyle = relleno;
   ctx.fill();
-  ctx.lineWidth = grosor;
-  ctx.strokeStyle = borde;
+  ctx.shadowColor = "transparent";
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+
+  ctx.save();
+  ctx.clip();
+  ctx.fillStyle = ROJO;
+  ctx.fillRect(x, y, ancho, 10);
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.roundRect(x + 1, y + 1, ancho - 2, alto - 2, 27);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(155, 191, 235, 0.38)";
   ctx.stroke();
+  ctx.restore();
 }
 
 function linea(ctx, x, y, ancho, color = ROJO, grosor = 5) {
@@ -63,68 +84,64 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Este navegador no permite crear la imagen.");
 
-      const fondo = ctx.createLinearGradient(0, 0, ANCHO, ALTO);
-      fondo.addColorStop(0, "#07152e");
-      fondo.addColorStop(0.48, "#123b68");
-      fondo.addColorStop(1, "#071a37");
+      const fondo = ctx.createLinearGradient(0, 0, 0, ALTO);
+      fondo.addColorStop(0, "#0B1F3F");
+      fondo.addColorStop(1, "#06122A");
       ctx.fillStyle = fondo;
       ctx.fillRect(0, 0, ANCHO, ALTO);
 
-      const luz = ctx.createRadialGradient(550, 630, 30, 550, 630, 800);
-      luz.addColorStop(0, "rgba(40,132,205,.27)");
-      luz.addColorStop(1, "rgba(5,20,45,0)");
-      ctx.fillStyle = luz;
+      const resplandorSuperior = ctx.createRadialGradient(540, 300, 0, 540, 300, 650);
+      resplandorSuperior.addColorStop(0, "rgba(42, 110, 190, 0.16)");
+      resplandorSuperior.addColorStop(1, "rgba(42, 110, 190, 0)");
+      ctx.fillStyle = resplandorSuperior;
       ctx.fillRect(0, 0, ANCHO, ALTO);
-      ctx.fillStyle = "rgba(255,255,255,.035)";
-      for (let i = -700; i < 1800; i += 190) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i + 65, 0);
-        ctx.lineTo(i + 780, ALTO);
-        ctx.lineTo(i + 715, ALTO);
-        ctx.closePath();
-        ctx.fill();
+
+      const resplandorMvp = ctx.createRadialGradient(540, 1325, 0, 540, 1325, 680);
+      resplandorMvp.addColorStop(0, "rgba(42, 110, 190, 0.4)");
+      resplandorMvp.addColorStop(1, "rgba(42, 110, 190, 0)");
+      ctx.fillStyle = resplandorMvp;
+      ctx.fillRect(0, 0, ANCHO, ALTO);
+
+      const grano = document.createElement("canvas");
+      grano.width = 360;
+      grano.height = 640;
+      const granoCtx = grano.getContext("2d");
+      if (granoCtx) {
+        const textura = granoCtx.createImageData(grano.width, grano.height);
+        for (let i = 0; i < textura.data.length; i += 4) {
+          const tono = Math.random() < 0.5 ? 255 : 0;
+          textura.data[i] = tono;
+          textura.data[i + 1] = tono;
+          textura.data[i + 2] = tono;
+          textura.data[i + 3] = 8;
+        }
+        granoCtx.putImageData(textura, 0, 0);
+        ctx.drawImage(grano, 0, 0, ANCHO, ALTO);
       }
-      ctx.fillStyle = "rgba(197,31,50,.34)";
-      ctx.beginPath();
-      ctx.moveTo(0, 460);
-      ctx.lineTo(22, 440);
-      ctx.lineTo(700, ALTO);
-      ctx.lineTo(620, ALTO);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "rgba(132,202,255,.16)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.ellipse(540, 940, 470, 730, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.ellipse(540, 940, 380, 640, 0, 0, Math.PI * 2);
-      ctx.stroke();
 
       const logo = await cargarImagen("/logo-llfs.png");
       if (logo) ctx.drawImage(logo, 74, 52, 150, 78);
-      ctx.fillStyle = "#d7e8f7";
-      ctx.font = "700 24px system-ui, sans-serif";
+      ctx.fillStyle = "#C9D8EE";
+      ctx.font = "700 24px Inter, system-ui, sans-serif";
       ctx.fillText("LIGA LOCAL DE", 246, 78);
       ctx.fillStyle = "#fff";
-      ctx.font = "800 31px system-ui, sans-serif";
+      ctx.font = "800 31px Inter, system-ui, sans-serif";
       ctx.fillText("PUERTO REAL", 246, 117);
       linea(ctx, 64, 158, 952, ROJO, 7);
 
-      ctx.fillStyle = "rgba(197,31,50,.18)";
+      ctx.fillStyle = "rgba(201, 216, 238, 0.1)";
       ctx.beginPath();
       ctx.roundRect(66, 196, 265, 55, 18);
       ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "rgba(240, 70, 88, 0.95)";
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(201, 216, 238, 0.24)";
       ctx.stroke();
-      ctx.fillStyle = "#ffb5bd";
-      ctx.font = "800 22px system-ui, sans-serif";
+      ctx.fillStyle = "#C9D8EE";
+      ctx.font = "800 22px Inter, system-ui, sans-serif";
       ctx.fillText("RECONOCIMIENTO", 88, 232);
 
       ctx.fillStyle = "#fff";
-      ctx.font = "900 61px system-ui, sans-serif";
+      ctx.font = "900 61px Inter, system-ui, sans-serif";
       ctx.fillText("MVP DEL PARTIDO", 66, 337);
       linea(ctx, 68, 362, 112, ROJO, 9);
 
@@ -136,11 +153,11 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
           year: "numeric",
         })
         : "Fecha no disponible";
-      ctx.fillStyle = "#d7e8f7";
-      ctx.font = "600 26px system-ui, sans-serif";
+      ctx.fillStyle = "#C9D8EE";
+      ctx.font = "600 26px Inter, system-ui, sans-serif";
       ctx.fillText(`JORNADA ${partido.jornada || "—"}  ·  ${fechaPartido}`, 68, 418);
       ctx.fillStyle = "#fff";
-      ctx.font = "750 32px system-ui, sans-serif";
+      ctx.font = "750 32px Inter, system-ui, sans-serif";
       texto(ctx, `${partido.local?.nombre || "Local"}   VS   ${partido.visitante?.nombre || "Visitante"}`, 68, 476, 944);
 
       const candidatos = [
@@ -152,25 +169,33 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
         const x = 64;
         const y = candidato.y;
         const anchoTarjeta = 952;
-        panel(ctx, x, y, anchoTarjeta, 510, 30, "rgba(14, 48, 78, 0.76)", "rgba(233, 51, 70, 0.92)", 4);
+        panel(ctx, x, y, anchoTarjeta, 510);
         linea(ctx, x + 224, y + 86, 126, ROJO, 6);
 
         const escudo = candidato.equipo?.id
           ? await cargarImagen(`/api/mvp/escudo?equipo=${encodeURIComponent(candidato.equipo.id)}`)
           : null;
         if (candidato.equipo?.escudo_url && !escudo) escudoNoDisponible = true;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x + 160, y + 95, 86, 0, Math.PI * 2);
+        ctx.shadowColor = "rgba(0, 8, 24, 0.38)";
+        ctx.shadowBlur = 16;
+        ctx.shadowOffsetY = 6;
+        ctx.fillStyle = "#F4F7FB";
+        ctx.fill();
+        ctx.restore();
+
         if (escudo) {
           const ratio = Math.min(150 / escudo.width, 112 / escudo.height);
           const anchoEscudo = escudo.width * ratio;
           const altoEscudo = escudo.height * ratio;
           const xEscudo = x + 46;
           const yEscudo = y + (150 - altoEscudo) / 2 + 16;
-          ctx.beginPath();
-          ctx.arc(x + 160, y + 95, 86, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(255,255,255,0.9)";
-          ctx.fill();
           ctx.lineWidth = 4;
           ctx.strokeStyle = "rgba(255,255,255,.75)";
+          ctx.beginPath();
+          ctx.arc(x + 160, y + 95, 86, 0, Math.PI * 2);
           ctx.stroke();
           ctx.save();
           ctx.beginPath();
@@ -179,61 +204,61 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
           ctx.drawImage(escudo, xEscudo, yEscudo, anchoEscudo, altoEscudo);
           ctx.restore();
         } else {
-          ctx.fillStyle = "rgba(255,255,255,0.9)";
-          ctx.beginPath();
-          ctx.arc(x + 160, y + 95, 82, 0, Math.PI * 2);
-          ctx.fill();
           ctx.fillStyle = ROJO;
           ctx.beginPath();
           ctx.roundRect(x + 152, y + 53, 16, 86, 8);
           ctx.fill();
         }
 
-        ctx.fillStyle = "#d7e8f7";
-        ctx.font = "700 23px system-ui, sans-serif";
+        ctx.fillStyle = "#C9D8EE";
+        ctx.font = "700 23px Inter, system-ui, sans-serif";
         texto(ctx, candidato.equipo?.nombre || "Equipo", x + 234, y + 94, 660);
 
         const jugador = candidato.mvp?.jugador;
         const foto = jugador?.foto ? await cargarImagen(jugador.foto) : null;
-        ctx.fillStyle = "rgba(255,255,255,.17)";
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x + 165, y + 350, 92, 0, Math.PI * 2);
+        ctx.shadowColor = "rgba(42, 110, 190, 0.78)";
+        ctx.shadowBlur = 28;
+        ctx.shadowOffsetY = 0;
+        ctx.fillStyle = "rgba(42, 110, 190, 0.2)";
+        ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = "rgba(255,255,255,.12)";
         ctx.beginPath();
         ctx.arc(x + 165, y + 350, 94, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,.75)";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.arc(x + 165, y + 350, 94, 0, Math.PI * 2);
-        ctx.stroke();
         if (circulo(ctx, foto, x + 165, y + 350, 86)) {
-          ctx.strokeStyle = "rgba(255,255,255,.8)";
-          ctx.lineWidth = 4;
+          ctx.strokeStyle = "#DCEAFF";
+          ctx.lineWidth = 3;
           ctx.beginPath();
-          ctx.arc(x + 165, y + 350, 90, 0, Math.PI * 2);
+          ctx.arc(x + 165, y + 350, 87.5, 0, Math.PI * 2);
           ctx.stroke();
         } else {
           ctx.fillStyle = "#fff";
-          ctx.font = "800 48px system-ui, sans-serif";
+          ctx.font = "800 48px Inter, system-ui, sans-serif";
           ctx.textAlign = "center";
           ctx.fillText(jugador?.nombre?.slice(0, 1) || "?", x + 165, y + 367);
           ctx.textAlign = "start";
         }
-        ctx.fillStyle = "#ffd166";
-        ctx.font = "800 20px system-ui, sans-serif";
+        ctx.fillStyle = "#FFC940";
+        ctx.font = "800 20px Inter, system-ui, sans-serif";
         ctx.fillText(jugador ? "MVP ELEGIDO POR EL EQUIPO RIVAL" : "MVP PENDIENTE DE SELECCIÓN", x + 300, y + 332);
         ctx.fillStyle = "#ffffff";
-        ctx.font = "850 40px system-ui, sans-serif";
+        ctx.font = "850 40px Inter, system-ui, sans-serif";
         texto(ctx, jugador?.nombre || "Aún no seleccionado", x + 300, y + 391, 600);
       }
 
       linea(ctx, 64, 1650, 952, ROJO, 5);
-      ctx.fillStyle = "#d7e8f7";
-      ctx.font = "650 23px system-ui, sans-serif";
+      ctx.fillStyle = "#C9D8EE";
+      ctx.font = "650 23px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("LIGA LOCAL DE FÚTBOL SALA", ANCHO / 2, 1742);
       ctx.fillStyle = ROJO;
       ctx.fillRect(64, 1770, 952, 4);
       ctx.fillStyle = "#fff";
-      ctx.font = "650 19px system-ui, sans-serif";
+      ctx.font = "650 19px Inter, system-ui, sans-serif";
       ctx.textAlign = "left";
       ctx.fillText("llfspuertoreal.es", 78, 1828);
       ctx.textAlign = "center";
