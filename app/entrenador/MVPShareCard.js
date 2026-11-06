@@ -176,38 +176,18 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
           ? await cargarImagen(`/api/mvp/escudo?equipo=${encodeURIComponent(candidato.equipo.id)}`)
           : null;
         if (candidato.equipo?.escudo_url && !escudo) escudoNoDisponible = true;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x + 160, y + 95, 86, 0, Math.PI * 2);
-        ctx.shadowColor = "rgba(0, 8, 24, 0.38)";
-        ctx.shadowBlur = 16;
-        ctx.shadowOffsetY = 6;
-        ctx.fillStyle = "#F4F7FB";
-        ctx.fill();
-        ctx.restore();
-
         if (escudo) {
-          const ratio = Math.min(150 / escudo.width, 112 / escudo.height);
+          const ratio = Math.min(118 / escudo.width, 120 / escudo.height);
           const anchoEscudo = escudo.width * ratio;
           const altoEscudo = escudo.height * ratio;
-          const xEscudo = x + 46;
-          const yEscudo = y + (150 - altoEscudo) / 2 + 16;
-          ctx.lineWidth = 4;
-          ctx.strokeStyle = "rgba(255,255,255,.75)";
-          ctx.beginPath();
-          ctx.arc(x + 160, y + 95, 86, 0, Math.PI * 2);
-          ctx.stroke();
+          const xEscudo = x + 76;
+          const yEscudo = y + 35 + (120 - altoEscudo) / 2;
           ctx.save();
-          ctx.beginPath();
-          ctx.arc(x + 160, y + 95, 72, 0, Math.PI * 2);
-          ctx.clip();
+          ctx.shadowColor = "rgba(0, 8, 24, 0.38)";
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetY = 4;
           ctx.drawImage(escudo, xEscudo, yEscudo, anchoEscudo, altoEscudo);
           ctx.restore();
-        } else {
-          ctx.fillStyle = ROJO;
-          ctx.beginPath();
-          ctx.roundRect(x + 152, y + 53, 16, 86, 8);
-          ctx.fill();
         }
 
         ctx.fillStyle = "#C9D8EE";
