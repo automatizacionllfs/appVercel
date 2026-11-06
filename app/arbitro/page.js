@@ -13,6 +13,8 @@ export default function Arbitro() {
   const [sesion, setSesion] = useState(undefined);
   const [yo, setYo] = useState(undefined);
   const [partidos, setPartidos] = useState([]);
+  const [golesActa, setGolesActa] = useState([]);
+  const [errorPartidos, setErrorPartidos] = useState("");
   const [abierto, setAbierto] = useState(null);
   const [desde, setDesde] = useState(() => fechaInput(process.env.FECHA_DESDE || "2026-09-01"));
   const [hasta, setHasta] = useState(() => fechaInput(process.env.FECHA_HASTA || "2027-06-30"));
@@ -32,10 +34,41 @@ export default function Arbitro() {
   useEffect(() => {
     if (!yo || abierto) return;
     let q = supabase.from("partidos")
-      .select("id,jornada,fecha,estado,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
+      .select("id,jornada,fecha,estado,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
       .order("fecha");
-    q = yo.rol === "admin" ? q.eq("estado", "programado") : q.eq("arbitro_id", yo.id);
-    q.limit(100).then(({ data }) => setPartidos(data || []));
+    if (yo.rol !== "admin") q = q.eq("arbitro_id", yo.id);
+    q.limit(100).then(async ({ data, error }) => {
+      if (error) {
+        setErrorPartidos(`No se pudieron cargar los partidos: ${error.message}`);
+        return;
+      }
+      const lista = data || [];
+      setPartidos(lista);
+      setGolesActa([]);
+      setErrorPartidos("");
+      const ids = lista.map((partido) => partido.id);
+      if (!ids.length) {
+        setGolesActa([]);
+        return;
+      }
+      const goles = [];
+      for (let desde = 0; ; desde += 1000) {
+        const { data: pagina, error: errorEventos } = await supabase.from("eventos")
+          .select("partido_id,equipo_id")
+          .eq("tipo", "gol")
+          .eq("anulado", false)
+          .in("partido_id", ids)
+          .order("id")
+          .range(desde, desde + 999);
+        if (errorEventos) {
+          setErrorPartidos(`No se pudieron comparar las actas: ${errorEventos.message}`);
+          return;
+        }
+        goles.push(...(pagina || []));
+        if (!pagina || pagina.length < 1000) break;
+      }
+      setGolesActa(goles);
+    });
   }, [yo, abierto]);
 
   const entrar = () => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/arbitro` } });
@@ -52,6 +85,12 @@ export default function Arbitro() {
     alert(`Sincronizado: ${j.equipos} equipos, ${j.jugadores} jugadores, ${j.partidos} partidos`);
     window.location.reload();
   };
+  const golesActaPorPartido = new Map();
+  golesActa.forEach((gol) => {
+    const porEquipo = golesActaPorPartido.get(gol.partido_id) || new Map();
+    porEquipo.set(gol.equipo_id, (porEquipo.get(gol.equipo_id) || 0) + 1);
+    golesActaPorPartido.set(gol.partido_id, porEquipo);
+  });
 
   if (sesion === undefined) return <main><p>Cargando…</p></main>;
   if (!sesion) return (
@@ -81,14 +120,44 @@ export default function Arbitro() {
   return (
     <main>
       <h1>Hola, {yo.nombre}</h1>
-      <h2>{yo.rol === "admin" ? "Partidos sin cerrar" : "Tus partidos"}</h2>
+      <h2>{yo.rol === "admin" ? "Partidos" : "Tus partidos"}</h2>
+      <div className="leyenda-semaforo" aria-label="Estados de los partidos">
+        <span><i className="semaforo-luz futuro" />Futuro, sin resultado Clupik</span>
+        <span><i className="semaforo-luz incompleto" />Resultado disponible, acta pendiente</span>
+        <span><i className="semaforo-luz completo" />Acta cerrada y goles coinciden</span>
+      </div>
+      <p className="nota-datos">El estado completo compara el marcador y el cierre del acta; la sincronización disponible no permite contrastar las tarjetas con Clupik.</p>
+      {errorPartidos && <p className="error">{errorPartidos}</p>}
       {partidos.length === 0 && <p className="suave">No tienes partidos asignados.</p>}
-      {partidos.map((p) => (
-        <button key={p.id} className="tarjeta" onClick={() => setAbierto(p.id)}>
-          <strong>{p.local.nombre} – {p.visitante.nombre}</strong>
-          <div className="suave">Jornada {p.jornada} · {fmt(p.fecha)}{p.estado === "cerrado" ? " · Cerrado" : ""}</div>
-        </button>
-      ))}
+      {partidos.map((p) => {
+        const acta = golesActaPorPartido.get(p.id);
+        const golesLocalActa = acta?.get(p.local_id) || 0;
+        const golesVisitanteActa = acta?.get(p.visitante_id) || 0;
+        const hayResultado = p.goles_local_clupik !== null && p.goles_visitante_clupik !== null;
+        const coincide = hayResultado && golesLocalActa === p.goles_local_clupik && golesVisitanteActa === p.goles_visitante_clupik;
+        const esFuturo = p.fecha && new Date(p.fecha).getTime() > Date.now();
+        const estado = esFuturo && !hayResultado
+          ? { clase: "futuro", texto: "Pendiente / futuro" }
+          : hayResultado && coincide && p.estado === "cerrado"
+            ? { clase: "completo", texto: "Acta completa" }
+            : {
+              clase: "incompleto",
+              texto: hayResultado
+                ? coincide ? "Goles coinciden · acta abierta" : "Goles del acta por revisar"
+                : "Pendiente de resultado Clupik",
+            };
+        return (
+          <button key={p.id} className={`tarjeta partido-tarjeta ${estado.clase}`} onClick={() => setAbierto(p.id)}>
+            <span className="estado-partido"><i className={`semaforo-luz ${estado.clase}`} />{estado.texto}</span>
+            <strong>{p.local.nombre} – {p.visitante.nombre}</strong>
+            <div className="suave">Jornada {p.jornada} · {fmt(p.fecha)}{p.estado === "cerrado" ? " · Cerrado" : ""}</div>
+            <div className="comparacion-goles">
+              <span>Clupik <strong>{hayResultado ? `${p.goles_local_clupik} – ${p.goles_visitante_clupik}` : "Sin resultado"}</strong></span>
+              <span>Acta <strong>{golesLocalActa} – {golesVisitanteActa}</strong></span>
+            </div>
+          </button>
+        );
+      })}
       {yo.rol === "admin" && (
         <form className="rango-fechas" onSubmit={(e) => { e.preventDefault(); sincronizar(); }}>
           <label>Fecha desde<input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} required /></label>
@@ -115,9 +184,13 @@ function Partido({ id, yo, volver }) {
   const [msg, setMsg] = useState("");
 
   const cargar = useCallback(async () => {
-    const { data: part } = await supabase.from("partidos")
-      .select("id,jornada,fecha,estado,local_id,visitante_id,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
+    const { data: part, error: errorPartido } = await supabase.from("partidos")
+      .select("id,jornada,fecha,estado,local_id,visitante_id,goles_local_clupik,goles_visitante_clupik,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
       .eq("id", id).single();
+    if (errorPartido) {
+      setMsg(`No se pudo cargar el partido: ${errorPartido.message}`);
+      return;
+    }
     const { data: plan } = await supabase.from("plantilla")
       .select("id,dorsal,baja,equipo_id,jugador:jugadores(id,nombre)")
       .in("equipo_id", [part.local_id, part.visitante_id]);
@@ -129,10 +202,12 @@ function Partido({ id, yo, volver }) {
   }, [id]);
   useEffect(() => { cargar(); }, [cargar]);
 
-  if (!p) return <main><p>Cargando…</p></main>;
+  if (!p) return <main>{msg ? <p className="error">{msg}</p> : <p>Cargando…</p>}</main>;
 
   const editable = p.estado === "programado" || yo.rol === "admin";
   const goles = (t) => ev.filter((e) => e.tipo === "gol" && !e.anulado && e.equipo_id === t).length;
+  const diferenciaLocal = p.goles_local_clupik === null ? null : p.goles_local_clupik - goles(p.local_id);
+  const diferenciaVisitante = p.goles_visitante_clupik === null ? null : p.goles_visitante_clupik - goles(p.visitante_id);
   const restante = min * 60 + seg;
   const lista = pl
     .filter((x) => x.equipo_id === eq && x.jugador.nombre.toLowerCase().includes(busca.toLowerCase()))
@@ -187,6 +262,12 @@ function Partido({ id, yo, volver }) {
       <h1>Jornada {p.jornada}</h1>
       <div className="marcador">
         <span>{p.local.nombre}</span><strong>{goles(p.local_id)} – {goles(p.visitante_id)}</strong><span>{p.visitante.nombre}</span>
+      </div>
+      <div className="marcador-clupik">
+        Marcador Clupik: <strong>{p.goles_local_clupik ?? "—"} – {p.goles_visitante_clupik ?? "—"}</strong>
+        {diferenciaLocal !== null && diferenciaVisitante !== null && (diferenciaLocal < 0 || diferenciaVisitante < 0
+          ? <span>· Revisar exceso en acta: {Math.max(0, -diferenciaLocal)} local, {Math.max(0, -diferenciaVisitante)} visitante</span>
+          : <span>· Pendientes de añadir al acta: {diferenciaLocal} local, {diferenciaVisitante} visitante</span>)}
       </div>
       {p.estado === "cerrado" && <p className="suave">Acta cerrada.</p>}
 

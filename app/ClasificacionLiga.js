@@ -60,17 +60,17 @@ function TablaLiga({ filas }) {
   if (!filas.length) return <p className="suave">Todavía no hay equipos para mostrar.</p>;
   return (
     <div className="tabla-scroll">
-      <table className="tabla-liga">
+      <table className="tabla-liga tabla-con-podio">
         <thead>
           <tr>
             <th className="num">#</th><th>Equipo</th><th className="num">PJ</th>
             <th className="num">PG</th><th className="num">PE</th><th className="num">PP</th>
-            <th className="num">Goles a favor</th><th className="num">Goles en contra</th><th className="num">Pts</th>
+            <th className="num">Goles a favor</th><th className="num">Goles en contra</th><th className="num">Puntos</th>
           </tr>
         </thead>
         <tbody>
           {filas.map((equipo, i) => (
-            <tr key={equipo.id}>
+            <tr key={equipo.id} className={i < 3 ? `podio podio-${i + 1}` : ""}>
               <td className="num">{i + 1}</td>
               <td>
                 <span className="nombre-equipo">

@@ -143,11 +143,12 @@ export default function Estadisticas({ equipos, partidos, eventos }) {
             <h2>Estadísticas por jugador</h2>
             {!usuarios.length ? <p className="suave">Todavía no hay eventos registrados para este equipo.</p> : (
               <div className="tabla-scroll">
-                <table>
-                  <thead><tr><th>Jugador</th><th className="num">1.er gol</th><th className="num">Goles/partido</th><th className="num">🟨</th><th className="num">🟥</th></tr></thead>
+                <table className="tabla-con-podio">
+                  <thead><tr><th className="num">#</th><th>Jugador</th><th className="num">1.er gol</th><th className="num">Goles/partido</th><th className="num">🟨</th><th className="num">🟥</th></tr></thead>
                   <tbody>
-                    {usuarios.map((usuario) => (
-                      <tr key={usuario.id}>
+                    {usuarios.map((usuario, indice) => (
+                      <tr key={usuario.id} className={indice < 3 ? `podio podio-${indice + 1}` : ""}>
+                        <td className="num">{indice + 1}</td>
                         <td>{usuario.nombre}</td>
                         <td className="num">{reloj(usuario.primerGol)}</td>
                         <td className="num">{usuario.mediaGoles.toFixed(2)}</td>

@@ -13,7 +13,7 @@ function TablaGoleadores({ filas }) {
 
   return (
     <div className="tabla-scroll">
-      <table className="tabla-goleadores">
+      <table className="tabla-goleadores tabla-con-podio">
         <thead><tr><th className="num">#</th><th>Jugador</th><th className="num">Goles</th></tr></thead>
         <tbody>
           {filas.map((fila, i) => (
@@ -98,7 +98,7 @@ export default function Goleadores({ goleadores, equipos }) {
         </section>
       )}
 
-      <p className="nota-datos">La tabla muestra goles registrados en las actas de la temporada.</p>
+      <p className="aviso-datos">Aviso: pueden faltar goles en estas tablas porque todavía no todas las actas de la temporada están informatizadas.</p>
     </>
   );
 }

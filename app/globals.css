@@ -200,6 +200,21 @@ select, input {
   text-align: left;
 }
 
+.partido-tarjeta { border-left: 5px solid var(--borde); }
+.partido-tarjeta.futuro { border-left-color: #e0a000; }
+.partido-tarjeta.incompleto { border-left-color: #ff0000; }
+.partido-tarjeta.completo { border-left-color: #16834a; }
+.estado-partido { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 6px; color: var(--suave); font-size: .79rem; font-weight: 750; }
+.semaforo-luz { display: inline-block; width: 10px; height: 10px; flex: 0 0 auto; border-radius: 50%; background: #e0a000; box-shadow: 0 0 0 3px rgb(224 160 0 / 16%); }
+.semaforo-luz.incompleto { background: #ff0000; box-shadow: 0 0 0 3px rgb(255 0 0 / 14%); }
+.semaforo-luz.completo { background: #16834a; box-shadow: 0 0 0 3px rgb(22 131 74 / 14%); }
+.leyenda-semaforo { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 12px 0 16px; color: var(--suave); font-size: .8rem; }
+.leyenda-semaforo span { display: inline-flex; align-items: center; gap: 7px; }
+.comparacion-goles { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 9px; color: var(--suave); font-size: .82rem; }
+.comparacion-goles strong { margin-left: 4px; color: var(--acento); font-variant-numeric: tabular-nums; }
+.marcador-clupik { margin: 10px 0 16px; padding: 11px 14px; border: 1px solid var(--borde); border-radius: 12px; background: var(--acento-claro); color: var(--acento-oscuro); font-size: .9rem; }
+.marcador-clupik strong { margin: 0 4px; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+
 .tarjeta strong { display: block; font-size: 1.03rem; }
 .suave { color: var(--suave); font-size: .9rem; }
 
@@ -262,22 +277,23 @@ table {
 .pestanas button.activa { border-color: var(--acento); background: var(--acento); color: #fff; }
 .filtros-grupo { display: flex; gap: 8px; margin: 0 0 14px; }
 .selector-equipo { display: grid; gap: 7px; margin: 14px 0 18px; color: var(--acento-oscuro); font-weight: 700; }
-.tabla-goleadores tbody tr.podio { background-size: 100% 100%; }
-.tabla-goleadores tbody tr.podio-1 {
+.tabla-con-podio tbody tr.podio { background-size: 100% 100%; }
+.tabla-con-podio tbody tr.podio-1 {
   background-image: linear-gradient(100deg, #003261, #15558a);
   color: #fff;
-  font-size: 1.12rem;
   font-weight: 750;
 }
-.tabla-goleadores tbody tr.podio-1 .suave { color: #dce9f5; }
-.tabla-goleadores tbody tr.podio-1 td.num:first-child { color: #fff; }
-.tabla-goleadores tbody tr.podio-1 td.num:last-child strong { background: #ff0000; color: #fff; }
-.tabla-goleadores tbody tr.podio-1 td { padding-top: 17px; padding-bottom: 17px; }
-.tabla-goleadores tbody tr.podio-2 { background-image: linear-gradient(100deg, #e1edf7, #f8fbff); }
-.tabla-goleadores tbody tr.podio-3 { background-image: linear-gradient(100deg, #f0f5fa, #fff); }
-.tabla-goleadores tbody tr.podio-2 td:first-child,
-.tabla-goleadores tbody tr.podio-3 td:first-child { color: var(--acento); font-weight: 800; }
+.tabla-con-podio tbody tr.podio-1 .suave { color: #dce9f5; }
+.tabla-con-podio tbody tr.podio-1 td { border-color: rgb(255 255 255 / 15%); }
+.tabla-con-podio tbody tr.podio-1 td.num:first-child { color: #fff; }
+.tabla-con-podio tbody tr.podio-1 td.num:last-child strong { background: #ff0000; color: #fff; }
+.tabla-goleadores tbody tr.podio-1 td { padding-top: 17px; padding-bottom: 17px; font-size: 1.12rem; }
+.tabla-con-podio tbody tr.podio-2 { background-image: linear-gradient(100deg, #e1edf7, #f8fbff); }
+.tabla-con-podio tbody tr.podio-3 { background-image: linear-gradient(100deg, #f0f5fa, #fff); }
+.tabla-con-podio tbody tr.podio-2 td:first-child,
+.tabla-con-podio tbody tr.podio-3 td:first-child { color: var(--acento); font-weight: 800; }
 .nota-datos { margin: 12px 0; color: var(--suave); font-size: .82rem; }
+.aviso-datos { margin: 16px 0; padding: 12px 14px; border-left: 4px solid #e0a000; border-radius: 9px; background: #fff8e6; color: #745300; font-size: .88rem; font-weight: 600; }
 .estadistica-card {
   margin: 18px 0 24px;
   padding: 18px;
@@ -328,7 +344,7 @@ th, td { padding: 14px 16px; border-bottom: 1px solid #edf1f5; text-align: left;
 th { background: #edf3f8; color: var(--acento-oscuro); font-size: .78rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr { transition: background-color .15s ease; }
-tbody tr:hover { background: #f7faff; }
+tbody tr:not(.podio):hover { background: #f7faff; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 td.num:first-child { width: 58px; color: var(--suave); font-weight: 750; }
 td.num:last-child strong {
