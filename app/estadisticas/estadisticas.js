@@ -59,6 +59,7 @@ function formatFecha(fecha) {
 export default function Estadisticas({ equipos, partidos, eventos, equipoInicial = "" }) {
   const [equipoId, setEquipoId] = useState(String(equipoInicial));
   const equipo = equipos.find((item) => String(item.id) === equipoId);
+  const partidosConActa = new Set(eventos.map((evento) => evento.partido_id));
   const partidosEquipo = equipo
     ? partidos.filter((partido) =>
       (partido.local_id === equipo.id || partido.visitante_id === equipo.id) &&
@@ -133,9 +134,11 @@ export default function Estadisticas({ equipos, partidos, eventos, equipoInicial
                       <strong className="resultado-partido" aria-label={`${golesEquipo} a ${golesRival}`}>
                         {golesEquipo} – {golesRival}
                       </strong>
-                      <a className="enlace-acta-estadisticas" href={`/actas/${partido.id}?desde=estadisticas&equipo=${equipo.id}`}>
-                        Ver acta y cronología <span aria-hidden="true">→</span>
-                      </a>
+                      {(partido.estado === "cerrado" || partidosConActa.has(partido.id)) && (
+                        <a className="enlace-acta-estadisticas" href={`/actas/${partido.id}?desde=estadisticas&equipo=${equipo.id}`}>
+                          Ver acta y cronología <span aria-hidden="true">→</span>
+                        </a>
+                      )}
                     </article>
                   );
                 })}
