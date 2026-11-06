@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 function TablaGoleadores({ filas }) {
+  const router = useRouter();
   if (!filas.length) return <p className="suave">Todavía no hay goles registrados.</p>;
   const posiciones = filas.map((fila, i) =>
     i > 0 && fila.goles === filas[i - 1].goles ? null : i + 1,
@@ -17,15 +19,25 @@ function TablaGoleadores({ filas }) {
         <thead><tr><th className="num">#</th><th>Jugador</th><th className="num">Goles</th></tr></thead>
         <tbody>
           {filas.map((fila, i) => (
-            <tr key={`${fila.jugador_id}-${fila.equipo_id}`} className={posiciones[i] <= 3 ? `podio podio-${posiciones[i]}` : ""}>
+            <tr
+              key={`${fila.jugador_id}-${fila.equipo_id}`}
+              className={posiciones[i] <= 3 ? `podio podio-${posiciones[i]}` : ""}
+              role="link"
+              tabIndex={0}
+              aria-label={`${fila.jugador}, ${fila.equipo}, ${fila.goles} goles. Ver historial`}
+              onClick={() => router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}`)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}`);
+              }}
+            >
               <td className="num">{posiciones[i]}</td>
               <td>
                 {fila.jugador}<div className="suave">{fila.equipo}</div>
               </td>
               <td className="num">
                 <span className="goleador-goles">
-                  <a className="enlace-acta-estadisticas" href={`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}`}>Historial</a>
                   <strong>{fila.goles}</strong>
+                  <span className="goleador-flecha" aria-hidden="true">&gt;</span>
                 </span>
               </td>
             </tr>
