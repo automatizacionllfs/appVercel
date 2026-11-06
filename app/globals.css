@@ -27,6 +27,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.site-header {
+  display: flex;
+  justify-content: center;
+  padding: 14px 16px 0;
+}
+
+.site-brand { display: inline-flex; border-radius: 12px; }
+.site-brand img { display: block; width: min(216px, 52vw); height: auto; object-fit: contain; }
+
 main {
   width: min(100% - 32px, 760px);
   margin: 0 auto;
@@ -217,6 +226,47 @@ table {
   box-shadow: var(--sombra);
 }
 
+.tabla-scroll { width: 100%; overflow-x: auto; border-radius: 16px; }
+.tabla-scroll table { min-width: 100%; }
+.nombre-equipo { display: inline-flex; align-items: center; gap: 9px; font-weight: 650; }
+.nombre-equipo img { flex: 0 0 auto; object-fit: contain; }
+.pestanas { display: flex; gap: 8px; overflow-x: auto; margin: 0 0 20px; padding: 4px 2px 8px; }
+.pestanas button { flex: 1 0 auto; min-height: 46px; border-radius: 12px; color: var(--acento); font-weight: 700; }
+.pestanas button.activa { border-color: var(--acento); background: var(--acento); color: #fff; }
+.filtros-grupo { display: flex; gap: 8px; margin: 0 0 14px; }
+.selector-equipo { display: grid; gap: 7px; margin: 14px 0 18px; color: var(--acento-oscuro); font-weight: 700; }
+.tabla-goleadores tbody tr.podio { background-size: 100% 100%; }
+.tabla-goleadores tbody tr.podio-1 {
+  background-image: linear-gradient(100deg, #003261, #15558a);
+  color: #fff;
+  font-size: 1.12rem;
+  font-weight: 750;
+}
+.tabla-goleadores tbody tr.podio-1 .suave { color: #dce9f5; }
+.tabla-goleadores tbody tr.podio-1 td.num:first-child { color: #fff; }
+.tabla-goleadores tbody tr.podio-1 td.num:last-child strong { background: #ff0000; color: #fff; }
+.tabla-goleadores tbody tr.podio-1 td { padding-top: 17px; padding-bottom: 17px; }
+.tabla-goleadores tbody tr.podio-2 { background-image: linear-gradient(100deg, #e1edf7, #f8fbff); }
+.tabla-goleadores tbody tr.podio-3 { background-image: linear-gradient(100deg, #f0f5fa, #fff); }
+.tabla-goleadores tbody tr.podio-2 td:first-child,
+.tabla-goleadores tbody tr.podio-3 td:first-child { color: var(--acento); font-weight: 800; }
+.nota-datos { margin: 12px 0; color: var(--suave); font-size: .82rem; }
+.estadistica-card {
+  margin: 18px 0 24px;
+  padding: 18px;
+  border: 1px solid var(--borde);
+  border-top: 4px solid var(--acento);
+  border-radius: 16px;
+  background: var(--papel);
+  box-shadow: var(--sombra);
+}
+.estadistica-card h2 { margin-top: 0; }
+.metricas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.metricas > div { min-width: 0; padding: 12px; border-radius: 12px; background: var(--acento-claro); }
+.metricas dt { color: var(--suave); font-size: .78rem; font-weight: 650; }
+.metricas dd { margin: 4px 0 0; color: var(--acento); font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.estadistica-card > .suave { margin-bottom: 0; }
+
 th, td { padding: 14px 16px; border-bottom: 1px solid #edf1f5; text-align: left; }
 th { background: #edf3f8; color: var(--acento-oscuro); font-size: .78rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
 tbody tr:last-child td { border-bottom: 0; }
@@ -301,6 +351,7 @@ main > p > a {
 }
 
 @media (max-width: 540px) {
+  .site-header { padding-top: 10px; }
   main { width: min(100% - 24px, 760px); padding-top: 16px; }
   main > h1 { margin-bottom: 18px; padding: 24px 20px; border-radius: 16px; }
   h2 { margin-top: 24px; }
@@ -309,6 +360,11 @@ main > p > a {
   .marcador span { font-size: .9rem; }
   .evento { align-items: flex-start; }
   .evento .mini { flex: 0 0 auto; }
+  .tabla-scroll table { min-width: 440px; }
+  .tabla-goleadores { min-width: 0 !important; }
+  .metricas { gap: 8px; }
+  .metricas > div { padding: 10px; }
+  .metricas dd { font-size: 1.25rem; }
   .pie { width: min(100% - 24px, 760px); }
 }
 
