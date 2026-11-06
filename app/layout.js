@@ -1,5 +1,6 @@
 import "./globals.css";
 import Image from "next/image";
+import Navegacion from "./Navegacion";
 
 export const metadata = {
   title: "LLFS Puerto Real",
@@ -21,13 +22,7 @@ export default function RootLayout({ children }) {
           <a className="site-brand" href="/" aria-label="LLFS Puerto Real, inicio">
             <Image src="/logo-llfs.png" alt="LLFS Puerto Real" width={216} height={113} priority />
           </a>
-          <nav className="site-nav" aria-label="Navegación principal">
-            <a href="/">Máximos goleadores</a>
-            <a href="/clasificacion">Clasificación</a>
-            <a href="/estadisticas">Estadísticas</a>
-            <a className="nav-actas" href="/actas">Ver actas <span aria-hidden="true">→</span></a>
-            <a href="/arbitro">Árbitros</a>
-          </nav>
+          <Navegacion />
         </header>
         {children}
         <footer className="pie">Versión {VERSION} · Actualizado el {FECHA_ACTUALIZACION}</footer>

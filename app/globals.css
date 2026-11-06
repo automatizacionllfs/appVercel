@@ -61,8 +61,8 @@ body {
   transition: background-color .16s ease, border-color .16s ease, transform .16s ease;
 }
 .site-nav a:hover { transform: translateY(-1px); border-color: var(--acento); background: var(--acento-claro); }
-.site-nav a.nav-actas { gap: 7px; border-color: #b4232e; background: #b4232e; box-shadow: 0 3px 9px rgb(180 35 46 / 20%); color: #fff; }
-.site-nav a.nav-actas:hover { transform: translateY(-1px); border-color: #921d27; background: #921d27; }
+.site-nav a.activa { border-color: #b4232e; background: #b4232e; box-shadow: 0 3px 9px rgb(180 35 46 / 20%); color: #fff; }
+.site-nav a.activa:hover { border-color: #921d27; background: #921d27; }
 
 main {
   width: min(100% - 32px, 760px);
