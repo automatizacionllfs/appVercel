@@ -150,7 +150,13 @@ async function sincronizar(db, fechas) {
   })).filter((p) => p.local_id && p.visitante_id);
   await upsertTrozos(db, "partidos", filasP, "id_clupik");
 
-  return { equipos: filasEq.size, jugadores: personas.size, plantillas: filasPl.size, partidos: filasP.length };
+  return {
+    equipos: filasEq.size,
+    jugadores: personas.size,
+    jugadoresConFoto: [...personas.values()].filter((jugador) => jugador.image_id).length,
+    plantillas: filasPl.size,
+    partidos: filasP.length,
+  };
 }
 
 async function ejecutarSync(req) {
