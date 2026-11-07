@@ -14,14 +14,27 @@ export default async function Inicio() {
   let filas = [];
   let equipos = [];
   if (temp) {
-    const [resultadoGoleadores, resultadoEquipos] = await Promise.all([
-      db.from("v_goleadores").select("*").eq("temporada_id", temp.id).order("goles", { ascending: false }).order("jugador").limit(100),
+    const [goleadoresCargados, resultadoEquipos] = await Promise.all([
+      (async () => {
+        const todosLosGoleadores = [];
+        for (let desde = 0; ; desde += 1000) {
+          const { data, error } = await db.from("v_goleadores")
+            .select("*")
+            .eq("temporada_id", temp.id)
+            .order("goles", { ascending: false })
+            .order("jugador")
+            .order("equipo")
+            .range(desde, desde + 999);
+          if (error) throw new Error(`No se pudo cargar la clasificación: ${error.message}`);
+          todosLosGoleadores.push(...(data || []));
+          if (!data || data.length < 1000) break;
+        }
+        return todosLosGoleadores;
+      })(),
       db.from("equipos").select("id,id_clupik,nombre,grupo_id,escudo_url,grupo:grupos(nombre)").eq("temporada_id", temp.id).order("nombre"),
     ]);
-    for (const resultado of [resultadoGoleadores, resultadoEquipos]) {
-      if (resultado.error) throw new Error(`No se pudo cargar la clasificación: ${resultado.error.message}`);
-    }
-    filas = resultadoGoleadores.data || [];
+    if (resultadoEquipos.error) throw new Error(`No se pudo cargar la clasificación: ${resultadoEquipos.error.message}`);
+    filas = goleadoresCargados;
     equipos = resultadoEquipos.data || [];
 
     if (filas.length) {

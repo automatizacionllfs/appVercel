@@ -1,9 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function MVPs({ ranking }) {
   const router = useRouter();
+  const [pagina, setPagina] = useState(1);
+  const porPagina = 10;
+  const totalPaginas = Math.ceil(ranking.length / porPagina);
+  const paginaActual = Math.min(pagina, Math.max(totalPaginas, 1));
+  const rankingPagina = ranking.slice((paginaActual - 1) * porPagina, paginaActual * porPagina);
 
   if (!ranking.length) return <p className="suave">Todavía no se han seleccionado MVPs.</p>;
 
@@ -14,37 +20,47 @@ export default function MVPs({ ranking }) {
         <table className="tabla-mvps tabla-con-podio">
           <thead><tr><th className="num">#</th><th>Jugador</th><th>Equipo</th><th className="num">Premios</th></tr></thead>
           <tbody>
-            {ranking.map((fila, indice) => (
-              <tr
-                key={`${fila.jugadorId}-${fila.equipoId}`}
-                className={indice < 3 ? `podio podio-${indice + 1}` : ""}
-                role="link"
-                tabIndex={0}
-                aria-label={`${fila.jugador}, ${fila.equipo}, ${fila.premios} premios MVP. Ver historial`}
-                onClick={() => router.push(`/jugadores/${fila.jugadorId}?equipo=${fila.equipoId}&origen=mvps`)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") router.push(`/jugadores/${fila.jugadorId}?equipo=${fila.equipoId}&origen=mvps`);
-                }}
-              >
-                <td className="num">{indice + 1}</td>
-                <td>
-                  <span className="estadistica-jugador">
-                    <span className="estadistica-jugador-foto">{fila.foto && <img src={fila.foto} alt="" loading="lazy" />}</span>
-                    {fila.jugador}
-                  </span>
-                </td>
-                <td>{fila.equipo}</td>
-                <td className="num">
-                  <span className="goleador-goles">
-                    <strong>{fila.premios}</strong>
-                    <span className="goleador-flecha" aria-hidden="true">&gt;</span>
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {rankingPagina.map((fila, indicePagina) => {
+              const indice = (paginaActual - 1) * porPagina + indicePagina;
+              return (
+                <tr
+                  key={`${fila.jugadorId}-${fila.equipoId}`}
+                  className={indice < 3 ? `podio podio-${indice + 1}` : ""}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`${fila.jugador}, ${fila.equipo}, ${fila.premios} premios MVP. Ver historial`}
+                  onClick={() => router.push(`/jugadores/${fila.jugadorId}?equipo=${fila.equipoId}&origen=mvps`)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") router.push(`/jugadores/${fila.jugadorId}?equipo=${fila.equipoId}&origen=mvps`);
+                  }}
+                >
+                  <td className="num">{indice + 1}</td>
+                  <td>
+                    <span className="estadistica-jugador">
+                      <span className="estadistica-jugador-foto">{fila.foto && <img src={fila.foto} alt="" loading="lazy" />}</span>
+                      {fila.jugador}
+                    </span>
+                  </td>
+                  <td>{fila.equipo}</td>
+                  <td className="num">
+                    <span className="goleador-goles">
+                      <strong>{fila.premios}</strong>
+                      <span className="goleador-flecha" aria-hidden="true">&gt;</span>
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+      {totalPaginas > 1 && (
+        <nav className="paginacion-goleadores" aria-label="Paginación del ranking de MVPs">
+          <button type="button" onClick={() => setPagina(paginaActual - 1)} disabled={paginaActual === 1}>Anterior</button>
+          <span aria-live="polite">Página {paginaActual} de {totalPaginas}</span>
+          <button type="button" onClick={() => setPagina(paginaActual + 1)} disabled={paginaActual === totalPaginas}>Siguiente</button>
+        </nav>
+      )}
     </section>
   );
 }

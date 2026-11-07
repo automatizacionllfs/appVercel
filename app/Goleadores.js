@@ -3,15 +3,17 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const normalizarNombre = (nombre) => nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
+
 function TablaGoleadores({ filas }) {
   const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
   const porPagina = 10;
-  const consulta = busqueda.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
-  const filasFiltradas = consulta
-    ? filas.filter((fila) => fila.jugador.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es").includes(consulta))
-    : filas;
+  const consulta = normalizarNombre(busqueda.trim());
+  const filasFiltradas = filas
+    .map((fila, indice) => ({ fila, indice }))
+    .filter(({ fila }) => !consulta || normalizarNombre(fila.jugador).includes(consulta));
   const totalPaginas = Math.ceil(filasFiltradas.length / porPagina);
   const paginaActual = Math.min(pagina, Math.max(totalPaginas, 1));
   const posiciones = filas.map((fila, i) =>
@@ -46,8 +48,7 @@ function TablaGoleadores({ filas }) {
             <table className="tabla-goleadores tabla-con-podio">
               <thead><tr><th className="num">#</th><th>Jugador</th><th className="num">Goles</th></tr></thead>
               <tbody>
-                {filasPagina.map((fila) => {
-                  const indice = filas.indexOf(fila);
+                {filasPagina.map(({ fila, indice }) => {
                   return (
                     <tr
                       key={`${fila.jugador_id}-${fila.equipo_id}`}
@@ -131,7 +132,7 @@ export default function Goleadores({ goleadores, equipos }) {
       {vista === "general" && (
         <section>
           <h2>Goleadores de la liga</h2>
-          <TablaGoleadores filas={goleadores} />
+          <TablaGoleadores key="general" filas={goleadores} />
         </section>
       )}
 
@@ -145,7 +146,7 @@ export default function Goleadores({ goleadores, equipos }) {
               </button>
             ))}
           </div>
-          <TablaGoleadores filas={goleadoresGrupo} />
+          <TablaGoleadores key={seleccionGrupo} filas={goleadoresGrupo} />
         </section>
       )}
 
@@ -159,7 +160,7 @@ export default function Goleadores({ goleadores, equipos }) {
               {equipos.map((equipo) => <option key={equipo.id} value={equipo.id}>{equipo.nombre}</option>)}
             </select>
           </label>
-          {equipoSeleccionado && <TablaGoleadores filas={goleadoresEquipo} />}
+          {equipoSeleccionado && <TablaGoleadores key={equipoSeleccionado.id} filas={goleadoresEquipo} />}
         </section>
       )}
 
