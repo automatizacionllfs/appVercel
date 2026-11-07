@@ -267,7 +267,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   };
   const lista = pl
     .filter((x) => x.equipo_id === eq && x.jugador.nombre.toLowerCase().includes(busca.toLowerCase()))
-    .sort((a, b) => (a.dorsal ?? 999) - (b.dorsal ?? 999));
+    .sort((a, b) => a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" }));
   const orden = [...ev].sort((a, b) => tiempoJuego(a) - tiempoJuego(b));
 
   const elegir = (x) => {
