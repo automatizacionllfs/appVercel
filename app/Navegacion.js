@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 const enlaces = [
   { href: "/", texto: "Máximos goleadores" },
   { href: "/clasificacion", texto: "Clasificación" },
+  { href: "/mvps", texto: "MVPs" },
   { href: "/estadisticas", texto: "Estadísticas" },
   { href: "/actas", texto: "Ver actas" },
 ];

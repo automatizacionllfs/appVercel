@@ -56,7 +56,7 @@ function formatFecha(fecha) {
   });
 }
 
-export default function Estadisticas({ equipos, partidos, eventos, plantilla, rankingMvp = [], equipoInicial = "" }) {
+export default function Estadisticas({ equipos, partidos, eventos, plantilla, equipoInicial = "" }) {
   const [equipoId, setEquipoId] = useState(String(equipoInicial));
   const equipo = equipos.find((item) => String(item.id) === equipoId);
   const partidosConActa = new Set(eventos.map((evento) => evento.partido_id));
@@ -101,32 +101,6 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, ra
           {equipos.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
         </select>
       </label>
-
-      <section className="estadistica-mvp">
-        <h2>Ranking de MVPs</h2>
-        {!rankingMvp.length ? <p className="suave">Todavía no se han seleccionado MVPs.</p> : (
-          <div className="tabla-scroll">
-            <table>
-              <thead><tr><th className="num">#</th><th>Jugador</th><th>Equipo</th><th className="num">Premios</th></tr></thead>
-              <tbody>
-                {rankingMvp.map((fila, indice) => (
-                  <tr key={`${fila.jugadorId}-${fila.equipoId}`}>
-                    <td className="num">{indice + 1}</td>
-                    <td>
-                      <span className="estadistica-jugador">
-                        <span className="estadistica-jugador-foto">{fila.foto && <img src={fila.foto} alt="" loading="lazy" />}</span>
-                        {fila.jugador}
-                      </span>
-                    </td>
-                    <td>{fila.equipo}</td>
-                    <td className="num">{fila.premios}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
 
       {equipo && (
         <>

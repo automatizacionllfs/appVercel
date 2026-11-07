@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
+import { createServiceDb } from "../../lib/entrenador";
 
 export const revalidate = 60;
 
@@ -29,30 +30,42 @@ export default async function HistorialJugador({ params, searchParams }) {
   if (errorPlantilla) throw new Error(`No se pudo cargar el dorsal del jugador: ${errorPlantilla.message}`);
   if (!equipo) notFound();
 
-  const { data: eventos, error: errorEventos } = await db.from("eventos")
-    .select("partido_id")
-    .eq("jugador_id", id)
-    .eq("equipo_id", equipo.id)
-    .eq("tipo", "gol")
-    .eq("anulado", false);
+  const [{ data: eventos, error: errorEventos }, { data: votosMvp, error: errorMvp }] = await Promise.all([
+    db.from("eventos")
+      .select("partido_id")
+      .eq("jugador_id", id)
+      .eq("equipo_id", equipo.id)
+      .eq("tipo", "gol")
+      .eq("anulado", false),
+    createServiceDb().from("mvp")
+      .select("partido_id")
+      .eq("jugador_id", id),
+  ]);
   if (errorEventos) throw new Error(`No se pudo cargar el historial de goles: ${errorEventos.message}`);
+  if (errorMvp) throw new Error(`No se pudo cargar el historial de MVP: ${errorMvp.message}`);
 
   const golesPorPartido = new Map();
   (eventos || []).forEach((evento) => {
     golesPorPartido.set(evento.partido_id, (golesPorPartido.get(evento.partido_id) || 0) + 1);
   });
+  const premiosPorPartido = new Map();
+  (votosMvp || []).forEach((voto) => {
+    premiosPorPartido.set(voto.partido_id, (premiosPorPartido.get(voto.partido_id) || 0) + 1);
+  });
+  const partidosConHistorial = new Set([...golesPorPartido.keys(), ...premiosPorPartido.keys()]);
 
   let historial = [];
-  if (golesPorPartido.size) {
+  if (partidosConHistorial.size) {
     const { data: partidos, error: errorPartidos } = await db.from("partidos")
       .select("id,jornada,fecha,local_id,visitante_id,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
       .eq("temporada_id", temporada.id)
-      .in("id", [...golesPorPartido.keys()]);
+      .in("id", [...partidosConHistorial]);
     if (errorPartidos) throw new Error(`No se pudieron cargar los partidos del historial: ${errorPartidos.message}`);
     historial = (partidos || []).map((partido) => ({
       ...partido,
       rival: partido.local_id === equipo.id ? partido.visitante?.nombre : partido.local?.nombre,
-      goles: golesPorPartido.get(partido.id),
+      goles: golesPorPartido.get(partido.id) || 0,
+      premiosMvp: premiosPorPartido.get(partido.id) || 0,
     })).sort((a, b) =>
       (a.jornada ?? Number.MAX_SAFE_INTEGER) - (b.jornada ?? Number.MAX_SAFE_INTEGER) ||
       new Date(a.fecha || 0) - new Date(b.fecha || 0),
@@ -63,6 +76,9 @@ export default async function HistorialJugador({ params, searchParams }) {
     ? `https://api.clupik.com/clubs/${process.env.CLUB_ID}/teams/${equipo.id_clupik}/players/${jugador.id_clupik}/picture/${jugador.image_id}.medium.jpg`
     : null;
   const totalGoles = historial.reduce((total, partido) => total + partido.goles, 0);
+  const totalMvp = historial.reduce((total, partido) => total + partido.premiosMvp, 0);
+  const jornadasConGol = historial.filter((partido) => partido.goles > 0).length;
+  const partidosMvp = historial.filter((partido) => partido.premiosMvp > 0).length;
 
   return (
     <main>
@@ -78,15 +94,31 @@ export default async function HistorialJugador({ params, searchParams }) {
         </div>
         <dl className="historial-jugador-resumen">
           <div><dt>Goles</dt><dd>{totalGoles}</dd></div>
-          <div><dt>Jornadas con gol</dt><dd>{historial.length}</dd></div>
+          <div><dt>Jornadas con gol</dt><dd>{jornadasConGol}</dd></div>
+          <div><dt>Premios MVP</dt><dd>{totalMvp}</dd></div>
+          <div><dt>Jornadas como MVP</dt><dd>{partidosMvp}</dd></div>
         </dl>
+      </section>
+      <section className="historial-premios">
+        <h2>Historial de MVP</h2>
+        {!partidosMvp ? <p className="suave">Este jugador todavía no tiene premios MVP registrados en esta temporada.</p> : (
+          <ol>
+            {historial.filter((partido) => partido.premiosMvp > 0).map((partido) => (
+              <li key={partido.id}>
+                <strong>Jornada {partido.jornada || "—"}</strong>
+                <span>{partido.rival || "Rival no disponible"}</span>
+                <strong>{partido.premiosMvp} {partido.premiosMvp === 1 ? "premio" : "premios"}</strong>
+              </li>
+            ))}
+          </ol>
+        )}
       </section>
 
       <section className="historial-goles">
         <h2>Historial de goles</h2>
-        {!historial.length ? <p className="suave">Este jugador todavía no tiene goles registrados en esta temporada.</p> : (
+        {!jornadasConGol ? <p className="suave">Este jugador todavía no tiene goles registrados en esta temporada.</p> : (
           <ol>
-            {historial.map((partido) => (
+            {historial.filter((partido) => partido.goles > 0).map((partido) => (
               <li key={partido.id}>
                 <strong>Jornada {partido.jornada || "—"}</strong>
                 <span>{partido.rival || "Rival no disponible"}</span>

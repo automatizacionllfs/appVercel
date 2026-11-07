@@ -421,6 +421,10 @@ table {
 .tabla-goleadores tbody tr { cursor: pointer; }
 .tabla-goleadores tbody tr:focus-visible { outline: 3px solid #b4232e; outline-offset: -3px; }
 .tabla-goleadores tbody tr:not(.podio):hover { background: #eaf1f8; }
+.tabla-mvps tbody tr { cursor: pointer; }
+.tabla-mvps tbody tr:focus-visible { outline: 3px solid #b4232e; outline-offset: -3px; }
+.tabla-mvps tbody tr:not(.podio):hover { background: #eaf1f8; }
+.tabla-mvps tbody tr.podio-1 .goleador-flecha { color: #fff; }
 .historial-jugador-cabecera {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
@@ -438,13 +442,13 @@ table {
 .historial-jugador-identidad { display: grid; justify-items: start; gap: 3px; min-width: 0; }
 .historial-jugador-identidad h2 { margin: 0; }
 .historial-jugador-dorsal { color: var(--acento); font-weight: 750; }
-.historial-jugador-resumen { display: flex; grid-column: 1 / -1; gap: 12px; margin: 0; }
-.historial-jugador-resumen > div { flex: 1; padding: 12px; border-radius: 12px; background: var(--acento-claro); }
+.historial-jugador-resumen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-column: 1 / -1; gap: 12px; margin: 0; }
+.historial-jugador-resumen > div { padding: 12px; border-radius: 12px; background: var(--acento-claro); }
 .historial-jugador-resumen dt { color: var(--suave); font-size: .8rem; font-weight: 650; }
 .historial-jugador-resumen dd { margin: 2px 0 0; color: var(--acento); font-size: 1.3rem; font-weight: 800; }
-.historial-goles ol { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
-.historial-goles li { display: grid; grid-template-columns: minmax(95px, .7fr) minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--borde); border-radius: 12px; background: var(--papel); }
-.historial-goles li > strong:last-child { color: var(--acento); white-space: nowrap; }
+.historial-goles ol, .historial-premios ol { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.historial-goles li, .historial-premios li { display: grid; grid-template-columns: minmax(95px, .7fr) minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--borde); border-radius: 12px; background: var(--papel); }
+.historial-goles li > strong:last-child, .historial-premios li > strong:last-child { color: var(--acento); white-space: nowrap; }
 .tabla-con-podio tbody tr.podio-2 { background-image: linear-gradient(100deg, #e1edf7, #f8fbff); }
 .tabla-con-podio tbody tr.podio-3 { background-image: linear-gradient(100deg, #f0f5fa, #fff); }
 .tabla-con-podio tbody tr.podio-2 td:first-child,
@@ -728,8 +732,9 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   .historial-jugador-cabecera { grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 14px; }
   .historial-jugador-foto { width: 68px; height: 68px; }
   .historial-jugador-escudo { display: none; }
-  .historial-goles li { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 10px; padding: 12px; }
-  .historial-goles li > span { grid-column: 1 / -1; grid-row: 2; }
+  .historial-jugador-resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .historial-goles li, .historial-premios li { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 10px; padding: 12px; }
+  .historial-goles li > span, .historial-premios li > span { grid-column: 1 / -1; grid-row: 2; }
   .metricas { gap: 8px; }
   .metricas > div { padding: 10px; }
   .metricas dd { font-size: 1.25rem; }
