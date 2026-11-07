@@ -697,7 +697,7 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
 .acta-evento-detalle strong { color: var(--acento-oscuro); font-size: .92rem; }
 .acta-evento-detalle > span { color: var(--suave); font-size: .82rem; }
 .acta-evento-gol .acta-evento-detalle strong { color: #17653b; }
-.acta-evento-equipo { color: var(--suave); font-size: .74rem; text-align: right; }
+.acta-evento-marcador { color: var(--acento-oscuro); font-size: .82rem; font-weight: 750; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .acta-hito { position: relative; display: grid; grid-template-columns: 76px 40px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 65px; padding: 5px 0; }
 .acta-hito::before { position: absolute; top: 0; bottom: 0; left: 107px; width: 2px; background: #e7edf3; content: ""; }
 .acta-hito-espacio { grid-column: 1; }
@@ -774,7 +774,7 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   .evento-tarjeta { width: 17px; height: 24px; }
   .acta-tiempo { font-size: .56rem; }
   .acta-tiempo strong { font-size: .85rem; }
-  .acta-evento-equipo { display: none; }
+  .acta-evento-marcador { font-size: .74rem; }
   .acta-evento-detalle strong { font-size: .85rem; }
   .acta-evento-detalle > span { font-size: .75rem; }
   .vista-movil { padding-top: 8px; }

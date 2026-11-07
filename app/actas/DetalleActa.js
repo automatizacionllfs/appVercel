@@ -38,7 +38,7 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
     (Number(partido.goles_local_clupik) !== golesLocal || Number(partido.goles_visitante_clupik) !== golesVisitante);
   const localPorId = new Map([[partido.local_id, local], [partido.visitante_id, visitante]]);
 
-  const cronologia = [
+  const cronologiaOrdenada = [
     ...eventos.map((evento) => ({
       tipo: "evento",
       evento,
@@ -48,6 +48,16 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
     { tipo: "silbato", titulo: "Descanso", texto: "Final de la primera parte", segundo: duracionParte, orden: 1 },
     { tipo: "silbato", titulo: "Final del partido", texto: "Encuentro finalizado", segundo: duracionParte * 2, orden: 3 },
   ].sort((a, b) => a.segundo - b.segundo || a.orden - b.orden || (a.evento?.id || 0) - (b.evento?.id || 0));
+  let marcadorLocal = 0;
+  let marcadorVisitante = 0;
+  const cronologia = cronologiaOrdenada.map((item) => {
+    if (item.evento?.tipo === "gol") {
+      if (item.evento.equipo_id === partido.local_id) marcadorLocal += 1;
+      if (item.evento.equipo_id === partido.visitante_id) marcadorVisitante += 1;
+      return { ...item, marcador: `${marcadorLocal} : ${marcadorVisitante}` };
+    }
+    return item;
+  });
 
   return (
     <>
@@ -164,7 +174,7 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
                   {localPorId.get(item.evento.equipo_id)?.nombre || "Equipo"}
                 </span>
               </div>
-              {item.evento.tipo === "gol" && <span className="acta-evento-equipo">{localPorId.get(item.evento.equipo_id)?.nombre || "Gol"}</span>}
+              {item.evento.tipo === "gol" && <span className="acta-evento-marcador" aria-label={`Marcador ${item.marcador}`}>{item.marcador}</span>}
               <span className="sr-only">Evento {indice + 1}</span>
             </li>
           ))}
