@@ -404,6 +404,12 @@ table {
 .pestanas button.activa { border-color: var(--acento); background: var(--acento); color: #fff; }
 .filtros-grupo { display: flex; gap: 8px; margin: 0 0 14px; }
 .selector-equipo { display: grid; gap: 7px; margin: 14px 0 18px; color: var(--acento-oscuro); font-weight: 700; }
+.buscador-goleadores { display: grid; max-width: 420px; gap: 7px; margin: 14px 0 16px; color: var(--acento-oscuro); font-size: .9rem; font-weight: 700; }
+.buscador-goleadores input { min-height: 44px; padding: 0 12px; border: 1px solid var(--borde); border-radius: 10px; background: var(--papel); font: inherit; }
+.buscador-goleadores input:focus-visible { outline: 3px solid rgb(21 85 138 / 24%); border-color: var(--acento); }
+.paginacion-goleadores { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 16px 0; color: var(--suave); font-size: .88rem; }
+.paginacion-goleadores button { min-height: 40px; padding: 0 14px; border: 1px solid var(--borde); border-radius: 9px; background: var(--papel); color: var(--acento); font-weight: 700; }
+.paginacion-goleadores button:disabled { cursor: not-allowed; opacity: .5; }
 .tabla-con-podio tbody tr.podio { background-size: 100% 100%; }
 .tabla-con-podio tbody tr.podio-1 {
   background-image: linear-gradient(100deg, #003261, #15558a);

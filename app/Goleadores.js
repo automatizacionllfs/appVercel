@@ -5,51 +5,92 @@ import { useRouter } from "next/navigation";
 
 function TablaGoleadores({ filas }) {
   const router = useRouter();
-  if (!filas.length) return <p className="suave">Todavía no hay goles registrados.</p>;
+  const [busqueda, setBusqueda] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const porPagina = 10;
+  const consulta = busqueda.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
+  const filasFiltradas = consulta
+    ? filas.filter((fila) => fila.jugador.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es").includes(consulta))
+    : filas;
+  const totalPaginas = Math.ceil(filasFiltradas.length / porPagina);
+  const paginaActual = Math.min(pagina, Math.max(totalPaginas, 1));
   const posiciones = filas.map((fila, i) =>
     i > 0 && fila.goles === filas[i - 1].goles ? null : i + 1,
   );
   for (let i = 0; i < posiciones.length; i += 1) {
     if (posiciones[i] === null) posiciones[i] = posiciones[i - 1];
   }
+  const filasPagina = filasFiltradas.slice((paginaActual - 1) * porPagina, paginaActual * porPagina);
 
   return (
-    <div className="tabla-scroll">
-      <table className="tabla-goleadores tabla-con-podio">
-        <thead><tr><th className="num">#</th><th>Jugador</th><th className="num">Goles</th></tr></thead>
-        <tbody>
-          {filas.map((fila, i) => (
-            <tr
-              key={`${fila.jugador_id}-${fila.equipo_id}`}
-              className={posiciones[i] <= 3 ? `podio podio-${posiciones[i]}` : ""}
-              role="link"
-              tabIndex={0}
-              aria-label={`${fila.jugador}, ${fila.equipo}, ${fila.goles} goles. Ver historial`}
-              onClick={() => router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}&origen=goleadores`)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}&origen=goleadores`);
-              }}
-            >
-              <td className="num">{posiciones[i]}</td>
-              <td>
-                <span className="estadistica-jugador">
-                  <span className="estadistica-jugador-foto">
-                    {fila.foto && <img src={fila.foto} alt="" loading="lazy" />}
-                  </span>
-                  <span className="goleador-identidad">{fila.jugador}<span className="suave">{fila.equipo}</span></span>
-                </span>
-              </td>
-              <td className="num">
-                <span className="goleador-goles">
-                  <strong>{fila.goles}</strong>
-                  <span className="goleador-flecha" aria-hidden="true">&gt;</span>
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <label className="buscador-goleadores">
+        Buscar jugador
+        <input
+          type="search"
+          value={busqueda}
+          placeholder="Nombre del jugador"
+          onChange={(event) => {
+            setBusqueda(event.target.value);
+            setPagina(1);
+          }}
+        />
+      </label>
+      {!filas.length ? (
+        <p className="suave">Todavía no hay goles registrados.</p>
+      ) : !filasFiltradas.length ? (
+        <p className="suave" role="status">No hay goleadores que coincidan con “{busqueda.trim()}”.</p>
+      ) : (
+        <>
+          <div className="tabla-scroll">
+            <table className="tabla-goleadores tabla-con-podio">
+              <thead><tr><th className="num">#</th><th>Jugador</th><th className="num">Goles</th></tr></thead>
+              <tbody>
+                {filasPagina.map((fila) => {
+                  const indice = filas.indexOf(fila);
+                  return (
+                    <tr
+                      key={`${fila.jugador_id}-${fila.equipo_id}`}
+                      className={posiciones[indice] <= 3 ? `podio podio-${posiciones[indice]}` : ""}
+                      role="link"
+                      tabIndex={0}
+                      aria-label={`${fila.jugador}, ${fila.equipo}, ${fila.goles} goles. Ver historial`}
+                      onClick={() => router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}&origen=goleadores`)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}&origen=goleadores`);
+                      }}
+                    >
+                      <td className="num">{posiciones[indice]}</td>
+                      <td>
+                        <span className="estadistica-jugador">
+                          <span className="estadistica-jugador-foto">
+                            {fila.foto && <img src={fila.foto} alt="" loading="lazy" />}
+                          </span>
+                          <span className="goleador-identidad">{fila.jugador}<span className="suave">{fila.equipo}</span></span>
+                        </span>
+                      </td>
+                      <td className="num">
+                        <span className="goleador-goles">
+                          <strong>{fila.goles}</strong>
+                          <span className="goleador-flecha" aria-hidden="true">&gt;</span>
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {totalPaginas > 1 && (
+            <nav className="paginacion-goleadores" aria-label="Paginación de goleadores">
+              <button type="button" onClick={() => setPagina(paginaActual - 1)} disabled={paginaActual === 1}>Anterior</button>
+              <span aria-live="polite">Página {paginaActual} de {totalPaginas}</span>
+              <button type="button" onClick={() => setPagina(paginaActual + 1)} disabled={paginaActual === totalPaginas}>Siguiente</button>
+            </nav>
+          )}
+        </>
+      )}
+    </>
   );
 }
 
