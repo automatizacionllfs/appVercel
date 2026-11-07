@@ -218,7 +218,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const [busca, setBusca] = useState("");
   const [jug, setJug] = useState(null);
   const [parte, setParte] = useState(1);
-  const [min, setMin] = useState(0);
+  const [min, setMin] = useState(22);
   const [seg, setSeg] = useState(0);
   const [msg, setMsg] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -258,8 +258,8 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const goles = (t) => ev.filter((e) => e.tipo === "gol" && !e.anulado && e.equipo_id === t).length;
   const diferenciaLocal = p.goles_local_clupik === null ? null : p.goles_local_clupik - goles(p.local_id);
   const diferenciaVisitante = p.goles_visitante_clupik === null ? null : p.goles_visitante_clupik - goles(p.visitante_id);
-  const tiempoIndicado = min * 60 + seg;
-  const restante = 1320 - tiempoIndicado;
+  const restante = min * 60 + seg;
+  const tiempoIndicado = 1320 - restante;
   const segundosDisponibles = Array.from({ length: min === 22 ? 1 : 12 }, (_, i) => i * 5);
   const cambiarMinutos = (valor) => {
     setMin(valor);
@@ -278,7 +278,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const guardar = async (jugador = jug) => {
     setMsg("");
     if (!golPropio && !jugador) return setMsg("Elige un jugador.");
-    if (tiempoIndicado > 1320) return setMsg("El reloj no puede pasar de 22:00.");
+    if (restante > 1320) return setMsg("El reloj no puede pasar de 22:00.");
     const { error } = await supabase.from("eventos").insert({
       partido_id: id, equipo_id: eq, jugador_id: golPropio ? null : jugador.jugador.id, tipo, parte, restante_seg: restante, creado_por: yo.id,
     });
@@ -382,16 +382,16 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
           )}
           {paso === "tiempo" && (
             <>
-              <p className="paso-movil">1. Tiempo transcurrido</p>
+              <p className="paso-movil">1. Tiempo restante</p>
               <div className="fila">
                 <button className={parte === 1 ? "on" : ""} onClick={() => setParte(1)}>1ª parte</button>
                 <button className={parte === 2 ? "on" : ""} onClick={() => setParte(2)}>2ª parte</button>
               </div>
               <div className="fila">
-                <select aria-label="Minutos transcurridos" value={min} onChange={(e) => cambiarMinutos(+e.target.value)}>
+                <select aria-label="Minutos restantes" value={min} onChange={(e) => cambiarMinutos(+e.target.value)}>
                   {Array.from({ length: 23 }, (_, i) => <option key={i} value={i}>{i} min</option>)}
                 </select>
-                <select aria-label="Segundos transcurridos" value={seg} onChange={(e) => setSeg(+e.target.value)}>
+                <select aria-label="Segundos restantes" value={seg} onChange={(e) => setSeg(+e.target.value)}>
                   {segundosDisponibles.map((s) => <option key={s} value={s}>{String(s).padStart(2, "0")} s</option>)}
                 </select>
               </div>
@@ -462,7 +462,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
             </>
           )}
 
-          <h2>Tiempo transcurrido en el reloj del pabellón</h2>
+          <h2>Tiempo restante en el reloj del pabellón</h2>
           <div className="fila">
             <button className={parte === 1 ? "on" : ""} onClick={() => setParte(1)}>1ª parte</button>
             <button className={parte === 2 ? "on" : ""} onClick={() => setParte(2)}>2ª parte</button>
@@ -475,7 +475,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
               {segundosDisponibles.map((s) => <option key={s} value={s}>{String(s).padStart(2, "0")} s</option>)}
             </select>
           </div>
-          <p className="suave">Quedan {reloj(restante)} · minuto de juego {reloj(tiempoIndicado)}</p>
+          <p className="suave">Quedan {reloj(restante)} · tiempo transcurrido {reloj(tiempoIndicado)}</p>
           {msg && <p className={msg.includes("registrado.") ? "mensaje-ok" : "error"}>{msg}</p>}
           <button className="primario" style={{ width: "100%" }} onClick={() => guardar()}>{golPropio ? "Guardar gol en propia puerta" : `Guardar ${TIPOS[tipo].toLowerCase()}`}</button>
         </>
