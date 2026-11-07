@@ -21,9 +21,9 @@ export default function MVPs({ ranking }) {
                 role="link"
                 tabIndex={0}
                 aria-label={`${fila.jugador}, ${fila.equipo}, ${fila.premios} premios MVP. Ver historial`}
-                onClick={() => router.push(`/jugadores/${fila.jugadorId}?equipo=${fila.equipoId}`)}
+                onClick={() => router.push(`/jugadores/${fila.jugadorId}?equipo=${fila.equipoId}&origen=mvps`)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter") router.push(`/jugadores/${fila.jugadorId}?equipo=${fila.equipoId}`);
+                  if (event.key === "Enter") router.push(`/jugadores/${fila.jugadorId}?equipo=${fila.equipoId}&origen=mvps`);
                 }}
               >
                 <td className="num">{indice + 1}</td>

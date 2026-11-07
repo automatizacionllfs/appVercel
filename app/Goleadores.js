@@ -25,9 +25,9 @@ function TablaGoleadores({ filas }) {
               role="link"
               tabIndex={0}
               aria-label={`${fila.jugador}, ${fila.equipo}, ${fila.goles} goles. Ver historial`}
-              onClick={() => router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}`)}
+              onClick={() => router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}&origen=goleadores`)}
               onKeyDown={(event) => {
-                if (event.key === "Enter") router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}`);
+                if (event.key === "Enter") router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}&origen=goleadores`);
               }}
             >
               <td className="num">{posiciones[i]}</td>
