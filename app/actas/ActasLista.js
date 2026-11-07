@@ -75,8 +75,8 @@ export default function ActasLista({ partidos }) {
                     {partido.goles_local_clupik ?? "—"} : {partido.goles_visitante_clupik ?? "—"}
                   </span>
                   <span className="acta-equipo visitante">
-                    {partido.visitante?.escudo_url && <img src={partido.visitante.escudo_url} alt="" width="34" height="34" />}
                     <strong>{partido.visitante?.nombre || "Equipo visitante"}</strong>
+                    {partido.visitante?.escudo_url && <img src={partido.visitante.escudo_url} alt="" width="34" height="34" />}
                   </span>
                 </span>
                 <span className="acta-partido-pie">
