@@ -32,7 +32,12 @@ function TablaGoleadores({ filas }) {
             >
               <td className="num">{posiciones[i]}</td>
               <td>
-                {fila.jugador}<div className="suave">{fila.equipo}</div>
+                <span className="estadistica-jugador">
+                  <span className="estadistica-jugador-foto">
+                    {fila.foto && <img src={fila.foto} alt="" loading="lazy" />}
+                  </span>
+                  <span className="goleador-identidad">{fila.jugador}<span className="suave">{fila.equipo}</span></span>
+                </span>
               </td>
               <td className="num">
                 <span className="goleador-goles">

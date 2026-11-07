@@ -456,6 +456,7 @@ table {
 .estadistica-jugador { display: inline-flex; align-items: center; gap: 10px; }
 .estadistica-jugador-foto { display: inline-grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; overflow: hidden; border: 1px solid #b4232e; border-radius: 50%; background: var(--acento-claro); }
 .estadistica-jugador-foto img { width: 100%; height: 100%; object-fit: cover; }
+.goleador-identidad .suave { display: block; }
 .nota-datos { margin: 12px 0; color: var(--suave); font-size: .82rem; }
 .aviso-datos { margin: 16px 0; padding: 12px 14px; border-left: 4px solid #e0a000; border-radius: 9px; background: #fff8e6; color: #745300; font-size: .88rem; font-weight: 600; }
 .estadistica-card {
