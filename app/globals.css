@@ -67,6 +67,16 @@ body {
 .site-nav a:hover { transform: translateY(-1px); border-color: var(--acento); background: var(--acento-claro); }
 .site-nav a.activa { border-color: #b4232e; background: #b4232e; box-shadow: 0 3px 9px rgb(180 35 46 / 20%); color: #fff; }
 .site-nav a.activa:hover { border-color: #921d27; background: #921d27; }
+.site-nav-menu { position: relative; }
+.site-nav-menu summary { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; padding: 0 14px; border: 1px solid var(--borde); border-radius: 11px; background: var(--papel); color: var(--acento); font-size: .9rem; font-weight: 700; cursor: pointer; list-style: none; }
+.site-nav-menu summary::-webkit-details-marker { display: none; }
+.site-nav-menu summary::after { margin-left: 8px; content: "▾"; font-size: .8em; }
+.site-nav-menu[open] summary::after { content: "▴"; }
+.site-nav-menu summary:hover { border-color: var(--acento); background: var(--acento-claro); }
+.site-nav-menu.activa summary { border-color: #b4232e; background: #b4232e; box-shadow: 0 3px 9px rgb(180 35 46 / 20%); color: #fff; }
+.site-nav-submenu { position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; display: grid; min-width: 190px; gap: 6px; padding: 8px; border: 1px solid var(--borde); border-radius: 14px; background: var(--papel); box-shadow: var(--sombra); }
+.site-nav-submenu a { justify-content: flex-start; }
+.site-nav-menu:focus-within summary { outline: 3px solid #ff0000; outline-offset: 3px; }
 
 .entrenador-login { display: grid; gap: 18px; width: min(100%, 440px); }
 .entrenador-login label, .entrenador-voto label { display: grid; gap: 7px; font-weight: 700; }
@@ -589,6 +599,10 @@ main > p > a {
 .boton-ver-actas:hover { transform: translateY(-1px); background: #b4232e; color: #fff; }
 
 .actas-lista { display: grid; gap: 12px; margin-top: 20px; }
+.actas-filtros { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 0; padding: 16px; border: 1px solid var(--borde); border-radius: 14px; background: var(--papel); }
+.actas-filtros label { display: grid; min-width: 190px; flex: 1; gap: 6px; color: var(--acento-oscuro); font-size: .85rem; font-weight: 700; }
+.actas-filtros select { min-height: 44px; padding: 0 12px; border: 1px solid var(--borde); border-radius: 10px; background: var(--papel); }
+.actas-sin-resultados { margin: 20px 0; padding: 18px; border: 1px solid var(--borde); border-radius: 14px; background: var(--papel); color: var(--suave); text-align: center; }
 .acta-partido {
   display: grid;
   gap: 12px;
@@ -692,6 +706,7 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   .site-header { padding-top: 10px; }
   .site-nav { gap: 6px; }
   .site-nav a { min-height: 38px; padding: 0 10px; font-size: .8rem; }
+  .site-nav-menu summary { min-height: 38px; padding: 0 10px; font-size: .8rem; }
   main { width: min(100% - 24px, 760px); padding-top: 16px; }
   main > h1 { margin-bottom: 18px; padding: 24px 20px; border-radius: 16px; }
   .cabecera-partido:not(.modo-movil) h1 { margin-bottom: 18px; padding: 24px 20px; border-radius: 16px; }
