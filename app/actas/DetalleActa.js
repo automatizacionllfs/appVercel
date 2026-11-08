@@ -14,8 +14,16 @@ const fecha = (valor) => valor
   })
   : "Fecha no disponible";
 
-function iconoEvento(tipo) {
+function iconoEvento(tipo, segundaAmarilla = false) {
   if (tipo === "gol") return <span className="evento-icono gol" aria-hidden="true">⚽</span>;
+  if (segundaAmarilla) {
+    return (
+      <span className="evento-icono evento-tarjetas-dobles" role="img" aria-label="Tarjeta amarilla y tarjeta roja">
+        <span className="evento-tarjeta amarilla" />
+        <span className="evento-tarjeta roja" />
+      </span>
+    );
+  }
   if (tipo === "amarilla") return <span className="evento-tarjeta amarilla" role="img" aria-label="Tarjeta amarilla" />;
   return <span className="evento-tarjeta roja" role="img" aria-label="Tarjeta roja" />;
 }
@@ -50,13 +58,21 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
   ].sort((a, b) => a.segundo - b.segundo || a.orden - b.orden || (a.evento?.id || 0) - (b.evento?.id || 0));
   let marcadorLocal = 0;
   let marcadorVisitante = 0;
+  const amarillasPorJugador = new Map();
   const cronologia = cronologiaOrdenada.map((item) => {
+    const jugadorId = item.evento?.jugador_id;
+    const esAmarilla = item.evento?.tipo === "amarilla";
+    const amarillasAnteriores = esAmarilla && jugadorId != null
+      ? amarillasPorJugador.get(jugadorId) || 0
+      : 0;
+    if (esAmarilla && jugadorId != null) amarillasPorJugador.set(jugadorId, amarillasAnteriores + 1);
+    const conSegundaAmarilla = esAmarilla && amarillasAnteriores === 1;
     if (item.evento?.tipo === "gol") {
       if (item.evento.equipo_id === partido.local_id) marcadorLocal += 1;
       if (item.evento.equipo_id === partido.visitante_id) marcadorVisitante += 1;
-      return { ...item, marcador: `${marcadorLocal} : ${marcadorVisitante}` };
+      return { ...item, marcador: `${marcadorLocal} : ${marcadorVisitante}`, segundaAmarilla: false };
     }
-    return item;
+    return { ...item, segundaAmarilla: conSegundaAmarilla };
   });
 
   return (
@@ -163,10 +179,14 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
                 {item.evento.parte === 1 ? "1ª" : "2ª"} PARTE
                 <strong>{reloj(duracionParte - Number(item.evento.restante_seg))}'</strong>
               </span>
-              {iconoEvento(item.evento.tipo)}
+              {iconoEvento(item.evento.tipo, item.segundaAmarilla)}
               <div className="acta-evento-detalle">
                 <strong>
-                  {item.evento.tipo === "gol" ? "Gol" : item.evento.tipo === "amarilla" ? "Tarjeta amarilla" : "Tarjeta roja"}
+                  {item.evento.tipo === "gol"
+                    ? "Gol"
+                    : item.segundaAmarilla
+                      ? "Segunda tarjeta amarilla y, en consecuencia, tarjeta roja (Expulsión)"
+                      : item.evento.tipo === "amarilla" ? "Tarjeta amarilla" : "Tarjeta roja"}
                 </strong>
                 <span>
                   {item.evento.jugador?.nombre || (item.evento.tipo === "gol" ? "Gol en propia puerta" : "Jugador no disponible")}

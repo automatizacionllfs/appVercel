@@ -696,6 +696,7 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
 .acta-tiempo strong { color: var(--acento); font-size: .95rem; font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .evento-icono, .evento-tarjeta { z-index: 1; display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid var(--borde); border-radius: 50%; background: #fff; }
 .evento-icono.gol { border-color: #c4d8e9; background: #edf5fb; font-size: 1.25rem; }
+.evento-icono.evento-tarjetas-dobles { display: flex; gap: 2px; border: 0; background: transparent; }
 .evento-tarjeta { width: 19px; height: 27px; justify-self: center; border-radius: 4px; }
 .evento-tarjeta.amarilla { border-color: #d8a914; background: #f1c232; }
 .evento-tarjeta.roja { border-color: #d43d3d; background: #e34d4d; }
@@ -778,6 +779,7 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   .acta-evento::before, .acta-hito::before { left: 83px; }
   .evento-icono { width: 34px; height: 34px; }
   .evento-tarjeta { width: 17px; height: 24px; }
+  .evento-tarjetas-dobles .evento-tarjeta { width: 15px; height: 22px; }
   .acta-tiempo { font-size: .56rem; }
   .acta-tiempo strong { font-size: .85rem; }
   .acta-evento-marcador { font-size: .74rem; }
