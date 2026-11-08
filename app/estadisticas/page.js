@@ -45,7 +45,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
     if (partidos.length) {
       for (let desde = 0; ; desde += 1000) {
         const { data: pagina, error } = await db.from("eventos")
-          .select("partido_id,equipo_id,jugador_id,tipo,parte,restante_seg,jugador:jugadores(id,nombre)")
+          .select("id,partido_id,equipo_id,jugador_id,tipo,parte,restante_seg,jugador:jugadores(id,nombre)")
           .eq("anulado", false)
           .in("partido_id", partidos.map((partido) => partido.id))
           .range(desde, desde + 999);

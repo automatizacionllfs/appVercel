@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 
 const reloj = (segundos) => {
   if (segundos === null) return "—";
@@ -27,7 +28,7 @@ function resumen(eventos, partidosJugados) {
     goles,
     mediaGoles: partidosJugados ? goles / partidosJugados : 0,
     amarillas: eventos.filter((evento) => evento.tipo === "amarilla").length,
-    rojas: eventos.filter((evento) => evento.tipo === "roja").length,
+    rojas: eventos.filter((evento) => evento.tipo === "roja" || evento.segundaAmarilla).length,
   };
 }
 
@@ -59,7 +60,8 @@ function formatFecha(fecha) {
 export default function Estadisticas({ equipos, partidos, eventos, plantilla, equipoInicial = "" }) {
   const [equipoId, setEquipoId] = useState(String(equipoInicial));
   const equipo = equipos.find((item) => String(item.id) === equipoId);
-  const partidosConActa = new Set(eventos.map((evento) => evento.partido_id));
+  const eventosConSegundasAmarillas = marcarSegundasAmarillas(eventos);
+  const partidosConActa = new Set(eventosConSegundasAmarillas.map((evento) => evento.partido_id));
   const partidosEquipo = equipo
     ? partidos.filter((partido) =>
       (partido.local_id === equipo.id || partido.visitante_id === equipo.id) &&
@@ -67,7 +69,7 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
       partido.goles_visitante_clupik !== null,
     ).sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0))
     : [];
-  const eventosEquipo = equipo ? eventos.filter((evento) => evento.equipo_id === equipo.id) : [];
+  const eventosEquipo = equipo ? eventosConSegundasAmarillas.filter((evento) => evento.equipo_id === equipo.id) : [];
   const resumenEquipo = useMemo(() => resumen(eventosEquipo, partidosEquipo.length), [eventosEquipo, partidosEquipo.length]);
 
   const usuarios = useMemo(() => {

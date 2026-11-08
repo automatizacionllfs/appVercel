@@ -1,4 +1,5 @@
 import MVPShareCard from "../entrenador/MVPShareCard";
+import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 
 const duracionParte = 22 * 60;
 const reloj = (segundos) => `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
@@ -47,7 +48,7 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
   const localPorId = new Map([[partido.local_id, local], [partido.visitante_id, visitante]]);
 
   const cronologiaOrdenada = [
-    ...eventos.map((evento) => ({
+    ...marcarSegundasAmarillas(eventos).map((evento) => ({
       tipo: "evento",
       evento,
       segundo: (Number(evento.parte) - 1) * duracionParte + (duracionParte - Number(evento.restante_seg)),
@@ -58,22 +59,16 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
   ].sort((a, b) => a.segundo - b.segundo || a.orden - b.orden || (a.evento?.id || 0) - (b.evento?.id || 0));
   let marcadorLocal = 0;
   let marcadorVisitante = 0;
-  const amarillasPorJugador = new Map();
   const cronologia = cronologiaOrdenada.map((item) => {
-    const jugadorId = item.evento?.jugador_id;
-    const esAmarilla = item.evento?.tipo === "amarilla";
-    const amarillasAnteriores = esAmarilla && jugadorId != null
-      ? amarillasPorJugador.get(jugadorId) || 0
-      : 0;
-    if (esAmarilla && jugadorId != null) amarillasPorJugador.set(jugadorId, amarillasAnteriores + 1);
-    const conSegundaAmarilla = esAmarilla && amarillasAnteriores === 1;
     if (item.evento?.tipo === "gol") {
       if (item.evento.equipo_id === partido.local_id) marcadorLocal += 1;
       if (item.evento.equipo_id === partido.visitante_id) marcadorVisitante += 1;
-      return { ...item, marcador: `${marcadorLocal} : ${marcadorVisitante}`, segundaAmarilla: false };
+      return { ...item, marcador: `${marcadorLocal} : ${marcadorVisitante}` };
     }
-    return { ...item, segundaAmarilla: conSegundaAmarilla };
+    return item;
   });
+  const tarjetasRojas = eventos.filter((evento) => evento.tipo === "roja").length +
+    cronologia.filter((item) => item.evento?.segundaAmarilla).length;
 
   return (
     <>
@@ -101,7 +96,7 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
         <div className="acta-metricas">
           <span>⚽ <strong>{eventos.filter((evento) => evento.tipo === "gol").length}</strong> goles</span>
           <span>🟨 <strong>{eventos.filter((evento) => evento.tipo === "amarilla").length}</strong> amarillas</span>
-          <span>🟥 <strong>{eventos.filter((evento) => evento.tipo === "roja").length}</strong> rojas</span>
+          <span>🟥 <strong>{tarjetasRojas}</strong> rojas</span>
         </div>
       </header>
 
@@ -179,13 +174,13 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
                 {item.evento.parte === 1 ? "1ª" : "2ª"} PARTE
                 <strong>{reloj(duracionParte - Number(item.evento.restante_seg))}'</strong>
               </span>
-              {iconoEvento(item.evento.tipo, item.segundaAmarilla)}
+              {iconoEvento(item.evento.tipo, item.evento.segundaAmarilla)}
               <div className="acta-evento-detalle">
                 <strong>
                   {item.evento.tipo === "gol"
                     ? "Gol"
-                    : item.segundaAmarilla
-                      ? "Segunda tarjeta amarilla y, en consecuencia, tarjeta roja (Expulsión)"
+                    : item.evento.segundaAmarilla
+                      ? "2ªTarjeta Amarilla (Expulsión)"
                       : item.evento.tipo === "amarilla" ? "Tarjeta amarilla" : "Tarjeta roja"}
                 </strong>
                 <span>
