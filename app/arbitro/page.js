@@ -395,7 +395,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
                   {segundosDisponibles.map((s) => <option key={s} value={s}>{String(s).padStart(2, "0")} s</option>)}
                 </select>
               </div>
-              <p className="suave">Quedan {reloj(restante)}</p>
+              <p className="suave">Quedan {reloj(restante)} · tiempo transcurrido {reloj(tiempoIndicado)}</p>
               <button className="primario boton-paso" onClick={() => setPaso("equipo")}>Continuar</button>
               <button className="mini" onClick={() => setPaso("acciones")}>Volver</button>
             </>
