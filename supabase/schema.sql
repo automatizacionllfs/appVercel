@@ -128,6 +128,17 @@ create table eventos (
 create index on eventos (partido_id);
 create index on eventos (jugador_id);
 
+-- Jugadores sin ficha inscritos en cada acta, aunque no tengan eventos.
+create table inscripciones_acta (
+  id          bigint generated always as identity primary key,
+  partido_id  bigint not null references partidos(id) on delete cascade,
+  equipo_id   bigint not null references equipos(id) on delete cascade,
+  jugador_id  bigint not null references jugadores(id) on delete cascade,
+  creado_por  bigint references usuarios(id),
+  creado_en   timestamptz not null default now(),
+  unique (partido_id, jugador_id)
+);
+
 -- Fase 4: MVP votado por el entrenador rival
 create table mvp (
   id                bigint generated always as identity primary key,
@@ -286,6 +297,8 @@ begin
   returning id into v_jug;
 
   insert into plantilla (equipo_id, jugador_id, dorsal) values (p_equipo, v_jug, p_dorsal);
+  insert into inscripciones_acta (partido_id, equipo_id, jugador_id, creado_por)
+  values (p_partido, p_equipo, v_jug, usuario_actual());
   return v_jug;
 end $$;
 
@@ -392,6 +405,12 @@ create policy "arbitro anula" on eventos for update to authenticated
 
 create policy "admin gestiona eventos" on eventos for all to authenticated
   using (es_admin()) with check (es_admin());
+
+alter table inscripciones_acta enable row level security;
+create policy "arbitros consultan inscripciones de acta" on inscripciones_acta
+  for select to authenticated using (usuario_actual() is not null);
+revoke all on inscripciones_acta from anon;
+grant select on inscripciones_acta to authenticated;
 
 -- ---------- VISTAS PUBLICAS (estadisticas) ----------
 create view v_goleadores as

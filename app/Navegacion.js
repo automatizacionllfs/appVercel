@@ -13,7 +13,6 @@ const enlaces = [
 const enlacesPersonal = [
   { href: "/arbitro", texto: "Árbitros" },
   { href: "/entrenador", texto: "Entrenadores" },
-  { href: "/entrenador/admin", texto: "Gestión de PIN" },
 ];
 
 export default function Navegacion() {
@@ -41,7 +40,7 @@ export default function Navegacion() {
         );
       })}
       <details className={`site-nav-menu ${personalActivo ? "activa" : ""}`}>
-        <summary aria-current={personalActivo ? "page" : undefined}>Acceso personal</summary>
+        <summary aria-current={personalActivo ? "page" : undefined}>Acceso Personal</summary>
         <div className="site-nav-submenu">
           {enlacesPersonal.map(({ href, texto }) => {
             const activa = href === "/entrenador"

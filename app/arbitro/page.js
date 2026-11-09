@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import NavegacionArbitro from "./NavegacionArbitro";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const fmt = (f) => new Date(f).toLocaleString("es-ES", { timeZone: "Europe/Madrid", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -131,6 +132,7 @@ export default function Arbitro() {
 
   return (
     <main>
+      <NavegacionArbitro />
       <h1>Hola, {yo.nombre}</h1>
       <h2>{yo.rol === "admin" ? "Partidos" : "Tus partidos"}</h2>
       {yo.rol === "admin" && (
@@ -348,6 +350,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
 
   return (
     <main className={modo === "movil" ? "vista-movil" : ""}>
+      <NavegacionArbitro />
       <div className={`cabecera-partido ${modo === "movil" ? "modo-movil" : ""}`}>
         <button className="mini" onClick={volver}>‹ Mis partidos</button>
         <h1>Jornada {p.jornada}</h1>

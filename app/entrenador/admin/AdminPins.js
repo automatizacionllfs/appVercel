@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import NavegacionArbitro from "../../arbitro/NavegacionArbitro";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
   auth: { persistSession: true },
 });
 
-export default function AdminPins() {
+export default function AdminPins({ redirectPath = "/entrenador/admin" }) {
   const [sesion, setSesion] = useState(undefined);
   const [equipos, setEquipos] = useState([]);
   const [error, setError] = useState("");
@@ -72,7 +73,7 @@ export default function AdminPins() {
   async function entrar() {
     const { error: errorAcceso } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/entrenador/admin` },
+      options: { redirectTo: `${window.location.origin}${redirectPath}` },
     });
     if (errorAcceso) setError(`No se pudo iniciar sesión: ${errorAcceso.message}`);
   }
@@ -89,6 +90,7 @@ export default function AdminPins() {
 
   return (
     <main>
+      <NavegacionArbitro />
       <h1>Gestión de PIN de entrenadores</h1>
       <p>Genera o regenera las claves de los equipos de la temporada activa. Cada PIN se muestra una sola vez.</p>
       {error && <p className="error">{error}</p>}

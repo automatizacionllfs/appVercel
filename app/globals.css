@@ -94,6 +94,18 @@ body {
 .site-nav-submenu { position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; display: grid; min-width: 190px; gap: 6px; padding: 8px; border: 1px solid var(--borde); border-radius: 14px; background: var(--papel); box-shadow: var(--sombra); }
 .site-nav-submenu a { justify-content: flex-start; }
 .site-nav-menu:focus-within summary { outline: 3px solid #ff0000; outline-offset: 3px; }
+.navegacion-arbitro { margin: 0 auto 18px; }
+.sin-ficha-lista { display: grid; gap: 14px; }
+.sin-ficha-jugador { padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); box-shadow: var(--sombra); }
+.sin-ficha-jugador > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.sin-ficha-jugador h2 { margin: 4px 0 0; color: var(--acento-oscuro); }
+.sin-ficha-jugador h3 { margin: 18px 0 8px; font-size: 1rem; }
+.sin-ficha-jugador ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.sin-ficha-jugador li { display: grid; gap: 3px; padding: 10px 12px; border-radius: 10px; background: #f3f7fa; }
+.sin-ficha-jugador li a { color: var(--acento); font-weight: 700; text-decoration: none; }
+.sin-ficha-jugador li a:hover { text-decoration: underline; }
+.sin-ficha-jugador li span { color: var(--suave); font-size: .88rem; }
+.sin-ficha-dorsal { display: grid; min-width: 44px; min-height: 44px; place-items: center; border-radius: 50%; background: var(--acento-claro); color: var(--acento-oscuro); }
 
 .entrenador-login { display: grid; gap: 18px; width: min(100%, 440px); }
 .entrenador-login label, .entrenador-voto label { display: grid; gap: 7px; font-weight: 700; }
