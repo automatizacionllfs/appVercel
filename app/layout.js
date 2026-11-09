@@ -1,6 +1,7 @@
 import "./globals.css";
 import Image from "next/image";
 import Navegacion from "./Navegacion";
+import InstalarApp from "./InstalarApp";
 
 export const metadata = {
   title: "LLFS Puerto Real",
@@ -19,7 +20,7 @@ export const metadata = {
   },
 };
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
-const VERSION = "3.2.1";
+const VERSION = "3.2.2";
 const FECHA_ACTUALIZACION = "08/11/2026";
 
 export default function RootLayout({ children }) {
@@ -47,6 +48,7 @@ export default function RootLayout({ children }) {
           </div>
           <Navegacion />
         </header>
+        <InstalarApp />
         {children}
         <footer className="pie">Versión {VERSION} · Actualizado el {FECHA_ACTUALIZACION}</footer>
       </body>

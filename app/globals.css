@@ -37,6 +37,23 @@ body {
 
 .site-brand { display: inline-flex; border-radius: 12px; }
 .site-brand img { display: block; width: min(216px, 52vw); height: auto; object-fit: contain; }
+.instalar-app {
+  display: flex;
+  width: min(100% - 32px, 760px);
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px auto 0;
+  padding: 14px 18px;
+  border: 1px solid #c5d8e9;
+  border-radius: 14px;
+  background: var(--acento-claro);
+}
+.instalar-app strong { color: var(--acento); }
+.instalar-app p { margin: 2px 0 0; color: var(--suave); font-size: .88rem; }
+.instalar-app .instalar-app-mensaje { margin-top: 6px; color: var(--acento); }
+.instalar-app button { min-height: 42px; flex: 0 0 auto; border-color: var(--acento); background: var(--acento); color: #fff; font-weight: 700; }
+.instalar-app button:hover { border-color: var(--acento-oscuro); background: var(--acento-oscuro); }
 .header-enlaces { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .header-enlaces a { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; gap: 6px; color: var(--acento); font-size: .82rem; font-weight: 700; text-decoration: none; }
 .header-enlaces a:hover { color: #b4232e; }
@@ -127,6 +144,8 @@ body {
 .estadistica-mvp h2 { margin-top: 0; }
 
 @media (max-width: 600px) {
+  .instalar-app { align-items: flex-start; flex-direction: column; gap: 10px; padding: 14px; }
+  .instalar-app button { width: 100%; }
   .acta-mvp-lista { grid-template-columns: 1fr; }
   .admin-pin-equipo { grid-template-columns: 1fr auto; }
   .admin-pin-equipo button { grid-column: 1 / -1; }
