@@ -807,6 +807,9 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
 .acta-descripcion-form label { display: block; color: var(--suave); font-size: .88rem; font-weight: 650; }
 .acta-descripcion-form button:disabled { cursor: wait; opacity: .7; }
 .enlace-acta-estadisticas { grid-column: 1 / -1; justify-self: start; }
+.boton-editar-acta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; margin: 0 0 14px; padding: 0 15px; border: 1px solid var(--acento); border-radius: 11px; background: var(--papel); color: var(--acento); font-weight: 750; text-decoration: none; transition: background-color .16s ease, transform .16s ease; }
+.boton-editar-acta:hover { transform: translateY(-1px); background: var(--acento-claro); }
+.editar-acta-error { margin: 0 0 14px; color: var(--roja); font-size: .86rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 
 @media (max-width: 540px) {

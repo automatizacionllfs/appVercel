@@ -41,7 +41,10 @@ export default function Arbitro() {
       .select("id,jornada,fecha,estado,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
       .order("fecha");
     if (yo.rol !== "admin") q = q.eq("arbitro_id", yo.id);
-    q.limit(100).then(async ({ data, error }) => {
+    const partidoSolicitado = new URLSearchParams(window.location.search).get("partido");
+    const idPartidoSolicitado = /^\d+$/.test(partidoSolicitado || "") ? partidoSolicitado : null;
+    if (idPartidoSolicitado) q = q.eq("id", idPartidoSolicitado);
+    q.limit(idPartidoSolicitado ? 1 : 100).then(async ({ data, error }) => {
       if (error) {
         setErrorPartidos(`No se pudieron cargar los partidos: ${error.message}`);
         return;
@@ -49,7 +52,14 @@ export default function Arbitro() {
       const lista = data || [];
       setPartidos(lista);
       setGolesActa([]);
-      setErrorPartidos("");
+      if (idPartidoSolicitado && lista.some((partido) => String(partido.id) === idPartidoSolicitado)) {
+        setErrorPartidos("");
+        setAbierto(Number(idPartidoSolicitado));
+      } else if (idPartidoSolicitado) {
+        setErrorPartidos("No tienes permiso para editar este partido o no se encuentra disponible.");
+      } else {
+        setErrorPartidos("");
+      }
       const ids = lista.map((partido) => partido.id);
       if (!ids.length) {
         setGolesActa([]);
@@ -128,7 +138,10 @@ export default function Arbitro() {
       <button onClick={salir}>Salir</button>
     </main>
   );
-  if (abierto) return <Partido id={abierto} yo={yo} volver={() => setAbierto(null)} modo={modo} cambiarModo={setModo} />;
+  if (abierto) return <Partido id={abierto} yo={yo} volver={() => {
+    window.history.replaceState(null, "", "/arbitro");
+    setAbierto(null);
+  }} modo={modo} cambiarModo={setModo} />;
 
   return (
     <main>

@@ -1,5 +1,6 @@
 import MVPShareCard from "../entrenador/MVPShareCard";
 import AvatarJugador from "../AvatarJugador";
+import EditarActa from "./EditarActa";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
 
@@ -76,6 +77,7 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
   return (
     <>
       <a className="boton-inicio acta-volver" href={volver}>← Volver</a>
+      <EditarActa partidoId={partido.id} />
       <header className="acta-cabecera">
         <span className="acta-kicker">{actaDigitalizada ? "ACTA DIGITAL" : "ACTA PENDIENTE DE DIGITALIZAR"} · JORNADA {partido.jornada || "—"}</span>
         <p className="acta-fecha">{fecha(partido.fecha)}</p>
