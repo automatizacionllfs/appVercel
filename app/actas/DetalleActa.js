@@ -77,9 +77,11 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
   return (
     <>
       <a className="boton-inicio acta-volver" href={volver}>← Volver</a>
-      <EditarActa partidoId={partido.id} />
       <header className="acta-cabecera">
-        <span className="acta-kicker">{actaDigitalizada ? "ACTA DIGITAL" : "ACTA PENDIENTE DE DIGITALIZAR"} · JORNADA {partido.jornada || "—"}</span>
+        <div className="acta-cabecera-superior">
+          <span className="acta-kicker">{actaDigitalizada ? "ACTA DIGITAL" : "ACTA PENDIENTE DE DIGITALIZAR"} · JORNADA {partido.jornada || "—"}</span>
+          <EditarActa partidoId={partido.id} />
+        </div>
         <p className="acta-fecha">{fecha(partido.fecha)}</p>
         <div className="acta-marcador-grande">
           <div className="acta-equipo-grande">

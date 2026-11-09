@@ -748,6 +748,9 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   box-shadow: var(--sombra);
   color: #fff;
 }
+.acta-cabecera-superior { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.acta-cabecera-superior .boton-editar-acta { position: relative; z-index: 1; flex: 0 0 auto; min-height: 38px; margin: -7px 0 0; border-color: rgb(255 255 255 / 55%); background: rgb(255 255 255 / 10%); color: #fff; }
+.acta-cabecera-superior .boton-editar-acta:hover { border-color: #fff; background: rgb(255 255 255 / 20%); }
 .acta-cabecera::after { position: absolute; right: -72px; bottom: -155px; width: 290px; height: 290px; border: 1px solid rgb(255 255 255 / 13%); border-radius: 50%; box-shadow: 0 0 0 28px rgb(255 255 255 / 5%), 0 0 0 58px rgb(255 255 255 / 4%); content: ""; pointer-events: none; }
 .acta-kicker { color: #c8dff2; font-size: .72rem; font-weight: 800; letter-spacing: .13em; }
 .acta-fecha { margin: 5px 0 18px; color: #e0ebf5; font-size: .87rem; text-transform: capitalize; }

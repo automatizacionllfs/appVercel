@@ -36,7 +36,7 @@ export default function EditarActa({ partidoId }) {
     supabase.from("usuarios")
       .select("id")
       .ilike("email", sesion.user.email)
-      .eq("rol", "arbitro")
+      .in("rol", ["arbitro", "admin"])
       .eq("activo", true)
       .maybeSingle()
       .then(({ data: usuario, error: errorUsuario }) => {
