@@ -23,17 +23,39 @@ function texto(ctx, valor, x, y, maximo) {
 
 function panel(ctx, x, y, ancho, alto) {
   const relleno = ctx.createLinearGradient(0, y, 0, y + alto);
-  relleno.addColorStop(0, "rgba(23, 58, 106, 0.94)");
-  relleno.addColorStop(1, "rgba(16, 42, 82, 0.94)");
+  relleno.addColorStop(0, "rgba(23, 58, 106, 0.9)");
+  relleno.addColorStop(1, "rgba(16, 42, 82, 0.9)");
+  ctx.save();
   ctx.beginPath();
   ctx.roundRect(x, y, ancho, alto, 30);
+  ctx.shadowColor = "rgba(0, 5, 18, 0.55)";
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 16;
   ctx.fillStyle = relleno;
   ctx.fill();
+
+  ctx.shadowColor = "transparent";
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, ancho, alto, 30);
+  ctx.clip();
   ctx.fillStyle = ROJO;
   ctx.fillRect(x, y, ancho, 9);
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.roundRect(x + 1, y + 1, ancho - 2, alto - 2, 29);
   ctx.strokeStyle = "rgba(155, 191, 235, 0.38)";
   ctx.lineWidth = 2;
   ctx.stroke();
+  ctx.restore();
+}
+
+function linea(ctx, x, y, ancho, color = ROJO, grosor = 5) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, ancho, grosor);
 }
 
 export default function GoleadorJornadaCard({ jornada, jugador }) {
@@ -70,12 +92,12 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
       ctx.fillStyle = "#fff";
       ctx.font = "800 31px Inter, system-ui, sans-serif";
       ctx.fillText("PUERTO REAL", 246, 117);
-      ctx.fillStyle = ROJO;
-      ctx.fillRect(64, 158, 952, 7);
+      linea(ctx, 64, 158, 952, ROJO, 7);
 
       ctx.fillStyle = "#fff";
       ctx.font = "900 58px Inter, system-ui, sans-serif";
       ctx.fillText("GOLEADOR DE LA JORNADA", 64, 285);
+      linea(ctx, 68, 308, 112, ROJO, 9);
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "700 30px Inter, system-ui, sans-serif";
       ctx.fillText(`JORNADA ${jornada}`, 68, 342);
@@ -134,8 +156,7 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
       ctx.textAlign = "left";
       ctx.fillText(jugador.goles === 1 ? "GOL EN LA JORNADA" : "GOLES EN LA JORNADA", 460, 1400);
 
-      ctx.fillStyle = ROJO;
-      ctx.fillRect(64, 1720, 952, 4);
+      linea(ctx, 64, 1720, 952, ROJO, 5);
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "650 25px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
