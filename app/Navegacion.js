@@ -17,7 +17,7 @@ const enlacesPersonal = [
 ];
 
 export default function Navegacion() {
-  const ruta = usePathname();
+  const ruta = usePathname()?.replace(/\/+$/, "") || "/";
   const personalActivo = ruta === "/arbitro"
     || ruta.startsWith("/arbitro/")
     || ruta === "/entrenador"
@@ -26,11 +26,9 @@ export default function Navegacion() {
   return (
     <nav className="site-nav" aria-label="Navegación principal">
       {enlaces.map(({ href, texto }) => {
-        const activa = href === "/"
-          ? ruta === "/"
-          : href === "/entrenador"
-            ? ruta === href || ruta === "/entrenador/login"
-            : ruta === href || ruta.startsWith(`${href}/`);
+        const activa = ruta === href
+          || (href !== "/" && ruta.startsWith(`${href}/`))
+          || (href === "/entrenador" && ruta === "/entrenador/login");
         return (
           <a
             className={activa ? "activa" : ""}
