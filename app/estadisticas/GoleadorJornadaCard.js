@@ -141,8 +141,13 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
       ctx.textAlign = "center";
       ctx.fillText("LIGA LOCAL DE FÚTBOL SALA · PUERTO REAL", ANCHO / 2, 1800);
       ctx.fillStyle = "#fff";
-      ctx.font = "600 21px Inter, system-ui, sans-serif";
-      ctx.fillText("llfspuertoreal.es  ·  Instagram @dlfsptoreal", ANCHO / 2, 1850);
+      ctx.font = "600 19px Inter, system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("llfspuertoreal.es", 78, 1850);
+      ctx.textAlign = "center";
+      ctx.fillText("Instagram  @dlfsptoreal", ANCHO / 2, 1850);
+      ctx.textAlign = "right";
+      ctx.fillText("YouTube  LLFS Puerto Real", 1002, 1850);
       ctx.textAlign = "start";
 
       const imagen = await new Promise((resolve, reject) => canvas.toBlob((blob) =>
@@ -163,7 +168,7 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
   return (
     <div className="goleador-jornada-descarga">
       <button type="button" className="primario" disabled={descargando} onClick={descargar}>
-        {descargando ? "Creando tarjeta…" : "Descargar Card"}
+        {descargando ? "Descargando…" : "Descargar Imagen"}
       </button>
       {error && <p className="error" role="status">{error}</p>}
     </div>
