@@ -133,7 +133,13 @@ export default function Arbitro() {
     <main>
       <h1>Hola, {yo.nombre}</h1>
       <h2>{yo.rol === "admin" ? "Partidos" : "Tus partidos"}</h2>
-      <SelectorModo modo={modo} cambiar={setModo} />
+      {yo.rol === "admin" && (
+        <form className="rango-fechas" onSubmit={(e) => { e.preventDefault(); sincronizar(); }}>
+          <label>Fecha desde<input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} required /></label>
+          <label>Fecha hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} required /></label>
+          <button type="submit">Sincronizar con Clupik</button>
+        </form>
+      )}
       <div className="filtros-partidos">
         <label>Jornada
           <select value={filtroJornada} onChange={(e) => setFiltroJornada(e.target.value)}>
@@ -187,13 +193,6 @@ export default function Arbitro() {
           </button>
         );
       })}
-      {yo.rol === "admin" && (
-        <form className="rango-fechas" onSubmit={(e) => { e.preventDefault(); sincronizar(); }}>
-          <label>Fecha desde<input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} required /></label>
-          <label>Fecha hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} required /></label>
-          <button type="submit">Sincronizar con Clupik</button>
-        </form>
-      )}
       <p><button className="mini" onClick={salir}>Salir</button></p>
     </main>
   );
