@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import NavegacionArbitro from "../NavegacionArbitro";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+const tipoEvento = { gol: "Gol", amarilla: "Tarjeta amarilla", roja: "Tarjeta roja" };
 
 function fechaPartido(fecha) {
   if (!fecha) return "Fecha no disponible";
@@ -34,7 +35,7 @@ export default function SinFicha() {
     supabase.auth.getSession().then(({ data, error: errorSesion }) => {
       if (!vigente) return;
       if (errorSesion) setError(`No se pudo consultar la sesión: ${errorSesion.message}`);
-      setSesion(data.session);
+      setSesion(data?.session || null);
     });
     const { data } = supabase.auth.onAuthStateChange((_evento, nuevaSesion) => {
       setSesion(nuevaSesion);
@@ -57,6 +58,8 @@ export default function SinFicha() {
       const { data, error: errorUsuario } = await supabase.from("usuarios")
         .select("id,nombre,rol")
         .ilike("email", sesion.user.email)
+        .eq("activo", true)
+        .in("rol", ["admin", "arbitro"])
         .maybeSingle();
       if (!vigente) return;
       if (errorUsuario) {
@@ -107,7 +110,7 @@ export default function SinFicha() {
             .select("equipo_id,dorsal,jugador:jugadores(id,nombre,sin_ficha)")
             .in("equipo_id", equipoIds),
           supabase.from("partidos")
-            .select("id,jornada,fecha,local_id,visitante_id")
+            .select("id,jornada,fecha,local_id,visitante_id,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
             .eq("temporada_id", temporada.id)
             .order("fecha"),
         ]);
@@ -232,11 +235,11 @@ export default function SinFicha() {
                   {jugador.partidos.map((partido) => (
                     <li key={partido.id}>
                       <a href={`/actas/${partido.id}`}>
-                        Jornada {partido.jornada || "—"} · {fechaPartido(partido.fecha)}
+                        Jornada {partido.jornada || "—"} · {partido.local?.nombre || "Local"}–{partido.visitante?.nombre || "Visitante"} · {fechaPartido(partido.fecha)}
                       </a>
                       <span>
                         {partido.eventos.length
-                          ? partido.eventos.map((evento) => `${evento.tipo}${horaEvento(evento) ? ` · ${horaEvento(evento)}` : ""}`).join(", ")
+                          ? partido.eventos.map((evento) => `${tipoEvento[evento.tipo] || evento.tipo}${horaEvento(evento) ? ` · ${horaEvento(evento)}` : ""}`).join(", ")
                           : `Inscrito para ${partido.equipo}`}
                       </span>
                     </li>
