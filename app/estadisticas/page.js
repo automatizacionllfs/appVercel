@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import Estadisticas from "./estadisticas";
 import InfoDatosPublicos from "../InfoDatosPublicos";
+import { urlFotoMvp } from "../lib/foto-mvp";
 
 export const revalidate = 0;
 
@@ -45,7 +46,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
     if (partidos.length) {
       for (let desde = 0; ; desde += 1000) {
         const { data: pagina, error } = await db.from("eventos")
-          .select("id,partido_id,equipo_id,jugador_id,tipo,parte,restante_seg,jugador:jugadores(id,nombre)")
+          .select("id,partido_id,equipo_id,jugador_id,tipo,parte,restante_seg,jugador:jugadores(id,id_clupik,nombre,image_id)")
           .eq("anulado", false)
           .in("partido_id", partidos.map((partido) => partido.id))
           .range(desde, desde + 999);
@@ -53,6 +54,16 @@ export default async function PaginaEstadisticas({ searchParams }) {
         eventos.push(...(pagina || []));
         if (!pagina || pagina.length < 1000) break;
       }
+      const equipoPorId = new Map(equipos.map((equipo) => [equipo.id, equipo]));
+      eventos = eventos.map((evento) => {
+        const equipo = equipoPorId.get(evento.equipo_id);
+        return {
+          ...evento,
+          jugador: evento.jugador
+            ? { ...evento.jugador, foto: urlFotoMvp(equipo?.id_clupik, evento.jugador) }
+            : null,
+        };
+      });
     }
   }
 

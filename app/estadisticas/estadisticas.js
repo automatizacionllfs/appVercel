@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
+import GoleadorJornadaCard from "./GoleadorJornadaCard";
 
 const reloj = (segundos) => {
   if (segundos === null) return "—";
@@ -60,9 +61,67 @@ function formatFecha(fecha) {
 
 export default function Estadisticas({ equipos, partidos, eventos, plantilla, equipoInicial = "" }) {
   const [equipoId, setEquipoId] = useState(String(equipoInicial));
+  const [jornadaSeleccionada, setJornadaSeleccionada] = useState("");
   const equipo = equipos.find((item) => String(item.id) === equipoId);
-  const eventosConSegundasAmarillas = marcarSegundasAmarillas(eventos);
+  const eventosConSegundasAmarillas = useMemo(() => marcarSegundasAmarillas(eventos), [eventos]);
   const partidosConActa = new Set(eventosConSegundasAmarillas.map((evento) => evento.partido_id));
+  const partidosDisputados = partidos.filter(tieneResultado);
+  const resumenLiga = useMemo(() => {
+    const goles = eventosConSegundasAmarillas.filter((evento) => evento.tipo === "gol").length;
+    return {
+      partidos: partidosDisputados.length,
+      goles,
+      mediaGoles: partidosDisputados.length ? goles / partidosDisputados.length : 0,
+      amarillas: eventosConSegundasAmarillas.filter((evento) => evento.tipo === "amarilla").length,
+      rojas: eventosConSegundasAmarillas.filter((evento) => evento.tipo === "roja" || evento.segundaAmarilla).length,
+      equipos: equipos.length,
+      jugadores: new Set(plantilla.map((fila) => fila.jugador?.id).filter(Boolean)).size,
+    };
+  }, [eventosConSegundasAmarillas, partidosDisputados.length, equipos.length, plantilla]);
+  const jornadas = useMemo(() => {
+    const partidosConEventos = new Set(eventosConSegundasAmarillas.map((evento) => evento.partido_id));
+    return [...new Set(
+      partidos
+        .filter((partido) => tieneResultado(partido) || partidosConEventos.has(partido.id))
+        .map((partido) => partido.jornada)
+        .filter((jornada) => jornada != null),
+    )].sort((a, b) => String(a).localeCompare(String(b), "es", { numeric: true }));
+  }, [partidos, eventosConSegundasAmarillas]);
+  const goleadoresPorJornada = useMemo(() => {
+    const partidoPorId = new Map(partidos.map((partido) => [partido.id, partido]));
+    const equipoPorId = new Map(equipos.map((item) => [item.id, item]));
+    const porJornada = new Map();
+    eventosConSegundasAmarillas.forEach((evento) => {
+      if (evento.tipo !== "gol" || !evento.jugador_id || !evento.jugador?.nombre) return;
+      const partido = partidoPorId.get(evento.partido_id);
+      if (partido?.jornada == null) return;
+      const jornada = String(partido.jornada);
+      const equipo = equipoPorId.get(evento.equipo_id);
+      if (!porJornada.has(jornada)) porJornada.set(jornada, new Map());
+      const goleadores = porJornada.get(jornada);
+      const clave = `${evento.jugador_id}:${evento.equipo_id}`;
+      const goleador = goleadores.get(clave) || {
+        jugadorId: evento.jugador_id,
+        nombre: evento.jugador.nombre,
+        equipoId: evento.equipo_id,
+        equipo: equipo?.nombre || "Equipo",
+        foto: evento.jugador.foto,
+        goles: 0,
+      };
+      goleador.goles += 1;
+      goleadores.set(clave, goleador);
+    });
+    return new Map([...porJornada].map(([jornada, goleadores]) => [
+      jornada,
+      [...goleadores.values()].sort((a, b) =>
+        b.goles - a.goles || a.nombre.localeCompare(b.nombre, "es"),
+      ),
+    ]));
+  }, [eventosConSegundasAmarillas, partidos, equipos]);
+  const jornadaActiva = jornadas.some((jornada) => String(jornada) === jornadaSeleccionada)
+    ? jornadaSeleccionada
+    : String(jornadas[0] ?? "");
+  const goleadoresJornada = goleadoresPorJornada.get(jornadaActiva) || [];
   const partidosEquipo = equipo
     ? partidos.filter((partido) =>
       (partido.local_id === equipo.id || partido.visitante_id === equipo.id) &&
@@ -96,6 +155,60 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
 
   return (
     <>
+      <section className="estadistica-card resumen-liga">
+        <h2>Resumen de la liga</h2>
+        <dl className="metricas metricas-liga">
+          <div><dt>Partidos disputados</dt><dd>{resumenLiga.partidos}</dd></div>
+          <div><dt>Goles</dt><dd>{resumenLiga.goles}</dd></div>
+          <div><dt>Goles por partido</dt><dd>{resumenLiga.mediaGoles.toFixed(2)}</dd></div>
+          <div><dt>Tarjetas amarillas</dt><dd>{resumenLiga.amarillas}</dd></div>
+          <div><dt>Tarjetas rojas</dt><dd>{resumenLiga.rojas}</dd></div>
+          <div><dt>Equipos</dt><dd>{resumenLiga.equipos}</dd></div>
+          <div><dt>Jugadores</dt><dd>{resumenLiga.jugadores}</dd></div>
+        </dl>
+        <p className="suave">Los goles y las tarjetas corresponden a los eventos registrados en actas.</p>
+      </section>
+
+      <section className="goleadores-jornada">
+        <h2>Goleadores por jornada</h2>
+        {!jornadas.length ? (
+          <p className="suave">Todavía no hay jornadas disputadas.</p>
+        ) : (
+          <>
+            <label className="selector-equipo">
+              Jornada
+              <select value={jornadaActiva} onChange={(event) => setJornadaSeleccionada(event.target.value)}>
+                {jornadas.map((jornada) => (
+                  <option key={jornada} value={jornada}>Goleadores de la Jornada {jornada}</option>
+                ))}
+              </select>
+            </label>
+            {!goleadoresJornada.length ? (
+              <p className="suave">No hay goles con autor registrados en esta jornada.</p>
+            ) : (
+              <div className="goleadores-jornada-lista">
+                {goleadoresJornada.map((goleador) => (
+                  <article className="goleador-jornada" key={`${goleador.jugadorId}-${goleador.equipoId}`}>
+                    <span className="estadistica-jugador-foto goleador-jornada-foto">
+                      {goleador.foto && <img src={goleador.foto} alt="" loading="lazy" />}
+                    </span>
+                    <div className="goleador-jornada-identidad">
+                      <strong>{goleador.nombre}</strong>
+                      <span className="suave">{goleador.equipo}</span>
+                    </div>
+                    <span className="goleador-jornada-goles" aria-label={`${goleador.goles} goles`}>
+                      <strong>{goleador.goles}</strong>
+                      <span>{goleador.goles === 1 ? "gol" : "goles"}</span>
+                    </span>
+                    <GoleadorJornadaCard jornada={jornadaActiva} jugador={goleador} />
+                  </article>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
       <p className="suave">Selecciona un equipo para consultar sus estad&iacute;sticas y las de sus jugadores.</p>
       <label className="selector-equipo">
         Equipo

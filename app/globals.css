@@ -499,6 +499,30 @@ table {
 .metricas dt { color: var(--suave); font-size: .78rem; font-weight: 650; }
 .metricas dd { margin: 4px 0 0; color: var(--acento); font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .estadistica-card > .suave { margin-bottom: 0; }
+.resumen-liga { border-top-color: #b4232e; }
+.metricas-liga { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 12px; }
+.goleadores-jornada-lista { display: grid; gap: 10px; }
+.goleador-jornada {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid #b4232e;
+  border-radius: 12px;
+  background: var(--papel);
+  box-shadow: var(--sombra);
+}
+.goleador-jornada-foto { width: 48px; height: 48px; flex-basis: 48px; }
+.goleador-jornada-identidad { display: grid; min-width: 0; }
+.goleador-jornada-identidad strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.goleador-jornada-identidad .suave { font-size: .78rem; }
+.goleador-jornada-goles { display: grid; justify-items: center; min-width: 48px; color: var(--acento); line-height: 1.15; }
+.goleador-jornada-goles strong { font-size: 1.35rem; }
+.goleador-jornada-goles span { color: var(--suave); font-size: .72rem; }
+.goleador-jornada-descarga { display: grid; justify-items: start; gap: 4px; }
+.goleador-jornada-descarga .error { margin: 0; font-size: .78rem; }
 .equipo-destacado {
   display: flex;
   align-items: center;
@@ -764,6 +788,10 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   .historial-jugador-resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .historial-goles li, .historial-premios li { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 10px; padding: 12px; }
   .historial-goles li > span, .historial-premios li > span { grid-column: 1 / -1; grid-row: 2; }
+  .metricas-liga { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .goleador-jornada { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 9px; padding: 10px; }
+  .goleador-jornada-foto { width: 44px; height: 44px; flex-basis: 44px; }
+  .goleador-jornada-descarga { grid-column: 2 / -1; }
   .metricas { gap: 8px; }
   .metricas > div { padding: 10px; }
   .metricas dd { font-size: 1.25rem; }
