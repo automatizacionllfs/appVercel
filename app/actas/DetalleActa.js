@@ -1,5 +1,6 @@
 import MVPShareCard from "../entrenador/MVPShareCard";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
+import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
 
 const duracionParte = 22 * 60;
 const reloj = (segundos) => `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
@@ -42,7 +43,8 @@ function IconoSilbato() {
 export default function DetalleActa({ partido, local, visitante, eventos, mvpLocal, mvpVisitante, actaDigitalizada, volver }) {
   const golesLocal = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.local_id).length;
   const golesVisitante = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.visitante_id).length;
-  const resultadoSincronizado = partido.goles_local_clupik !== null && partido.goles_visitante_clupik !== null;
+  const resultadoSincronizado = tieneResultado(partido);
+  const pendiente = resultadoPendiente(partido);
   const hayDesajuste = resultadoSincronizado &&
     (Number(partido.goles_local_clupik) !== golesLocal || Number(partido.goles_visitante_clupik) !== golesVisitante);
   const localPorId = new Map([[partido.local_id, local], [partido.visitante_id, visitante]]);
@@ -82,10 +84,10 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
             <strong>{local?.nombre || "Equipo local"}</strong>
           </div>
           <div className="acta-resultados">
-            <span className="acta-resultado-oficial">
-              {partido.goles_local_clupik ?? "—"} <i>:</i> {partido.goles_visitante_clupik ?? "—"}
+            <span className={`acta-resultado-oficial ${pendiente ? "pendiente" : ""}`}>
+              {pendiente ? "Resultado pendiente" : <>{partido.goles_local_clupik ?? "—"} <i>:</i> {partido.goles_visitante_clupik ?? "—"}</>}
             </span>
-            <span className="acta-resultados-etiqueta">Marcador sincronizado</span>
+            {!pendiente && <span className="acta-resultados-etiqueta">Marcador sincronizado</span>}
             <span className="acta-resultado-acta">Acta: {golesLocal} – {golesVisitante}</span>
           </div>
           <div className="acta-equipo-grande">

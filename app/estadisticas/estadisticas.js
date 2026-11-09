@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
+import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
 
 const reloj = (segundos) => {
   if (segundos === null) return "—";
@@ -65,12 +66,12 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
   const partidosEquipo = equipo
     ? partidos.filter((partido) =>
       (partido.local_id === equipo.id || partido.visitante_id === equipo.id) &&
-      partido.goles_local_clupik !== null &&
-      partido.goles_visitante_clupik !== null,
+      (tieneResultado(partido) || resultadoPendiente(partido)),
     ).sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0))
     : [];
+  const partidosConResultado = partidosEquipo.filter(tieneResultado);
   const eventosEquipo = equipo ? eventosConSegundasAmarillas.filter((evento) => evento.equipo_id === equipo.id) : [];
-  const resumenEquipo = useMemo(() => resumen(eventosEquipo, partidosEquipo.length), [eventosEquipo, partidosEquipo.length]);
+  const resumenEquipo = useMemo(() => resumen(eventosEquipo, partidosConResultado.length), [eventosEquipo, partidosConResultado.length]);
 
   const usuarios = useMemo(() => {
     const eventosPorJugador = new Map();
@@ -87,11 +88,11 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
           nombre: fila.jugador.nombre,
           dorsal: fila.dorsal,
           foto: fila.jugador.foto,
-          ...resumen(filas, partidosEquipo.length),
+          ...resumen(filas, partidosConResultado.length),
         };
       })
       .sort((a, b) => b.goles - a.goles || (a.dorsal ?? 999) - (b.dorsal ?? 999) || a.nombre.localeCompare(b.nombre, "es"));
-  }, [plantilla, equipo?.id, eventosEquipo, partidosEquipo.length]);
+  }, [plantilla, equipo?.id, eventosEquipo, partidosConResultado.length]);
 
   return (
     <>
@@ -116,20 +117,21 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
           <TarjetasResumen
             titulo="Resumen del equipo"
             datos={resumenEquipo}
-            partidosJugados={partidosEquipo.length}
+            partidosJugados={partidosConResultado.length}
             nota="estadísticas de eventos registrados en acta"
           />
           <section>
             <h2>Partidos disputados</h2>
-            {!partidosEquipo.length ? <p className="suave">Todavía no hay resultados registrados para este equipo.</p> : (
+            {!partidosEquipo.length ? <p className="suave">Todavía no hay partidos disputados para este equipo.</p> : (
               <div className="partidos-equipo">
                 {partidosEquipo.map((partido) => {
                   const local = equipos.find((item) => item.id === partido.local_id);
                   const visitante = equipos.find((item) => item.id === partido.visitante_id);
                   const esLocal = partido.local_id === equipo.id;
                   const rival = esLocal ? visitante : local;
-                  const golesEquipo = Number(esLocal ? partido.goles_local_clupik : partido.goles_visitante_clupik);
-                  const golesRival = Number(esLocal ? partido.goles_visitante_clupik : partido.goles_local_clupik);
+                  const pendiente = resultadoPendiente(partido);
+                  const golesEquipo = esLocal ? partido.goles_local_clupik : partido.goles_visitante_clupik;
+                  const golesRival = esLocal ? partido.goles_visitante_clupik : partido.goles_local_clupik;
                   return (
                     <article className="partido-equipo" key={partido.id}>
                       <div className="partido-info">
@@ -140,8 +142,8 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
                         {rival?.escudo_url && <img src={rival.escudo_url} alt="" width="30" height="30" />}
                         <span>{esLocal ? "vs" : "en"} {rival?.nombre || "Rival"}</span>
                       </span>
-                      <strong className="resultado-partido" aria-label={`${golesEquipo} a ${golesRival}`}>
-                        {golesEquipo} – {golesRival}
+                      <strong className={`resultado-partido ${pendiente ? "pendiente" : ""}`} aria-label={pendiente ? "Resultado pendiente" : `${golesEquipo} a ${golesRival}`}>
+                        {pendiente ? "Resultado pendiente" : `${golesEquipo} – ${golesRival}`}
                       </strong>
                       {(partido.estado === "cerrado" || partidosConActa.has(partido.id)) && (
                         <a className="enlace-acta-estadisticas" href={`/actas/${partido.id}?desde=estadisticas&equipo=${equipo.id}`}>

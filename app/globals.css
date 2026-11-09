@@ -529,6 +529,7 @@ table {
 .partido-rival { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-weight: 650; }
 .partido-rival img { flex: 0 0 auto; object-fit: contain; }
 .resultado-partido { min-width: 64px; padding: 6px 9px; border-radius: 9px; background: var(--acento-claro); color: var(--acento); text-align: center; font-variant-numeric: tabular-nums; }
+.resultado-partido.pendiente, .acta-marcador.pendiente { font-size: .82rem; font-variant-numeric: normal; white-space: normal; }
 
 th, td { padding: 14px 16px; border-bottom: 1px solid #edf1f5; text-align: left; }
 th { background: #edf3f8; color: var(--acento-oscuro); font-size: .78rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
@@ -689,6 +690,7 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
 .acta-equipo-grande strong { max-width: 220px; overflow-wrap: anywhere; }
 .acta-resultados { display: grid; justify-items: center; gap: 3px; white-space: nowrap; }
 .acta-resultado-oficial { font-size: clamp(2.5rem, 9vw, 4rem); font-weight: 850; font-variant-numeric: tabular-nums; letter-spacing: -.06em; line-height: 1; }
+.acta-resultado-oficial.pendiente { font-size: 1.1rem; letter-spacing: 0; white-space: normal; }
 .acta-resultado-oficial i { color: #b7cde0; font-style: normal; font-weight: 400; }
 .acta-resultados-etiqueta { color: #d3e2ef; font-size: .69rem; }
 .acta-resultado-acta { margin-top: 4px; padding: 4px 9px; border: 1px solid rgb(255 255 255 / 24%); border-radius: 999px; background: rgb(255 255 255 / 10%); font-size: .8rem; font-weight: 700; }

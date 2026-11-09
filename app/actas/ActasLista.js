@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { resultadoPendiente } from "../../lib/partidos";
 
 const fecha = (valor) => valor
   ? new Date(valor).toLocaleDateString("es-ES", {
@@ -58,6 +59,7 @@ export default function ActasLista({ partidos }) {
       {partidosFiltrados.length ? (
         <section className="actas-lista" aria-label="Partidos filtrados">
           {partidosFiltrados.map((partido) => {
+            const pendiente = resultadoPendiente(partido);
             const contenido = (
               <>
                 <span className="acta-partido-meta">
@@ -71,8 +73,8 @@ export default function ActasLista({ partidos }) {
                     {partido.local?.escudo_url && <img src={partido.local.escudo_url} alt="" width="34" height="34" />}
                     <strong>{partido.local?.nombre || "Equipo local"}</strong>
                   </span>
-                  <span className="acta-marcador" aria-label="Marcador sincronizado">
-                    {partido.goles_local_clupik ?? "—"} : {partido.goles_visitante_clupik ?? "—"}
+                  <span className={`acta-marcador ${pendiente ? "pendiente" : ""}`} aria-label={pendiente ? "Resultado pendiente" : "Marcador sincronizado"}>
+                    {pendiente ? "Resultado pendiente" : `${partido.goles_local_clupik ?? "—"} : ${partido.goles_visitante_clupik ?? "—"}`}
                   </span>
                   <span className="acta-equipo visitante">
                     <strong>{partido.visitante?.nombre || "Equipo visitante"}</strong>
