@@ -167,7 +167,7 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
       </section>
 
       <details className="goleadores-jornada">
-        <summary>Goleadores de la jornada</summary>
+        <summary>Máximo goleador de la Jornada</summary>
         {!jornadas.length ? (
           <p className="suave">Todavía no hay jornadas disputadas.</p>
         ) : (
