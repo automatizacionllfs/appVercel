@@ -246,7 +246,7 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
                       </div>
                       <span className="partido-rival">
                         {rival?.escudo_url && <img src={rival.escudo_url} alt="" width="30" height="30" />}
-                        <span>{esLocal ? "vs" : "en"} {rival?.nombre || "Rival"}</span>
+                        <span>{rival?.nombre || "Rival"}</span>
                       </span>
                       <strong className={`resultado-partido ${pendiente ? "pendiente" : ""}`} aria-label={pendiente ? "Resultado pendiente" : `${golesEquipo} a ${golesRival}`}>
                         {pendiente ? "Resultado pendiente" : `${golesEquipo} – ${golesRival}`}
