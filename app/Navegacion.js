@@ -40,7 +40,7 @@ export default function Navegacion() {
           </a>
         );
       })}
-      <details className={`site-nav-menu ${personalActivo ? "activa" : ""}`} open={personalActivo}>
+      <details className={`site-nav-menu ${personalActivo ? "activa" : ""}`}>
         <summary aria-current={personalActivo ? "page" : undefined}>Acceso personal</summary>
         <div className="site-nav-submenu">
           {enlacesPersonal.map(({ href, texto }) => {
