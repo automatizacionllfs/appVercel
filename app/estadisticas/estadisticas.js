@@ -105,6 +105,7 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
         nombre: evento.jugador.nombre,
         equipoId: evento.equipo_id,
         equipo: equipo?.nombre || "Equipo",
+        escudoUrl: equipo?.escudo_url,
         foto: evento.jugador.foto,
         goles: 0,
       };
@@ -115,13 +116,9 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
       jornada,
       [...goleadores.values()].sort((a, b) =>
         b.goles - a.goles || a.nombre.localeCompare(b.nombre, "es"),
-      ),
+      )[0] || null,
     ]));
   }, [eventosConSegundasAmarillas, partidos, equipos]);
-  const jornadaActiva = jornadas.some((jornada) => String(jornada) === jornadaSeleccionada)
-    ? jornadaSeleccionada
-    : String(jornadas[0] ?? "");
-  const goleadoresJornada = goleadoresPorJornada.get(jornadaActiva) || [];
   const partidosEquipo = equipo
     ? partidos.filter((partido) =>
       (partido.local_id === equipo.id || partido.visitante_id === equipo.id) &&
@@ -169,45 +166,41 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
         <p className="suave">Los goles y las tarjetas corresponden a los eventos registrados en actas.</p>
       </section>
 
-      <section className="goleadores-jornada">
-        <h2>Goleadores por jornada</h2>
+      <details className="goleadores-jornada">
+        <summary>Goleadores de la jornada</summary>
         {!jornadas.length ? (
           <p className="suave">Todavía no hay jornadas disputadas.</p>
         ) : (
-          <>
-            <label className="selector-equipo">
-              Jornada
-              <select value={jornadaActiva} onChange={(event) => setJornadaSeleccionada(event.target.value)}>
-                {jornadas.map((jornada) => (
-                  <option key={jornada} value={jornada}>Goleadores de la Jornada {jornada}</option>
-                ))}
-              </select>
-            </label>
-            {!goleadoresJornada.length ? (
-              <p className="suave">No hay goles con autor registrados en esta jornada.</p>
-            ) : (
-              <div className="goleadores-jornada-lista">
-                {goleadoresJornada.map((goleador) => (
-                  <article className="goleador-jornada" key={`${goleador.jugadorId}-${goleador.equipoId}`}>
-                    <span className="estadistica-jugador-foto goleador-jornada-foto">
-                      {goleador.foto && <img src={goleador.foto} alt="" loading="lazy" />}
-                    </span>
-                    <div className="goleador-jornada-identidad">
-                      <strong>{goleador.nombre}</strong>
-                      <span className="suave">{goleador.equipo}</span>
-                    </div>
-                    <span className="goleador-jornada-goles" aria-label={`${goleador.goles} goles`}>
-                      <strong>{goleador.goles}</strong>
-                      <span>{goleador.goles === 1 ? "gol" : "goles"}</span>
-                    </span>
-                    <GoleadorJornadaCard jornada={jornadaActiva} jugador={goleador} />
-                  </article>
-                ))}
-              </div>
-            )}
-          </>
+          <div className="goleadores-jornada-lista">
+            {jornadas.map((jornada) => {
+              const goleador = goleadoresPorJornada.get(String(jornada));
+              return (
+                <article className="goleador-jornada" key={jornada}>
+                  <strong className="goleador-jornada-titulo">Jornada {jornada}</strong>
+                  {goleador ? (
+                    <>
+                      <span className="estadistica-jugador-foto goleador-jornada-foto">
+                        {goleador.foto && <img src={goleador.foto} alt="" loading="lazy" />}
+                      </span>
+                      <div className="goleador-jornada-identidad">
+                        <strong>{goleador.nombre}</strong>
+                        <span className="suave">{goleador.equipo}</span>
+                      </div>
+                      <span className="goleador-jornada-goles" aria-label={`${goleador.goles} goles`}>
+                        <strong>{goleador.goles}</strong>
+                        <span>{goleador.goles === 1 ? "gol" : "goles"}</span>
+                      </span>
+                      <GoleadorJornadaCard jornada={jornada} jugador={goleador} />
+                    </>
+                  ) : (
+                    <p className="suave goleador-jornada-sin-goles">No hay goles con autor registrados en esta jornada.</p>
+                  )}
+                </article>
+              );
+            })}
+          </div>
         )}
-      </section>
+      </details>
 
       <p className="suave">Selecciona un equipo para consultar sus estad&iacute;sticas y las de sus jugadores.</p>
       <label className="selector-equipo">
