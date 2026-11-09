@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import AvatarJugador from "./AvatarJugador";
 
 const normalizarNombre = (nombre) => nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
 
@@ -65,7 +66,7 @@ function TablaGoleadores({ filas }) {
                       <td>
                         <span className="estadistica-jugador">
                           <span className="estadistica-jugador-foto">
-                            {fila.foto && <img src={fila.foto} alt="" loading="lazy" />}
+                            <AvatarJugador src={fila.foto} />
                           </span>
                           <span className="goleador-identidad">{fila.jugador}<span className="suave">{fila.equipo}</span></span>
                         </span>

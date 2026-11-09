@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { dibujarAvatar } from "../lib/avatar-canvas";
 
 const ANCHO = 1080;
 const ALTO = 1920;
@@ -216,11 +217,15 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
           ctx.arc(x + 165, y + 350, 87.5, 0, Math.PI * 2);
           ctx.stroke();
         } else {
-          ctx.fillStyle = "#fff";
-          ctx.font = "800 48px Inter, system-ui, sans-serif";
-          ctx.textAlign = "center";
-          ctx.fillText(jugador?.nombre?.slice(0, 1) || "?", x + 165, y + 367);
-          ctx.textAlign = "start";
+          if (jugador) {
+            dibujarAvatar(ctx, x + 165, y + 350, 70);
+          } else {
+            ctx.fillStyle = "#fff";
+            ctx.font = "800 48px Inter, system-ui, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("?", x + 165, y + 367);
+            ctx.textAlign = "start";
+          }
         }
         ctx.fillStyle = "#FFC940";
         ctx.font = "800 20px Inter, system-ui, sans-serif";

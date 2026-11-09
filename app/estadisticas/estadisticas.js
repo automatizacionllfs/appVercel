@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AvatarJugador from "../AvatarJugador";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
 import GoleadorJornadaCard from "./GoleadorJornadaCard";
@@ -180,7 +181,7 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
                   {goleador ? (
                     <>
                       <span className="estadistica-jugador-foto goleador-jornada-foto">
-                        {goleador.foto && <img src={goleador.foto} alt="" loading="lazy" />}
+                        <AvatarJugador src={goleador.foto} />
                       </span>
                       <div className="goleador-jornada-identidad">
                         <strong>{goleador.nombre}</strong>
@@ -276,7 +277,7 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
                         <td>
                           <span className="estadistica-jugador">
                             <span className="estadistica-jugador-foto">
-                              {usuario.foto && <img src={usuario.foto} alt="" loading="lazy" />}
+                              <AvatarJugador src={usuario.foto} />
                             </span>
                             {usuario.nombre}
                           </span>

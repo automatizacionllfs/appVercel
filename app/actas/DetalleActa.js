@@ -1,4 +1,5 @@
 import MVPShareCard from "../entrenador/MVPShareCard";
+import AvatarJugador from "../AvatarJugador";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
 
@@ -111,8 +112,10 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
           ].map(({ equipo, jugador }) => (
             <article className="acta-mvp-equipo" key={equipo?.id || equipo?.nombre}>
               {jugador?.foto
-                ? <img src={jugador.foto} alt="" width="68" height="68" loading="lazy" />
-                : <span className="acta-mvp-inicial" aria-hidden="true">{equipo?.nombre?.slice(0, 1) || "M"}</span>}
+                ? <AvatarJugador src={jugador.foto} width="68" height="68" />
+                : jugador
+                  ? <AvatarJugador width="68" height="68" />
+                  : <span className="acta-mvp-inicial" aria-hidden="true">{equipo?.nombre?.slice(0, 1) || "M"}</span>}
               <div>
                 <span className="suave">MVP de {equipo?.nombre || "equipo"}</span>
                 <strong>{jugador?.nombre || "Aún no seleccionado"}</strong>

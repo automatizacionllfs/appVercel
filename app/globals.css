@@ -132,7 +132,8 @@ body {
 .acta-mvp h2, .mvp-compartir h2 { margin-top: 0; }
 .acta-mvp-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .acta-mvp-equipo { display: flex; min-width: 0; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--borde); border-radius: 15px; background: var(--papel); }
-.acta-mvp-equipo img, .acta-mvp-inicial { width: 58px; height: 58px; flex: 0 0 58px; border-radius: 50%; object-fit: cover; }
+.acta-mvp-equipo img, .acta-mvp-equipo .avatar-jugador, .acta-mvp-inicial { width: 58px; height: 58px; flex: 0 0 58px; border-radius: 50%; object-fit: cover; }
+.acta-mvp-equipo .avatar-jugador { padding: 9px; border: 1px solid #b4232e; background: var(--acento-claro); }
 .acta-mvp-inicial { display: grid; place-items: center; background: var(--acento-claro); color: var(--acento); font-size: 1.4rem; font-weight: 800; }
 .acta-mvp-equipo div { display: grid; gap: 2px; min-width: 0; }
 .acta-mvp-equipo strong { overflow-wrap: anywhere; }
@@ -463,6 +464,9 @@ table {
   box-shadow: var(--sombra);
 }
 .historial-jugador-foto { width: 84px; height: 84px; border: 1px solid #b4232e; border-radius: 50%; object-fit: cover; }
+.avatar-jugador { color: #b4232e; }
+.estadistica-jugador-foto .avatar-jugador { width: 70%; height: 70%; }
+.historial-jugador-foto.avatar-jugador { padding: 14px; background: var(--acento-claro); }
 .historial-jugador-escudo { width: 48px; height: 48px; object-fit: contain; }
 .historial-jugador-identidad { display: grid; justify-items: start; gap: 3px; min-width: 0; }
 .historial-jugador-identidad h2 { margin: 0; }

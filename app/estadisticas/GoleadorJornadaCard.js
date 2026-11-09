@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { dibujarAvatar } from "../lib/avatar-canvas";
 
 const ANCHO = 1080;
 const ALTO = 1920;
@@ -119,11 +120,7 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
       } else {
         ctx.fillStyle = "rgba(255,255,255,.12)";
         ctx.fill();
-        ctx.fillStyle = "#fff";
-        ctx.font = "800 120px Inter, system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(jugador.nombre.slice(0, 1) || "?", 540, 802);
-        ctx.textAlign = "start";
+        dibujarAvatar(ctx, 540, 760, 150);
       }
       ctx.restore();
 

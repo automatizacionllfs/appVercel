@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
+import AvatarJugador from "../../AvatarJugador";
 import { createServiceDb } from "../../lib/entrenador";
 
 export const revalidate = 60;
@@ -85,7 +86,7 @@ export default async function HistorialJugador({ params, searchParams }) {
     <main>
       <h1>Historial del jugador</h1>
       <section className="historial-jugador-cabecera">
-        {foto && <img className="historial-jugador-foto" src={foto} alt={`Foto de ${jugador.nombre}`} />}
+        <AvatarJugador src={foto} className="historial-jugador-foto" alt={`Foto de ${jugador.nombre}`} />
         {equipo.escudo_url && <img className="historial-jugador-escudo" src={equipo.escudo_url} alt="" />}
         <div className="historial-jugador-identidad">
           <span className="suave">{equipo.nombre} · {temporada.nombre}</span>

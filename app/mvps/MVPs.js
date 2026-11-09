@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AvatarJugador from "../AvatarJugador";
 
 export default function MVPs({ ranking }) {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function MVPs({ ranking }) {
                   <td className="num">{indice + 1}</td>
                   <td>
                     <span className="estadistica-jugador">
-                      <span className="estadistica-jugador-foto">{fila.foto && <img src={fila.foto} alt="" loading="lazy" />}</span>
+                      <span className="estadistica-jugador-foto"><AvatarJugador src={fila.foto} /></span>
                       {fila.jugador}
                     </span>
                   </td>
