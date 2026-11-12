@@ -99,6 +99,11 @@ body {
 .sin-ficha-jugador { padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); box-shadow: var(--sombra); }
 .sin-ficha-jugador > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .sin-ficha-jugador h2 { margin: 4px 0 0; color: var(--acento-oscuro); }
+.sin-ficha-asociar { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px 10px; margin-top: 16px; }
+.sin-ficha-asociar label { grid-column: 1 / -1; color: var(--suave); font-size: .88rem; font-weight: 700; }
+.sin-ficha-asociar select { min-width: 0; min-height: 42px; padding: 8px 10px; border: 1px solid var(--borde); border-radius: 9px; background: #fff; color: var(--tinta); }
+.sin-ficha-asociar > .suave { grid-column: 1 / -1; font-size: .85rem; }
+.sin-ficha-asociar button:disabled { cursor: not-allowed; opacity: .6; }
 .sin-ficha-jugador h3 { margin: 18px 0 8px; font-size: 1rem; }
 .sin-ficha-jugador ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .sin-ficha-jugador li { display: grid; gap: 3px; padding: 10px 12px; border-radius: 10px; background: #f3f7fa; }

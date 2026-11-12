@@ -250,7 +250,9 @@ begin
     end if;
   else
     -- Solo se puede anular / restaurar; el resto es inmutable salvo para admin
-    if not es_admin() and
+    if not es_admin()
+       and coalesce(current_setting('app.fusionar_jugador', true), 'false') <> 'true'
+       and
        (new.partido_id, new.equipo_id, new.jugador_id, new.tipo, new.parte,
         new.restante_seg, new.creado_por, new.creado_en)
        is distinct from
@@ -330,12 +332,40 @@ begin
   if not found then raise exception 'No se puede guardar la descripción de este acta'; end if;
 end $$;
 
--- Cuando un jugador sin ficha se inscribe en Clupik: se fusiona con su ficha real
+-- Asocia un jugador sin ficha con su ficha de Clupik y conserva sus eventos.
 create or replace function fusionar_jugador(p_origen bigint, p_destino bigint) returns void
 language plpgsql security definer set search_path = public as $$
 begin
-  if not es_admin() then raise exception 'Solo un administrador'; end if;
+  if not exists (
+    select 1 from usuarios
+    where id = usuario_actual() and activo and rol in ('admin', 'arbitro')
+  ) then
+    raise exception 'Solo un árbitro o administrador autorizado puede asociar jugadores';
+  end if;
+  if not exists (
+    select 1
+      from jugadores origen
+      join jugadores destino on destino.id = p_destino
+     where origen.id = p_origen
+       and origen.sin_ficha
+       and destino.id_clupik is not null
+       and not destino.sin_ficha
+  ) then
+    raise exception 'El jugador de origen debe estar sin ficha y el destino debe tener ficha de Clupik';
+  end if;
+  if not exists (
+    select 1
+      from plantilla po
+      join plantilla pd on pd.equipo_id = po.equipo_id
+     where po.jugador_id = p_origen
+       and pd.jugador_id = p_destino
+  ) then
+    raise exception 'Los dos jugadores deben pertenecer a la plantilla del mismo equipo';
+  end if;
+  perform set_config('app.fusionar_jugador', 'true', true);
   update eventos set jugador_id = p_destino where jugador_id = p_origen;
+  perform set_config('app.fusionar_jugador', 'false', true);
+  update mvp set jugador_id = p_destino where jugador_id = p_origen;
   delete from plantilla po
    where po.jugador_id = p_origen
      and exists (select 1 from plantilla pd

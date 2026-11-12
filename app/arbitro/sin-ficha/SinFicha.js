@@ -29,6 +29,9 @@ export default function SinFicha() {
   const [jugadores, setJugadores] = useState([]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [recarga, setRecarga] = useState(0);
+  const [selecciones, setSelecciones] = useState({});
+  const [fusionando, setFusionando] = useState(null);
 
   useEffect(() => {
     let vigente = true;
@@ -107,7 +110,7 @@ export default function SinFicha() {
 
         const [{ data: plantilla, error: errorPlantilla }, { data: partidosTemporada, error: errorPartidos }] = await Promise.all([
           supabase.from("plantilla")
-            .select("equipo_id,dorsal,jugador:jugadores(id,nombre,sin_ficha)")
+            .select("equipo_id,dorsal,jugador:jugadores(id,nombre,sin_ficha,id_clupik)")
             .in("equipo_id", equipoIds),
           supabase.from("partidos")
             .select("id,jornada,fecha,local_id,visitante_id,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
@@ -170,6 +173,18 @@ export default function SinFicha() {
           nombre: fila.jugador.nombre,
           equipo: equipoPorId.get(fila.equipo_id)?.nombre || "Equipo desconocido",
           dorsal: fila.dorsal,
+          candidatos: (plantilla || [])
+            .filter((candidata) =>
+              candidata.equipo_id === fila.equipo_id &&
+              candidata.jugador?.id_clupik &&
+              !candidata.jugador.sin_ficha,
+            )
+            .map((candidata) => ({
+              id: candidata.jugador.id,
+              nombre: candidata.jugador.nombre,
+              dorsal: candidata.dorsal,
+            }))
+            .sort((a, b) => a.nombre.localeCompare(b.nombre, "es")),
           partidos: [...(partidosPorJugador.get(fila.jugador.id)?.values() || [])]
             .sort((a, b) => new Date(a.fecha || 0) - new Date(b.fecha || 0)),
         })).sort((a, b) => a.nombre.localeCompare(b.nombre, "es")));
@@ -181,7 +196,37 @@ export default function SinFicha() {
     }
     cargar();
     return () => { vigente = false; };
-  }, [usuario, sesion]);
+  }, [usuario, sesion, recarga]);
+
+  async function asociar(jugador) {
+    const candidatoId = selecciones[jugador.id];
+    const candidato = jugador.candidatos.find((fila) => String(fila.id) === candidatoId);
+    if (!candidato) {
+      setError("Selecciona un jugador de Clupik del mismo equipo.");
+      return;
+    }
+    if (!window.confirm(`¿Asociar «${jugador.nombre}» con «${candidato.nombre}»? Sus eventos y premios MVP pasarán a la ficha de Clupik y el registro sin ficha se eliminará.`)) return;
+
+    setFusionando(jugador.id);
+    setError("");
+    try {
+      const { error: errorFusion } = await supabase.rpc("fusionar_jugador", {
+        p_origen: jugador.id,
+        p_destino: candidato.id,
+      });
+      if (errorFusion) throw new Error(errorFusion.message);
+      setSelecciones((actuales) => {
+        const siguientes = { ...actuales };
+        delete siguientes[jugador.id];
+        return siguientes;
+      });
+      setRecarga((actual) => actual + 1);
+    } catch (errorFusion) {
+      setError(`No se pudo asociar el jugador: ${errorFusion instanceof Error ? errorFusion.message : String(errorFusion)}`);
+    } finally {
+      setFusionando(null);
+    }
+  }
 
   async function entrar() {
     const { error: errorAcceso } = await supabase.auth.signInWithOAuth({
@@ -227,6 +272,34 @@ export default function SinFicha() {
                 </div>
                 <strong className="sin-ficha-dorsal">#{jugador.dorsal ?? "–"}</strong>
               </header>
+              <div className="sin-ficha-asociar">
+                <label htmlFor={`ficha-clupik-${jugador.id}`}>Asociar con ficha de Clupik</label>
+                <select
+                  id={`ficha-clupik-${jugador.id}`}
+                  value={selecciones[jugador.id] || ""}
+                  disabled={!jugador.candidatos.length || fusionando === jugador.id}
+                  onChange={(event) => setSelecciones((actuales) => ({
+                    ...actuales,
+                    [jugador.id]: event.target.value,
+                  }))}
+                >
+                  <option value="">Selecciona un jugador del equipo</option>
+                  {jugador.candidatos.map((candidato) => (
+                    <option key={candidato.id} value={candidato.id}>
+                      {candidato.dorsal == null ? "–" : `#${candidato.dorsal}`} {candidato.nombre}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="mini"
+                  disabled={!jugador.candidatos.length || !selecciones[jugador.id] || fusionando === jugador.id}
+                  onClick={() => asociar(jugador)}
+                >
+                  {fusionando === jugador.id ? "Asociando…" : "Asociar"}
+                </button>
+                {!jugador.candidatos.length && <span className="suave">No hay otras fichas de Clupik en la plantilla de este equipo.</span>}
+              </div>
               <h3>Actas en las que figura</h3>
               {!jugador.partidos.length ? (
                 <p className="suave">No se encontró el acta de registro. Los registros anteriores a esta mejora pueden no tener el partido asociado.</p>
