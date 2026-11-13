@@ -193,11 +193,6 @@ export default function Arbitro() {
           </select>
         </label>
       </div>
-      <div className="leyenda-semaforo" aria-label="Estados de los partidos">
-        <span><i className="semaforo-luz futuro" />Futuro, sin resultado Clupik</span>
-        <span><i className="semaforo-luz incompleto" />Resultado disponible, acta pendiente</span>
-        <span><i className="semaforo-luz completo" />Acta cerrada y goles coinciden</span>
-      </div>
       <p className="nota-datos">El estado completo compara el marcador y el cierre del acta; la sincronización disponible no permite contrastar las tarjetas con Clupik.</p>
       <div className="resumen-estados" aria-label="Total de actas por estado">
         <div><i className="semaforo-luz futuro" /><span>Pendiente / futuro</span><strong>{conteoEstados.futuro}</strong></div>
