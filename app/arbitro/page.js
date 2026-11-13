@@ -269,7 +269,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
 
   if (!p) return <main>{msg ? <p className="error">{msg}</p> : <p>Cargando…</p>}</main>;
 
-  const editable = p.estado === "programado" || yo.rol === "admin";
+  const editable = p.estado === "programado";
   const goles = (t) => ev.filter((e) => e.tipo === "gol" && !e.anulado && e.equipo_id === t).length;
   const diferenciaLocal = p.goles_local_clupik === null ? null : p.goles_local_clupik - goles(p.local_id);
   const diferenciaVisitante = p.goles_visitante_clupik === null ? null : p.goles_visitante_clupik - goles(p.visitante_id);
@@ -400,7 +400,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
             ? <span>· Revisar exceso en acta: {Math.max(0, -diferenciaLocal)} local, {Math.max(0, -diferenciaVisitante)} visitante</span>
             : <span>· Pendientes de añadir al acta: {diferenciaLocal} local, {diferenciaVisitante} visitante</span>)}
         </div>
-        <SelectorModo modo={modo} cambiar={(nuevoModo) => { setPaso("acciones"); cambiarModo(nuevoModo); }} />
+        {editable && <SelectorModo modo={modo} cambiar={(nuevoModo) => { setPaso("acciones"); cambiarModo(nuevoModo); }} />}
         {p.estado === "cerrado" && <p className="suave">Acta cerrada.</p>}
       </div>
 
