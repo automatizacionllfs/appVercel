@@ -243,6 +243,9 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const [seg, setSeg] = useState(0);
   const [msg, setMsg] = useState("");
   const [msgEvento, setMsgEvento] = useState("");
+  const [eventoEditando, setEventoEditando] = useState(null);
+  const [tipoEventoEditado, setTipoEventoEditado] = useState("gol");
+  const [guardandoEvento, setGuardandoEvento] = useState(false);
   const [descripcion, setDescripcion] = useState("");
   const [msgDescripcion, setMsgDescripcion] = useState("");
   const [guardandoDescripcion, setGuardandoDescripcion] = useState(false);
@@ -332,6 +335,35 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const anular = async (e) => {
     const { error } = await supabase.from("eventos").update({ anulado: !e.anulado }).eq("id", e.id);
     if (error) setMsg(error.message); else cargar();
+  };
+
+  const modificarEvento = (e) => {
+    setEventoEditando(e.id);
+    setTipoEventoEditado(e.tipo);
+    setMsgEvento("");
+  };
+
+  const guardarModificacionEvento = async (e) => {
+    setMsgEvento("");
+    setGuardandoEvento(true);
+    const { data, error } = await supabase.from("eventos")
+      .update({ tipo: tipoEventoEditado, anulado: false })
+      .eq("id", e.id)
+      .eq("anulado", true)
+      .select("id")
+      .maybeSingle();
+    setGuardandoEvento(false);
+    if (error) {
+      setMsgEvento(`No se pudo modificar la acción: ${error.message}`);
+      return;
+    }
+    if (!data) {
+      setMsgEvento("No se pudo modificar la acción: no se encontró o no tienes permiso.");
+      return;
+    }
+    setEventoEditando(null);
+    setMsgEvento("Acción modificada y restaurada.");
+    cargar();
   };
 
   const borrarEvento = async (e) => {
@@ -541,10 +573,29 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
           </span>
           {editable && (
             <div className="evento-acciones">
-              <button className={`mini ${e.anulado ? "evento-restaurar" : ""}`} onClick={() => anular(e)}>
-                {e.anulado ? "Restaurar" : "Anular"}
-              </button>
-              {e.anulado && <button className="mini evento-borrar" onClick={() => borrarEvento(e)}>Borrar</button>}
+              {e.anulado && eventoEditando === e.id ? (
+                <>
+                  <select
+                    aria-label="Tipo de la acción"
+                    value={tipoEventoEditado}
+                    onChange={(event) => setTipoEventoEditado(event.target.value)}
+                  >
+                    <option value="gol">Gol</option>
+                    <option value="amarilla" disabled={!e.jugador}>Tarjeta Amarilla</option>
+                    <option value="roja" disabled={!e.jugador}>Tarjeta Roja</option>
+                  </select>
+                  <button className="mini" onClick={() => guardarModificacionEvento(e)} disabled={guardandoEvento}>
+                    {guardandoEvento ? "Guardando…" : "Guardar"}
+                  </button>
+                  <button className="mini" onClick={() => setEventoEditando(null)} disabled={guardandoEvento}>Cancelar</button>
+                  {!e.jugador && <span className="suave">Las tarjetas requieren un jugador.</span>}
+                </>
+              ) : (
+                <button className={`mini ${e.anulado ? "evento-modificar" : ""}`} onClick={() => e.anulado ? modificarEvento(e) : anular(e)}>
+                  {e.anulado ? "Modificar" : "Anular"}
+                </button>
+              )}
+              {e.anulado && <button className="mini evento-borrar" onClick={() => borrarEvento(e)} disabled={guardandoEvento}>Borrar</button>}
             </div>
           )}
         </div>

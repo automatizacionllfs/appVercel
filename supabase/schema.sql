@@ -257,7 +257,16 @@ begin
         new.restante_seg, new.creado_por, new.creado_en)
        is distinct from
        (old.partido_id, old.equipo_id, old.jugador_id, old.tipo, old.parte,
-        old.restante_seg, old.creado_por, old.creado_en) then
+        old.restante_seg, old.creado_por, old.creado_en)
+       and not (
+         old.anulado and not new.anulado
+         and (new.partido_id, new.equipo_id, new.jugador_id, new.parte,
+              new.restante_seg, new.creado_por, new.creado_en)
+         is not distinct from
+             (old.partido_id, old.equipo_id, old.jugador_id, old.parte,
+              old.restante_seg, old.creado_por, old.creado_en)
+         and (new.jugador_id is not null or new.tipo = 'gol')
+       ) then
       raise exception 'Un evento no se edita: anulalo y crea otro';
     end if;
     if new.anulado and not old.anulado then

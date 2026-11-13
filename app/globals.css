@@ -415,9 +415,10 @@ textarea:disabled { background: #f5f8fb; color: var(--suave); }
 }
 
 .evento > span { min-width: 0; overflow-wrap: anywhere; }
-.evento-acciones { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; }
-.evento-acciones .evento-restaurar { border-color: #b6dfc5; background: #e9f6ee; color: #11643a; }
-.evento-acciones .evento-restaurar:hover { border-color: #16834a; background: #d8f0e1; }
+.evento-acciones { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; gap: 6px; }
+.evento-acciones .evento-modificar { border-color: #b6dfc5; background: #e9f6ee; color: #11643a; }
+.evento-acciones .evento-modificar:hover { border-color: #16834a; background: #d8f0e1; }
+.evento-acciones select { min-width: 130px; }
 .evento-acciones .evento-borrar { border-color: #ffb3b3; background: #fff0f0; color: #a51d1d; }
 .evento-acciones .evento-borrar:hover { border-color: #d92e2e; background: #ffe0e0; }
 .evento.anulado > span { opacity: .55; }
