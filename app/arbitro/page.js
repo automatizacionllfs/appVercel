@@ -287,6 +287,11 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     setMin(valor);
     if (valor === 22) setSeg(0);
   };
+  const cambiarParte = (valor) => {
+    setParte(valor);
+    setMin(22);
+    setSeg(0);
+  };
   const lista = pl
     .filter((x) => x.equipo_id === eq && (
       x.jugador.nombre.toLowerCase().includes(busca.toLowerCase()) ||
@@ -430,8 +435,8 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
             <>
               <p className="paso-movil">1. Tiempo restante</p>
               <div className="fila">
-                <button className={parte === 1 ? "on" : ""} onClick={() => setParte(1)}>1ª parte</button>
-                <button className={parte === 2 ? "on" : ""} onClick={() => setParte(2)}>2ª parte</button>
+                <button className={parte === 1 ? "on" : ""} onClick={() => cambiarParte(1)}>1ª parte</button>
+                <button className={parte === 2 ? "on" : ""} onClick={() => cambiarParte(2)}>2ª parte</button>
               </div>
               <div className="fila">
                 <select aria-label="Minutos restantes" value={min} onChange={(e) => cambiarMinutos(+e.target.value)}>
@@ -510,8 +515,8 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
 
           <h2>Tiempo restante en el reloj del pabellón</h2>
           <div className="fila">
-            <button className={parte === 1 ? "on" : ""} onClick={() => setParte(1)}>1ª parte</button>
-            <button className={parte === 2 ? "on" : ""} onClick={() => setParte(2)}>2ª parte</button>
+            <button className={parte === 1 ? "on" : ""} onClick={() => cambiarParte(1)}>1ª parte</button>
+            <button className={parte === 2 ? "on" : ""} onClick={() => cambiarParte(2)}>2ª parte</button>
           </div>
           <div className="fila" style={{ marginTop: 8 }}>
             <select aria-label="Minutos" value={min} onChange={(e) => cambiarMinutos(+e.target.value)}>
