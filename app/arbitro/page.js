@@ -280,7 +280,10 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     if (valor === 22) setSeg(0);
   };
   const lista = pl
-    .filter((x) => x.equipo_id === eq && x.jugador.nombre.toLowerCase().includes(busca.toLowerCase()))
+    .filter((x) => x.equipo_id === eq && (
+      x.jugador.nombre.toLowerCase().includes(busca.toLowerCase()) ||
+      String(x.dorsal ?? "").includes(busca.trim())
+    ))
     .sort((a, b) => a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" }));
   const orden = [...ev].sort((a, b) => tiempoJuego(a) - tiempoJuego(b));
 
@@ -432,7 +435,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
           {paso === "jugador" && (
             <>
               <p className="paso-movil">3. Jugador</p>
-              <input placeholder="Buscar jugador" value={busca} onChange={(e) => setBusca(e.target.value)} />
+              <input placeholder="Buscar jugador o dorsal" value={busca} onChange={(e) => setBusca(e.target.value)} />
               <div className="lista jugadores-movil">
                 {lista.map((x) => (
                   <button key={x.id} onClick={() => {
@@ -467,7 +470,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
               <button className="mini" onClick={() => setJug(null)}>Cambiar</button></p>
           ) : (
             <>
-              <input style={{ marginTop: 8 }} placeholder="Buscar jugador" value={busca} onChange={(e) => setBusca(e.target.value)} />
+              <input style={{ marginTop: 8 }} placeholder="Buscar jugador o dorsal" value={busca} onChange={(e) => setBusca(e.target.value)} />
               <div className="lista">
                 {lista.map((x) => (
                   <button key={x.id} onClick={() => elegir(x)}>#{x.dorsal ?? "–"} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
