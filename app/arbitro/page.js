@@ -504,7 +504,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
       {orden.map((e) => (
         <div key={e.id} className={`evento ${e.anulado ? "anulado" : ""}`}>
           <span className={`tipo-${e.tipo}`}>
-            {e.parte}ª · {reloj(e.restante_seg)} · {e.jugador ? `${TIPOS[e.tipo]} · ${e.jugador.nombre}` : "Gol en propia puerta"}
+            {e.parte}ª · {reloj(e.restante_seg)} · {e.jugador ? `${TIPOS[e.tipo]} · ${e.jugador.nombre}` : "Gol en propia puerta"} · {e.equipo_id === p.local_id ? p.local.nombre : p.visitante.nombre}
           </span>
           {editable && <button className="mini" onClick={() => anular(e)}>{e.anulado ? "Restaurar" : "Anular"}</button>}
         </div>
