@@ -114,6 +114,29 @@ export default function Arbitro() {
     (!filtroJornada || String(p.jornada) === filtroJornada) &&
     (!filtroEstado || p.estado === filtroEstado)
   );
+  const partidosConEstado = partidosFiltrados.map((p) => {
+    const acta = golesActaPorPartido.get(p.id);
+    const golesLocalActa = acta?.get(p.local_id) || 0;
+    const golesVisitanteActa = acta?.get(p.visitante_id) || 0;
+    const hayResultado = p.goles_local_clupik !== null && p.goles_visitante_clupik !== null;
+    const coincide = hayResultado && golesLocalActa === p.goles_local_clupik && golesVisitanteActa === p.goles_visitante_clupik;
+    const esFuturo = p.fecha && new Date(p.fecha).getTime() > Date.now();
+    const estado = esFuturo && !hayResultado
+      ? { clase: "futuro", texto: "Pendiente / futuro" }
+      : hayResultado && coincide && p.estado === "cerrado"
+        ? { clase: "completo", texto: "Acta completa" }
+        : {
+          clase: "incompleto",
+          texto: hayResultado
+            ? coincide ? "Goles coinciden · acta abierta" : "Goles del acta por revisar"
+            : "Pendiente de resultado Clupik",
+        };
+    return { p, golesLocalActa, golesVisitanteActa, hayResultado, estado };
+  });
+  const conteoEstados = partidosConEstado.reduce((conteo, { estado }) => {
+    conteo[estado.clase] += 1;
+    return conteo;
+  }, { futuro: 0, incompleto: 0, completo: 0 });
 
   if (sesion === undefined) return <main><p>Cargando…</p></main>;
   if (!sesion) return (
@@ -176,26 +199,15 @@ export default function Arbitro() {
         <span><i className="semaforo-luz completo" />Acta cerrada y goles coinciden</span>
       </div>
       <p className="nota-datos">El estado completo compara el marcador y el cierre del acta; la sincronización disponible no permite contrastar las tarjetas con Clupik.</p>
+      <div className="resumen-estados" aria-label="Total de actas por estado">
+        <div><i className="semaforo-luz futuro" /><span>Pendiente / futuro</span><strong>{conteoEstados.futuro}</strong></div>
+        <div><i className="semaforo-luz incompleto" /><span>Resultado disponible, acta pendiente</span><strong>{conteoEstados.incompleto}</strong></div>
+        <div><i className="semaforo-luz completo" /><span>Acta cerrada y goles coinciden</span><strong>{conteoEstados.completo}</strong></div>
+      </div>
       {errorPartidos && <p className="error">{errorPartidos}</p>}
       {partidos.length === 0 && <p className="suave">No tienes partidos asignados.</p>}
       {partidos.length > 0 && partidosFiltrados.length === 0 && <p className="suave">No hay partidos con esos filtros.</p>}
-      {partidosFiltrados.map((p) => {
-        const acta = golesActaPorPartido.get(p.id);
-        const golesLocalActa = acta?.get(p.local_id) || 0;
-        const golesVisitanteActa = acta?.get(p.visitante_id) || 0;
-        const hayResultado = p.goles_local_clupik !== null && p.goles_visitante_clupik !== null;
-        const coincide = hayResultado && golesLocalActa === p.goles_local_clupik && golesVisitanteActa === p.goles_visitante_clupik;
-        const esFuturo = p.fecha && new Date(p.fecha).getTime() > Date.now();
-        const estado = esFuturo && !hayResultado
-          ? { clase: "futuro", texto: "Pendiente / futuro" }
-          : hayResultado && coincide && p.estado === "cerrado"
-            ? { clase: "completo", texto: "Acta completa" }
-            : {
-              clase: "incompleto",
-              texto: hayResultado
-                ? coincide ? "Goles coinciden · acta abierta" : "Goles del acta por revisar"
-                : "Pendiente de resultado Clupik",
-            };
+      {partidosConEstado.map(({ p, golesLocalActa, golesVisitanteActa, hayResultado, estado }) => {
         return (
           <button key={p.id} className={`tarjeta partido-tarjeta ${estado.clase}`} onClick={() => setAbierto(p.id)}>
             <span className="estado-partido"><i className={`semaforo-luz ${estado.clase}`} />{estado.texto}</span>
