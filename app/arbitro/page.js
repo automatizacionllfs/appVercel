@@ -235,6 +235,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const [min, setMin] = useState(22);
   const [seg, setSeg] = useState(0);
   const [msg, setMsg] = useState("");
+  const [msgEvento, setMsgEvento] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [msgDescripcion, setMsgDescripcion] = useState("");
   const [guardandoDescripcion, setGuardandoDescripcion] = useState(false);
@@ -319,6 +320,26 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const anular = async (e) => {
     const { error } = await supabase.from("eventos").update({ anulado: !e.anulado }).eq("id", e.id);
     if (error) setMsg(error.message); else cargar();
+  };
+
+  const borrarEvento = async (e) => {
+    if (!window.confirm("¿Borrar definitivamente este evento? Esta acción no se puede deshacer.")) return;
+    setMsgEvento("");
+    const { data, error } = await supabase.from("eventos")
+      .delete()
+      .eq("id", e.id)
+      .select("id")
+      .maybeSingle();
+    if (error) {
+      setMsgEvento(`No se pudo borrar el evento: ${error.message}`);
+      return;
+    }
+    if (!data) {
+      setMsgEvento("No se pudo borrar el evento: no se encontró o no tienes permiso.");
+      return;
+    }
+    setMsgEvento("Evento borrado definitivamente.");
+    cargar();
   };
 
   const sinFicha = async () => {
@@ -506,9 +527,21 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
           <span className={`tipo-${e.tipo}`}>
             {e.parte}ª · {reloj(e.restante_seg)} · {e.jugador ? `${TIPOS[e.tipo]} · ${e.jugador.nombre}` : "Gol en propia puerta"} · {e.equipo_id === p.local_id ? p.local.nombre : p.visitante.nombre}
           </span>
-          {editable && <button className="mini" onClick={() => anular(e)}>{e.anulado ? "Restaurar" : "Anular"}</button>}
+          {editable && (
+            <div className="evento-acciones">
+              <button className={`mini ${e.anulado ? "evento-restaurar" : ""}`} onClick={() => anular(e)}>
+                {e.anulado ? "Restaurar" : "Anular"}
+              </button>
+              {e.anulado && <button className="mini evento-borrar" onClick={() => borrarEvento(e)}>Borrar</button>}
+            </div>
+          )}
         </div>
       ))}
+      {msgEvento && (
+        <p role={msgEvento.startsWith("No se pudo") ? "alert" : "status"} className={msgEvento.startsWith("No se pudo") ? "error" : "mensaje-ok"}>
+          {msgEvento}
+        </p>
+      )}
 
       <section className="acta-descripcion-form">
         <h2>Incidencias</h2>
