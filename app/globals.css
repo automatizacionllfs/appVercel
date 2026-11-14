@@ -159,6 +159,7 @@ body {
 .mvp-compartir h2 { margin-bottom: 5px; }
 .mvp-compartir .error { flex-basis: 100%; }
 .acta-resumen-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.acta-resumen-acciones > button, .acta-mvp-descarga > button { min-height: 46px; padding: 0 16px; font-size: .95rem; font-weight: 800; }
 .acta-mvp-descarga .error { margin: 6px 0 0; font-size: .8rem; }
 .estadistica-mvp { margin: 24px 0; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); }
 .estadistica-mvp h2 { margin-top: 0; }
