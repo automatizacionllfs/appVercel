@@ -65,7 +65,7 @@ export default function ResumenActaCard({ partido, local, visitante, eventos, mv
 
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "800 23px Inter, system-ui, sans-serif";
-      ctx.fillText(`ACTA DIGITAL  ·  JORNADA ${partido.jornada || "—"}  ·  GRUPO ${partido.grupo?.nombre || "—"}`, 68, 232);
+      ctx.fillText(`ACTA DIGITAL  ·  JORNADA ${partido.jornada || "—"}  ·  ${partido.grupo?.nombre || "—"}`, 68, 232);
       ctx.fillStyle = "#fff";
       ctx.font = "900 55px Inter, system-ui, sans-serif";
       textoAjustado(ctx, "RESUMEN DEL ENCUENTRO", 68, 322, 944);

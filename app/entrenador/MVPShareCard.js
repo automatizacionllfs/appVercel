@@ -272,12 +272,8 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
 
   return (
     <section className="mvp-compartir">
-      <div>
-        <h2>Tarjeta para compartir</h2>
-        <p>Formato vertical 9:16 con escudos, logo LLFS, jornada, rivales y redes sociales oficiales.</p>
-      </div>
       <button type="button" className="primario" disabled={descargando} onClick={descargar}>
-        {descargando ? "Creando imagen…" : "Descargar imagen PNG"}
+        {descargando ? "Creando imagen…" : "Descargar MVPs"}
       </button>
       {error && <p className="error">{error}</p>}
     </section>
