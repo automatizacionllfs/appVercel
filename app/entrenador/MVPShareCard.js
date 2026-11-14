@@ -271,7 +271,7 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
   }
 
   return (
-    <section className="mvp-compartir">
+    <section className="mvp-compartir mvp-compartir-solo">
       <button type="button" className="primario" disabled={descargando} onClick={descargar}>
         {descargando ? "Creando imagen…" : "Descargar MVPs"}
       </button>
