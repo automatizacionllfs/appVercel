@@ -591,11 +591,9 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
                   {!e.jugador && <span className="suave">Las tarjetas requieren un jugador.</span>}
                 </>
               ) : (
-                (e.tipo !== "gol" || e.jugador) && (
-                  <button className={`mini ${e.anulado ? "evento-modificar" : ""}`} onClick={() => e.anulado ? modificarEvento(e) : anular(e)}>
-                    {e.anulado ? "Modificar" : "Anular"}
-                  </button>
-                )
+                <button className={`mini ${e.anulado ? "evento-modificar" : ""}`} onClick={() => e.anulado ? modificarEvento(e) : anular(e)}>
+                  {e.anulado ? "Modificar" : "Anular"}
+                </button>
               )}
               {e.anulado && <button className="mini evento-borrar" onClick={() => borrarEvento(e)} disabled={guardandoEvento}>Borrar</button>}
             </div>
