@@ -155,10 +155,11 @@ body {
 .acta-mvp-equipo div { display: grid; gap: 2px; min-width: 0; }
 .acta-mvp-equipo strong { overflow-wrap: anywhere; }
 .mvp-compartir { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0 28px; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); }
-.mvp-compartir-solo { justify-content: flex-end; margin: 12px 0 24px; padding: 0; border: 0; background: transparent; box-shadow: none; }
 .mvp-compartir p { margin: 0; color: var(--suave); }
 .mvp-compartir h2 { margin-bottom: 5px; }
 .mvp-compartir .error { flex-basis: 100%; }
+.acta-resumen-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.acta-mvp-descarga .error { margin: 6px 0 0; font-size: .8rem; }
 .estadistica-mvp { margin: 24px 0; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); }
 .estadistica-mvp h2 { margin-top: 0; }
 

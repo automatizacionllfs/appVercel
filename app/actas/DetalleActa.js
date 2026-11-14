@@ -129,20 +129,19 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
           ))}
         </div>
       </section>
-      <MVPShareCard
-        partido={{ ...partido, local, visitante }}
-        mvpLocal={mvpLocal ? { jugador: mvpLocal } : null}
-        mvpVisitante={mvpVisitante ? { jugador: mvpVisitante } : null}
-      />
       {actaDigitalizada && (
         <ResumenActaCard
           partido={partido}
           local={local}
           visitante={visitante}
           eventos={eventos}
-          mvpLocal={mvpLocal}
-          mvpVisitante={mvpVisitante}
-        />
+        >
+          <MVPShareCard
+            partido={{ ...partido, local, visitante }}
+            mvpLocal={mvpLocal ? { jugador: mvpLocal } : null}
+            mvpVisitante={mvpVisitante ? { jugador: mvpVisitante } : null}
+          />
+        </ResumenActaCard>
       )}
 
       {partido.descripcion && (

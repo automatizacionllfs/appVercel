@@ -27,7 +27,7 @@ function linea(ctx, x, y, ancho, grosor = 5) {
   ctx.fillRect(x, y, ancho, grosor);
 }
 
-export default function ResumenActaCard({ partido, local, visitante, eventos, mvpLocal, mvpVisitante }) {
+export default function ResumenActaCard({ partido, local, visitante, eventos, children }) {
   const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState("");
 
@@ -206,9 +206,12 @@ export default function ResumenActaCard({ partido, local, visitante, eventos, mv
         <h2>Resumen del encuentro</h2>
         <p>Imagen vertical 9:16 con el resultado del acta y el resumen de tarjetas.</p>
       </div>
-      <button type="button" className="acta-descargar-resumen" disabled={descargando} onClick={descargar}>
-        {descargando ? "Creando imagen…" : "Descargar resumen"}
-      </button>
+      <div className="acta-resumen-acciones">
+        <button type="button" className="acta-descargar-resumen" disabled={descargando} onClick={descargar}>
+          {descargando ? "Creando imagen…" : "Descargar resumen"}
+        </button>
+        {children}
+      </div>
       {error && <p className="error" role="status">{error}</p>}
     </section>
   );

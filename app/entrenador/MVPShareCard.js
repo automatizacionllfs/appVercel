@@ -271,11 +271,11 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
   }
 
   return (
-    <section className="mvp-compartir mvp-compartir-solo">
+    <div className="acta-mvp-descarga">
       <button type="button" className="primario" disabled={descargando} onClick={descargar}>
         {descargando ? "Creando imagen…" : "Descargar MVPs"}
       </button>
-      {error && <p className="error">{error}</p>}
-    </section>
+      {error && <p className="error" role="status">{error}</p>}
+    </div>
   );
 }
