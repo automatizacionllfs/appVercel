@@ -746,6 +746,9 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
 .acta-marcador { padding: 7px 10px; border-radius: 10px; background: var(--acento-claro); color: var(--acento); font-size: 1.05rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .acta-partido-pie { justify-content: space-between; color: var(--suave); font-weight: 650; }
 .acta-ver-cronologia, .enlace-acta-estadisticas { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 8px; padding: 0 13px; border: 1px solid #b4232e; border-radius: 10px; background: #b4232e; box-shadow: 0 3px 8px rgb(180 35 46 / 18%); color: #fff; font-size: .82rem; font-weight: 800; text-decoration: none; transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+.acta-descargar-resumen { min-height: 42px; padding: 0 16px; border: 1px solid #b4232e; border-radius: 10px; background: #b4232e; box-shadow: 0 3px 8px rgb(180 35 46 / 18%); color: #fff; font-weight: 800; transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+.acta-descargar-resumen:hover:not(:disabled) { transform: translateY(-1px); border-color: #921d27; background: #921d27; box-shadow: 0 5px 12px rgb(180 35 46 / 25%); }
+.acta-descargar-resumen:disabled { cursor: wait; opacity: .7; }
 .acta-partido:hover .acta-ver-cronologia { transform: translateY(-1px); border-color: #921d27; background: #921d27; box-shadow: 0 5px 12px rgb(180 35 46 / 25%); }
 .enlace-acta-estadisticas:hover { transform: translateY(-1px); border-color: #921d27; background: #921d27; box-shadow: 0 5px 12px rgb(180 35 46 / 25%); }
 .actas-vacio { margin-top: 24px; padding: 30px 20px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); text-align: center; }

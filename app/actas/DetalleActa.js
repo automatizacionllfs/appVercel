@@ -1,5 +1,6 @@
 import MVPShareCard from "../entrenador/MVPShareCard";
 import AvatarJugador from "../AvatarJugador";
+import ResumenActaCard from "./ResumenActaCard";
 import EditarActa from "./EditarActa";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
@@ -133,6 +134,14 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
         mvpLocal={mvpLocal ? { jugador: mvpLocal } : null}
         mvpVisitante={mvpVisitante ? { jugador: mvpVisitante } : null}
       />
+      {actaDigitalizada && (
+        <ResumenActaCard
+          partido={partido}
+          local={local}
+          visitante={visitante}
+          eventos={eventos}
+        />
+      )}
 
       {partido.descripcion && (
         <section className="acta-descripcion-publica" aria-labelledby="acta-descripcion-titulo">
