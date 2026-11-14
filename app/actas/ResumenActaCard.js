@@ -27,7 +27,7 @@ function linea(ctx, x, y, ancho, grosor = 5) {
   ctx.fillRect(x, y, ancho, grosor);
 }
 
-export default function ResumenActaCard({ partido, local, visitante, eventos }) {
+export default function ResumenActaCard({ partido, local, visitante, eventos, mvpLocal, mvpVisitante }) {
   const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState("");
 
@@ -65,7 +65,7 @@ export default function ResumenActaCard({ partido, local, visitante, eventos }) 
 
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "800 23px Inter, system-ui, sans-serif";
-      ctx.fillText(`ACTA DIGITAL  ·  JORNADA ${partido.jornada || "—"}`, 68, 232);
+      ctx.fillText(`ACTA DIGITAL  ·  JORNADA ${partido.jornada || "—"}  ·  GRUPO ${partido.grupo?.nombre || "—"}`, 68, 232);
       ctx.fillStyle = "#fff";
       ctx.font = "900 55px Inter, system-ui, sans-serif";
       textoAjustado(ctx, "RESUMEN DEL ENCUENTRO", 68, 322, 944);
@@ -103,6 +103,9 @@ export default function ResumenActaCard({ partido, local, visitante, eventos }) 
         ctx.textAlign = "center";
         textoAjustado(ctx, equipo?.nombre || "Equipo", x, 690, 390);
       }
+      ctx.fillStyle = "#C9D8EE";
+      ctx.font = "850 34px Inter, system-ui, sans-serif";
+      ctx.fillText("VS", ANCHO / 2, 580);
 
       const golesLocal = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.local_id).length;
       const golesVisitante = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.visitante_id).length;
@@ -144,14 +147,39 @@ export default function ResumenActaCard({ partido, local, visitante, eventos }) 
       }
       ctx.textAlign = "start";
 
-      linea(ctx, 64, 1690, 952);
+      ctx.fillStyle = "#C9D8EE";
+      ctx.font = "800 24px Inter, system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("MVP DEL PARTIDO", ANCHO / 2, 1575);
+      for (const mvp of [
+        { equipo: local, jugador: mvpLocal, x: 64 },
+        { equipo: visitante, jugador: mvpVisitante, x: 556 },
+      ]) {
+        ctx.fillStyle = "rgba(255,255,255,.08)";
+        ctx.beginPath();
+        ctx.roundRect(mvp.x, 1600, 460, 125, 20);
+        ctx.fill();
+        ctx.fillStyle = "#C9D8EE";
+        ctx.font = "650 18px Inter, system-ui, sans-serif";
+        textoAjustado(ctx, `MVP de ${mvp.equipo?.nombre || "equipo"}`, mvp.x + 230, 1640, 420);
+        ctx.fillStyle = "#fff";
+        ctx.font = "800 26px Inter, system-ui, sans-serif";
+        textoAjustado(ctx, mvp.jugador?.nombre || "Aún no seleccionado", mvp.x + 230, 1685, 420);
+      }
+
+      linea(ctx, 64, 1750, 952);
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "650 25px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("LIGA LOCAL DE FÚTBOL SALA · PUERTO REAL", ANCHO / 2, 1770);
+      ctx.fillText("LIGA LOCAL DE FÚTBOL SALA · PUERTO REAL", ANCHO / 2, 1810);
       ctx.fillStyle = "#fff";
-      ctx.font = "600 19px Inter, system-ui, sans-serif";
-      ctx.fillText("llfspuertoreal.es  ·  @dlfsptoreal", ANCHO / 2, 1825);
+      ctx.font = "600 18px Inter, system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("llfspuertoreal.es", 78, 1860);
+      ctx.textAlign = "center";
+      ctx.fillText("Instagram  @dlfsptoreal", ANCHO / 2, 1860);
+      ctx.textAlign = "right";
+      ctx.fillText("YouTube  LLFS Puerto Real", 1002, 1860);
       ctx.textAlign = "start";
 
       if (escudoNoDisponible) {

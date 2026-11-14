@@ -140,6 +140,8 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
           local={local}
           visitante={visitante}
           eventos={eventos}
+          mvpLocal={mvpLocal}
+          mvpVisitante={mvpVisitante}
         />
       )}
 
