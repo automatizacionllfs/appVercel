@@ -139,6 +139,7 @@ export default function PruebaCrearPartido() {
                 autoComplete="off"
                 required
               />
+              <span className="suave">Se acepta el valor solo o con el prefijo «Bearer».</span>
             </label>
             <label>
               Grupo

@@ -51,7 +51,9 @@ export async function POST(request) {
     return Response.json({ error: "Solicitud no válida." }, { status: 400 });
   }
 
-  const tokenClupik = typeof body?.tokenClupik === "string" ? body.tokenClupik.trim() : "";
+  const tokenClupik = typeof body?.tokenClupik === "string"
+    ? body.tokenClupik.trim().replace(/^Bearer\s+/i, "")
+    : "";
   const grupoId = String(body?.grupoId || "");
   const equipoLocalId = String(body?.equipoLocalId || "");
   const equipoVisitanteId = String(body?.equipoVisitanteId || "");
