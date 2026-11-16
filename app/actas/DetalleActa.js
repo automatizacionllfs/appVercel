@@ -84,14 +84,16 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
       <header className="acta-cabecera">
         <div className="acta-cabecera-superior">
           <span className="acta-kicker">{actaDigitalizada ? "ACTA DIGITAL" : "ACTA PENDIENTE DE DIGITALIZAR"} · JORNADA {partido.jornada || "—"}</span>
-          <EditarActa partidoId={partido.id} />
+          <div className="acta-cabecera-acciones">
+            {enlaceClupik && (
+              <a className="acta-enlace-clupik" href={enlaceClupik} target="_blank" rel="noopener noreferrer">
+                Ver en Clupik <span aria-hidden="true">↗</span>
+              </a>
+            )}
+            <EditarActa partidoId={partido.id} />
+          </div>
         </div>
         <p className="acta-fecha">{fecha(partido.fecha)}</p>
-        {enlaceClupik && (
-          <a className="acta-enlace-clupik" href={enlaceClupik} target="_blank" rel="noopener noreferrer">
-            Ver partido en Clupik <span aria-hidden="true">↗</span>
-          </a>
-        )}
         <div className="acta-marcador-grande">
           <div className="acta-equipo-grande">
             {local?.escudo_url && <img src={local.escudo_url} alt="" width="58" height="58" />}
