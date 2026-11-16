@@ -6,8 +6,8 @@ import { urlFotoMvp } from "../../lib/foto-mvp";
 
 export const revalidate = 0;
 
-const camposPartido = "id,jornada,fecha,estado,descripcion,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id,grupo:grupos(nombre)";
-const camposPartidoSinDescripcion = "id,jornada,fecha,estado,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id,grupo:grupos(nombre)";
+const camposPartido = "id,id_clupik,jornada,fecha,estado,descripcion,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id,grupo:grupos(nombre)";
+const camposPartidoSinDescripcion = "id,id_clupik,jornada,fecha,estado,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,temporada_id,grupo:grupos(nombre)";
 
 function columnaDescripcionNoDisponible(error) {
   return ["42703", "PGRST204"].includes(error.code) && /descripcion/i.test(error.message || "");

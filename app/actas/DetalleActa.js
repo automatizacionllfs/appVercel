@@ -44,6 +44,9 @@ function IconoSilbato() {
 }
 
 export default function DetalleActa({ partido, local, visitante, eventos, mvpLocal, mvpVisitante, actaDigitalizada, volver }) {
+  const enlaceClupik = partido.id_clupik
+    ? `https://www.llfspuertoreal.es/es/games/${encodeURIComponent(partido.id_clupik)}/location`
+    : null;
   const golesLocal = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.local_id).length;
   const golesVisitante = eventos.filter((evento) => evento.tipo === "gol" && evento.equipo_id === partido.visitante_id).length;
   const resultadoSincronizado = tieneResultado(partido);
@@ -84,6 +87,11 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
           <EditarActa partidoId={partido.id} />
         </div>
         <p className="acta-fecha">{fecha(partido.fecha)}</p>
+        {enlaceClupik && (
+          <a className="acta-enlace-clupik" href={enlaceClupik} target="_blank" rel="noopener noreferrer">
+            Ver partido en Clupik <span aria-hidden="true">↗</span>
+          </a>
+        )}
         <div className="acta-marcador-grande">
           <div className="acta-equipo-grande">
             {local?.escudo_url && <img src={local.escudo_url} alt="" width="58" height="58" />}
