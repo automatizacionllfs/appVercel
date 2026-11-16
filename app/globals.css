@@ -334,6 +334,16 @@ textarea:disabled { background: #f5f8fb; color: var(--suave); }
 
 .rango-fechas label { display: grid; gap: 6px; color: var(--suave); font-size: .88rem; font-weight: 650; }
 .rango-fechas button { grid-column: 1 / -1; }
+.clupik-prueba-aviso { margin: 16px 0; padding: 14px 16px; border: 1px solid #e6c46a; border-radius: 12px; background: #fff8df; color: #59470c; font-weight: 650; }
+.clupik-prueba-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: end; gap: 14px; margin: 16px 0; padding: 18px; border: 1px solid var(--borde); border-radius: 14px; background: var(--papel); box-shadow: var(--sombra); }
+.clupik-prueba-form label { display: grid; gap: 6px; color: var(--suave); font-size: .88rem; font-weight: 650; }
+.clupik-prueba-form input, .clupik-prueba-form select { width: 100%; min-height: 42px; padding: 8px 10px; border: 1px solid var(--borde); border-radius: 9px; background: #fff; color: var(--tinta); font: inherit; }
+.clupik-prueba-form button { grid-column: 1 / -1; justify-self: start; }
+.clupik-prueba-form button:disabled { cursor: not-allowed; opacity: .6; }
+.clupik-prueba-resultado { margin-top: 18px; padding: 16px; border: 1px solid #a8d7b6; border-radius: 14px; background: #f0fbf3; }
+.clupik-prueba-resultado h2 { margin: 0 0 8px; color: #176534; }
+.clupik-prueba-resultado p { margin: 0 0 10px; }
+.clupik-prueba-resultado pre { max-width: 100%; overflow: auto; padding: 12px; border-radius: 9px; background: #fff; font-size: .82rem; }
 
 .tarjeta {
   display: block;
