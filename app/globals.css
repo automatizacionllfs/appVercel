@@ -282,6 +282,27 @@ select, input {
   border-radius: 12px;
   background: var(--papel);
 }
+.selector-tiempo { position: relative; min-width: 0; flex: 1; }
+.selector-tiempo-boton { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
+.selector-tiempo-boton span { color: var(--suave); font-size: .75rem; }
+.selector-tiempo-opciones {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  width: 100%;
+  max-height: 192px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--papel);
+  box-shadow: var(--sombra);
+}
+.selector-tiempo-opciones button { width: 100%; min-height: 40px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; box-shadow: none; text-align: left; }
+.selector-tiempo-opciones button[aria-selected="true"] { background: var(--acento-claro); color: var(--acento-oscuro); font-weight: 750; }
+.selector-tiempo-opciones button:hover { background: #e7edf2; box-shadow: none; transform: none; }
 textarea {
   display: block;
   width: 100%;

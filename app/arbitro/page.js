@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useId } from "react";
 import { createClient } from "@supabase/supabase-js";
 import NavegacionArbitro from "./NavegacionArbitro";
 
@@ -9,6 +9,61 @@ const fechaInput = (fecha) => String(fecha).slice(0, 10);
 const reloj = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const TIPOS = { gol: "Gol", amarilla: "Amarilla", roja: "Roja" };
 const tiempoJuego = (e) => (e.parte - 1) * 1320 + (1320 - e.restante_seg);
+
+function SelectorTiempo({ etiqueta, valor, opciones, sufijo, onChange }) {
+  const [abierto, setAbierto] = useState(false);
+  const ref = useRef(null);
+  const id = useId();
+
+  useEffect(() => {
+    if (!abierto) return undefined;
+    const cerrarFuera = (evento) => {
+      if (!ref.current?.contains(evento.target)) setAbierto(false);
+    };
+    const cerrarEscape = (evento) => {
+      if (evento.key === "Escape") setAbierto(false);
+    };
+    document.addEventListener("pointerdown", cerrarFuera);
+    document.addEventListener("keydown", cerrarEscape);
+    return () => {
+      document.removeEventListener("pointerdown", cerrarFuera);
+      document.removeEventListener("keydown", cerrarEscape);
+    };
+  }, [abierto]);
+
+  return (
+    <div className="selector-tiempo" ref={ref}>
+      <button
+        type="button"
+        className="selector-tiempo-boton"
+        aria-label={`${etiqueta}: ${sufijo(valor)}`}
+        aria-expanded={abierto}
+        aria-controls={id}
+        onClick={() => setAbierto(!abierto)}
+      >
+        {sufijo(valor)} <span aria-hidden="true">▾</span>
+      </button>
+      {abierto && (
+        <div className="selector-tiempo-opciones" id={id} role="listbox" aria-label={etiqueta}>
+          {opciones.map((opcion) => (
+            <button
+              key={opcion}
+              type="button"
+              role="option"
+              aria-selected={opcion === valor}
+              onClick={() => {
+                onChange(opcion);
+                setAbierto(false);
+              }}
+            >
+              {sufijo(opcion)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Arbitro() {
   const [sesion, setSesion] = useState(undefined);
@@ -471,12 +526,8 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
                 <button className={parte === 2 ? "on" : ""} onClick={() => cambiarParte(2)}>2ª parte</button>
               </div>
               <div className="fila">
-                <select aria-label="Minutos restantes" value={min} onChange={(e) => cambiarMinutos(+e.target.value)}>
-                  {Array.from({ length: 23 }, (_, i) => <option key={i} value={i}>{i} min</option>)}
-                </select>
-                <select aria-label="Segundos restantes" value={seg} onChange={(e) => setSeg(+e.target.value)}>
-                  {segundosDisponibles.map((s) => <option key={s} value={s}>{String(s).padStart(2, "0")} s</option>)}
-                </select>
+                <SelectorTiempo etiqueta="Minutos restantes" valor={min} opciones={Array.from({ length: 23 }, (_, i) => i)} sufijo={(v) => `${v} min`} onChange={cambiarMinutos} />
+                <SelectorTiempo etiqueta="Segundos restantes" valor={seg} opciones={segundosDisponibles} sufijo={(v) => `${String(v).padStart(2, "0")} s`} onChange={setSeg} />
               </div>
               <p className="suave">Quedan {reloj(restante)} · tiempo transcurrido {reloj(tiempoIndicado)}</p>
               <button className="primario boton-paso" onClick={() => setPaso("equipo")}>Continuar</button>
@@ -551,12 +602,8 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
             <button className={parte === 2 ? "on" : ""} onClick={() => cambiarParte(2)}>2ª parte</button>
           </div>
           <div className="fila" style={{ marginTop: 8 }}>
-            <select aria-label="Minutos" value={min} onChange={(e) => cambiarMinutos(+e.target.value)}>
-              {Array.from({ length: 23 }, (_, i) => <option key={i} value={i}>{i} min</option>)}
-            </select>
-            <select aria-label="Segundos" value={seg} onChange={(e) => setSeg(+e.target.value)}>
-              {segundosDisponibles.map((s) => <option key={s} value={s}>{String(s).padStart(2, "0")} s</option>)}
-            </select>
+            <SelectorTiempo etiqueta="Minutos" valor={min} opciones={Array.from({ length: 23 }, (_, i) => i)} sufijo={(v) => `${v} min`} onChange={cambiarMinutos} />
+            <SelectorTiempo etiqueta="Segundos" valor={seg} opciones={segundosDisponibles} sufijo={(v) => `${String(v).padStart(2, "0")} s`} onChange={setSeg} />
           </div>
           <p className="suave">Quedan {reloj(restante)} · tiempo transcurrido {reloj(tiempoIndicado)}</p>
           {msg && <p className={msg.includes("registrado.") ? "mensaje-ok" : "error"}>{msg}</p>}
