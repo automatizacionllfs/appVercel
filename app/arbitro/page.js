@@ -300,6 +300,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const [msgEvento, setMsgEvento] = useState("");
   const [eventoEditando, setEventoEditando] = useState(null);
   const [tipoEventoEditado, setTipoEventoEditado] = useState("gol");
+  const [parteEventoEditada, setParteEventoEditada] = useState(1);
   const [guardandoEvento, setGuardandoEvento] = useState(false);
   const [descripcion, setDescripcion] = useState("");
   const [msgDescripcion, setMsgDescripcion] = useState("");
@@ -395,6 +396,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const modificarEvento = (e) => {
     setEventoEditando(e.id);
     setTipoEventoEditado(e.tipo);
+    setParteEventoEditada(e.parte);
     setMsgEvento("");
   };
 
@@ -402,7 +404,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     setMsgEvento("");
     setGuardandoEvento(true);
     const { data, error } = await supabase.from("eventos")
-      .update({ tipo: tipoEventoEditado, anulado: false })
+      .update({ tipo: tipoEventoEditado, parte: parteEventoEditada, anulado: false })
       .eq("id", e.id)
       .eq("anulado", true)
       .select("id")
@@ -630,6 +632,14 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
                     <option value="gol">Gol</option>
                     <option value="amarilla" disabled={!e.jugador}>Tarjeta Amarilla</option>
                     <option value="roja" disabled={!e.jugador}>Tarjeta Roja</option>
+                  </select>
+                  <select
+                    aria-label="Parte del partido"
+                    value={parteEventoEditada}
+                    onChange={(event) => setParteEventoEditada(Number(event.target.value))}
+                  >
+                    <option value={1}>Primera parte</option>
+                    <option value={2}>Segunda parte</option>
                   </select>
                   <button className="mini" onClick={() => guardarModificacionEvento(e)} disabled={guardandoEvento}>
                     {guardandoEvento ? "Guardando…" : "Guardar"}
