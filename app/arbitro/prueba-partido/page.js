@@ -139,7 +139,7 @@ export default function PruebaCrearPartido() {
                 autoComplete="off"
                 required
               />
-              <span className="suave">Se acepta el valor solo o con el prefijo «Bearer».</span>
+              <span className="suave">Pega el valor completo de la cabecera Authorization, con el mismo formato que usa Clupik.</span>
             </label>
             <label>
               Grupo

@@ -51,15 +51,13 @@ export async function POST(request) {
     return Response.json({ error: "Solicitud no válida." }, { status: 400 });
   }
 
-  const tokenClupik = typeof body?.tokenClupik === "string"
-    ? body.tokenClupik.trim().replace(/^Bearer\s+/i, "")
-    : "";
+  const tokenClupik = typeof body?.tokenClupik === "string" ? body.tokenClupik.trim() : "";
   const grupoId = String(body?.grupoId || "");
   const equipoLocalId = String(body?.equipoLocalId || "");
   const equipoVisitanteId = String(body?.equipoVisitanteId || "");
   const fecha = typeof body?.fecha === "string" ? body.fecha : "";
   const fechaMs = Date.parse(fecha);
-  if (!tokenClupik || tokenClupik.length > 8192) {
+  if (!tokenClupik || tokenClupik.length > 8192 || /[\r\n]/.test(tokenClupik)) {
     return Response.json({ error: "Introduce un token de Clupik válido." }, { status: 400 });
   }
   if (![grupoId, equipoLocalId, equipoVisitanteId].every((id) => /^\d+$/.test(id)) ||
@@ -104,7 +102,7 @@ export async function POST(request) {
       method: "POST",
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${tokenClupik}`,
+        Authorization: tokenClupik,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
