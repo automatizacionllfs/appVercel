@@ -344,6 +344,22 @@ textarea:disabled { background: #f5f8fb; color: var(--suave); }
 .clupik-prueba-resultado h2 { margin: 0 0 8px; color: #176534; }
 .clupik-prueba-resultado p { margin: 0 0 10px; }
 .clupik-prueba-resultado pre { max-width: 100%; overflow: auto; padding: 12px; border-radius: 9px; background: #fff; font-size: .82rem; }
+.clupik-partidos { margin: 24px 0; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); box-shadow: var(--sombra); }
+.clupik-partidos h2, .clupik-modal h2 { margin: 0 0 12px; color: var(--acento-oscuro); }
+.clupik-partidos-filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 14px 0; }
+.clupik-partidos-filtros label, .clupik-modal label { display: grid; min-width: 150px; flex: 1; gap: 6px; color: var(--suave); font-size: .88rem; font-weight: 650; }
+.clupik-partidos-filtros input, .clupik-modal select { min-height: 42px; padding: 8px 10px; border: 1px solid var(--borde); border-radius: 9px; background: #fff; color: var(--tinta); font: inherit; }
+.clupik-partidos-lista { display: grid; gap: 8px; max-height: 440px; overflow: auto; }
+.clupik-partido-fila { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid var(--borde); border-radius: 11px; background: #fff; cursor: pointer; }
+.clupik-partido-fila:has(input:checked) { border-color: var(--acento); background: var(--acento-claro); }
+.clupik-partido-fila input { width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--acento); }
+.clupik-partido-fila > span { display: grid; min-width: 0; gap: 2px; }
+.clupik-partido-fila > span > span { color: var(--suave); font-size: .84rem; }
+.clupik-partidos-acciones, .clupik-modal-acciones { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.clupik-partidos-acciones > span { margin-right: auto; color: var(--suave); font-weight: 700; }
+.clupik-modal-fondo { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 18px; background: rgb(10 25 40 / 58%); }
+.clupik-modal { display: grid; width: min(100%, 520px); gap: 12px; padding: 22px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); box-shadow: 0 20px 70px rgb(0 0 0 / 28%); }
+.clupik-modal-acciones button:disabled { cursor: not-allowed; opacity: .6; }
 
 .tarjeta {
   display: block;
