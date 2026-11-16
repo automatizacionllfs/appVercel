@@ -40,15 +40,18 @@ export default function LogArbitros() {
   const [sesion, setSesion] = useState(undefined);
   const [acceso, setAcceso] = useState("comprobando");
   const [usuarios, setUsuarios] = useState([]);
+  const [partidos, setPartidos] = useState([]);
   const [registros, setRegistros] = useState([]);
   const [total, setTotal] = useState(0);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [errorUsuarios, setErrorUsuarios] = useState("");
+  const [errorPartidos, setErrorPartidos] = useState("");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [filtroUsuario, setFiltroUsuario] = useState("");
   const [filtroAccion, setFiltroAccion] = useState("");
+  const [filtroPartido, setFiltroPartido] = useState("");
   const [pagina, setPagina] = useState(0);
 
   useEffect(() => {
@@ -115,6 +118,24 @@ export default function LogArbitros() {
   useEffect(() => {
     if (acceso !== "admin") return undefined;
     let activo = true;
+    supabase.from("partidos")
+      .select("id,jornada,fecha,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
+      .order("fecha", { ascending: false, nullsFirst: false })
+      .then(({ data, error: errorPartidos }) => {
+        if (!activo) return;
+        if (errorPartidos) {
+          setErrorPartidos(`No se pudieron cargar los partidos: ${errorPartidos.message}`);
+        } else {
+          setErrorPartidos("");
+          setPartidos(data || []);
+        }
+      });
+    return () => { activo = false; };
+  }, [acceso]);
+
+  useEffect(() => {
+    if (acceso !== "admin") return undefined;
+    let activo = true;
 
     if (desde && hasta && desde > hasta) {
       setError("La fecha inicial no puede ser posterior a la fecha final.");
@@ -137,6 +158,11 @@ export default function LogArbitros() {
       if (hasta) consulta = consulta.lt("creado_en", inicioDiaSiguiente(hasta));
       if (filtroUsuario) consulta = consulta.eq("usuario_id", filtroUsuario);
       if (filtroAccion) consulta = consulta.eq("accion", filtroAccion);
+      if (filtroPartido) {
+        consulta = consulta.or(
+          `and(tabla.eq.partidos,fila_id.eq.${filtroPartido}),datos_despues->>partido_id.eq.${filtroPartido},datos_antes->>partido_id.eq.${filtroPartido}`,
+        );
+      }
 
       const { data, count, error: errorLog } = await consulta;
       if (!activo) return;
@@ -153,7 +179,7 @@ export default function LogArbitros() {
 
     cargar();
     return () => { activo = false; };
-  }, [acceso, desde, hasta, filtroUsuario, filtroAccion, pagina]);
+  }, [acceso, desde, hasta, filtroUsuario, filtroAccion, filtroPartido, pagina]);
 
   async function entrar() {
     const { error: errorAcceso } = await supabase.auth.signInWithOAuth({
@@ -168,6 +194,7 @@ export default function LogArbitros() {
     setHasta("");
     setFiltroUsuario("");
     setFiltroAccion("");
+    setFiltroPartido("");
     setPagina(0);
   }
 
@@ -218,8 +245,29 @@ export default function LogArbitros() {
                 {Object.entries(ACCIONES).map(([valor, texto]) => <option value={valor} key={valor}>{texto}</option>)}
               </select>
             </label>
+            <label>
+              Partido / acta
+              <select value={filtroPartido} onChange={(evento) => { setFiltroPartido(evento.target.value); setPagina(0); }}>
+                <option value="">Todos los partidos</option>
+                {partidos.map((partido) => {
+                  const fechaPartido = partido.fecha
+                    ? new Date(partido.fecha).toLocaleString("es-ES", {
+                      timeZone: "Europe/Madrid",
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })
+                    : "Fecha no disponible";
+                  return (
+                    <option value={partido.id} key={partido.id}>
+                      Jornada {partido.jornada || "—"} · {partido.local?.nombre || "Local"}–{partido.visitante?.nombre || "Visitante"} · {fechaPartido}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
             <button type="button" className="mini" onClick={limpiarFiltros}>Limpiar filtros</button>
           </section>
+          {errorPartidos && <p className="error" role="alert">{errorPartidos}</p>}
 
           <p className="log-total" aria-live="polite">
             {total} {total === 1 ? "acción registrada" : "acciones registradas"}
