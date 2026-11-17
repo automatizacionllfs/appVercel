@@ -1,13 +1,15 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import sharp from "sharp";
 
 const WIDTH = 842;
 const HEIGHT = 595;
 const INK = rgb(0.13, 0.13, 0.13);
 const LIGHT = rgb(0.91, 0.91, 0.91);
 const PALE = rgb(0.96, 0.96, 0.96);
-const MAX_SHIELD_BYTES = 2_000_000;
+const MAX_SHIELD_SOURCE_BYTES = 20_000_000;
+const MAX_SHIELD_DIMENSION = 512;
 const MONTHS = [
   "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
   "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE",
@@ -113,8 +115,8 @@ async function imagenEscudo(pdf, url) {
   if (!response.ok) throw new Error(`No se pudo cargar un escudo: Clupik respondió HTTP ${response.status}.`);
   const contentType = response.headers.get("content-type") || "";
   const contentLength = Number(response.headers.get("content-length"));
-  if (Number.isFinite(contentLength) && contentLength > MAX_SHIELD_BYTES) {
-    console.warn(`Se omitió el escudo de ${parsed.hostname}: supera el tamaño máximo permitido.`);
+  if (Number.isFinite(contentLength) && contentLength > MAX_SHIELD_SOURCE_BYTES) {
+    console.warn(`Se omitió el escudo de ${parsed.hostname}: supera el tamaño máximo de origen.`);
     return null;
   }
   const reader = response.body?.getReader();
@@ -125,9 +127,9 @@ async function imagenEscudo(pdf, url) {
     const { done, value } = await reader.read();
     if (done) break;
     total += value.byteLength;
-    if (total > MAX_SHIELD_BYTES) {
+    if (total > MAX_SHIELD_SOURCE_BYTES) {
       await reader.cancel();
-      console.warn(`Se omitió el escudo de ${parsed.hostname}: supera el tamaño máximo permitido.`);
+      console.warn(`Se omitió el escudo de ${parsed.hostname}: supera el tamaño máximo de origen.`);
       return null;
     }
     chunks.push(value);
@@ -138,9 +140,20 @@ async function imagenEscudo(pdf, url) {
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  if (contentType.includes("png")) return pdf.embedPng(bytes);
-  if (contentType.includes("jpeg") || contentType.includes("jpg")) return pdf.embedJpg(bytes);
-  throw new Error("Clupik devolvió un formato de imagen no compatible para un escudo.");
+  if (!contentType.includes("png") && !contentType.includes("jpeg") && !contentType.includes("jpg")) {
+    throw new Error("Clupik devolvió un formato de imagen no compatible para un escudo.");
+  }
+  const optimizado = await sharp(Buffer.from(bytes), { limitInputPixels: 40_000_000 })
+    .rotate()
+    .resize({
+      width: MAX_SHIELD_DIMENSION,
+      height: MAX_SHIELD_DIMENSION,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+  return pdf.embedPng(optimizado);
 }
 
 async function cargarLogo(pdf) {
