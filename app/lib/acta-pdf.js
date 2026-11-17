@@ -7,6 +7,7 @@ const HEIGHT = 595;
 const INK = rgb(0.13, 0.13, 0.13);
 const LIGHT = rgb(0.91, 0.91, 0.91);
 const PALE = rgb(0.96, 0.96, 0.96);
+const MAX_SHIELD_BYTES = 2_000_000;
 const MONTHS = [
   "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
   "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE",
@@ -111,15 +112,39 @@ async function imagenEscudo(pdf, url) {
   });
   if (!response.ok) throw new Error(`No se pudo cargar un escudo: Clupik respondió HTTP ${response.status}.`);
   const contentType = response.headers.get("content-type") || "";
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.length > 2_000_000) throw new Error("Un escudo supera el tamaño máximo permitido.");
+  const contentLength = Number(response.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_SHIELD_BYTES) {
+    console.warn(`Se omitió el escudo de ${parsed.hostname}: supera el tamaño máximo permitido.`);
+    return null;
+  }
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("Clupik devolvió un escudo sin contenido legible.");
+  const chunks = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_SHIELD_BYTES) {
+      await reader.cancel();
+      console.warn(`Se omitió el escudo de ${parsed.hostname}: supera el tamaño máximo permitido.`);
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
   if (contentType.includes("png")) return pdf.embedPng(bytes);
   if (contentType.includes("jpeg") || contentType.includes("jpg")) return pdf.embedJpg(bytes);
   throw new Error("Clupik devolvió un formato de imagen no compatible para un escudo.");
 }
 
 async function cargarLogo(pdf) {
-  const bytes = await readFile(join(process.cwd(), "public", "logo-llfs.png"));
+  const bytes = await readFile(join(process.cwd(), "app", "assets", "logo-LLFS.png"));
   return pdf.embedPng(bytes);
 }
 
@@ -140,15 +165,20 @@ function dibujarCabecera(page, partido, temporada, logo, regular, bold) {
     { align: "center" },
   );
   rect(page, 671, 35, 136, 50, { borderWidth: 0.55 });
-  page.drawImage(logo, { x: 690, y: HEIGHT - 75, width: 98, height: 32 });
+  const logoSize = logo.scaleToFit(120, 44);
+  page.drawImage(logo, {
+    x: 671 + (136 - logoSize.width) / 2,
+    y: HEIGHT - 35 - (50 + logoSize.height) / 2,
+    ...logoSize,
+  });
 
-  celda(page, fecha.linea, 22, 51, 310, 18, bold, 7.5);
-  celda(page, `HORA: ${fecha.hora}`, 332, 51, 77, 18, bold, 7.2, { align: "center" });
-  celda(page, `PABELLON: ${partido.pabellon || "—"}`, 409, 51, 262, 18, bold, 7.2);
-  celda(page, "ARBITROS:", 22, 69, 58, 16, bold, 7);
-  celda(page, `1º: ${partido.asignacion?.arbitro1 || "—"}   2º: ${partido.asignacion?.arbitro2 || "—"}   Crono: ${partido.asignacion?.crono || "—"}`, 80, 69, 329, 16, regular, 7);
-  celda(page, partido.grupo?.nombre || "Grupo —", 409, 69, 176, 16, bold, 7, { align: "center" });
-  celda(page, `Jornada ${partido.jornada || "—"}`, 585, 69, 86, 16, bold, 7, { align: "center" });
+  celda(page, fecha.linea, 22, 51, 310, 18, bold, 8, { align: "center" });
+  celda(page, `HORA: ${fecha.hora}`, 332, 51, 77, 18, bold, 8, { align: "center" });
+  celda(page, `PABELLÓN: ${partido.pabellon || "—"}`, 409, 51, 262, 18, bold, 8, { align: "center" });
+  celda(page, "ÁRBITROS:", 22, 69, 58, 16, bold, 7.5, { align: "center" });
+  celda(page, `1º: ${partido.asignacion?.arbitro1 || "—"}   2º: ${partido.asignacion?.arbitro2 || "—"}   Crono: ${partido.asignacion?.crono || "—"}`, 80, 69, 329, 16, bold, 7.5, { align: "center" });
+  celda(page, partido.grupo?.nombre || "Grupo —", 409, 69, 176, 16, bold, 7.5, { align: "center" });
+  celda(page, `Jornada ${partido.jornada || "—"}`, 585, 69, 86, 16, bold, 7.5, { align: "center" });
   return { fecha, nombreLocal, nombreVisitante };
 }
 
@@ -157,49 +187,50 @@ function dibujarPlantilla(page, equipo, filas, etiqueta, x, top, width, regular,
   const dorsalWidth = 30;
   const checkWidth = 19;
   const nombreWidth = width - dorsalWidth - checkWidth;
-  celda(page, etiqueta, x, top, equipoWidth, 16, bold, 7, { fill: LIGHT, align: "center" });
-  celda(page, equipo, x + equipoWidth, top, width - equipoWidth, 16, bold, 7, { fill: LIGHT, align: "center" });
-  celda(page, "NOMBRE Y APELLIDOS", x, top + 16, nombreWidth, 16, bold, 6.5, { fill: PALE, align: "center" });
-  celda(page, "Nº", x + nombreWidth, top + 16, dorsalWidth, 16, bold, 6.5, { fill: PALE, align: "center" });
-  celda(page, "✓", x + nombreWidth + dorsalWidth, top + 16, checkWidth, 16, bold, 7, { fill: PALE, align: "center" });
+  celda(page, etiqueta, x, top, equipoWidth, 17, bold, 7.5, { fill: LIGHT, align: "center" });
+  celda(page, equipo, x + equipoWidth, top, width - equipoWidth, 17, bold, 7.5, { fill: LIGHT, align: "center" });
+  celda(page, "NOMBRE Y APELLIDOS", x, top + 17, nombreWidth, 17, bold, 7, { fill: PALE, align: "center" });
+  celda(page, "Nº", x + nombreWidth, top + 17, dorsalWidth, 17, bold, 7, { fill: PALE, align: "center" });
+  celda(page, "✓", x + nombreWidth + dorsalWidth, top + 17, checkWidth, 17, bold, 7, { fill: PALE, align: "center" });
 
-  const rowHeight = 14.2;
+  const rowHeight = 14.8;
   for (let index = 0; index < 23; index += 1) {
     const fila = filas[index];
-    const y = top + 32 + index * rowHeight;
+    const y = top + 34 + index * rowHeight;
     const fill = index % 2 ? PALE : undefined;
-    celda(page, fila?.nombre || "", x, y, nombreWidth, rowHeight, regular, 6.7, { fill, padding: 3 });
-    celda(page, fila?.dorsal ?? "", x + nombreWidth, y, dorsalWidth, rowHeight, regular, 6.6, { fill, align: "center" });
+    celda(page, fila?.nombre || "", x, y, nombreWidth, rowHeight, bold, 7.2, { fill, padding: 3 });
+    celda(page, fila?.dorsal ?? "", x + nombreWidth, y, dorsalWidth, rowHeight, bold, 7.2, { fill, align: "center" });
     celda(page, "", x + nombreWidth + dorsalWidth, y, checkWidth, rowHeight, regular, 6, { fill });
   }
-  const footerTop = top + 32 + 23 * rowHeight;
-  celda(page, "Pagado", x, footerTop, width / 2, 24, regular, 7, { align: "center" });
-  celda(page, "Saca", x + width / 2, footerTop, width / 2, 24, regular, 7, { align: "center" });
+  const footerTop = top + 34 + 23 * rowHeight;
+  celda(page, "Pagado", x, footerTop, width / 2, 24, bold, 7.5, { align: "center" });
+  celda(page, "Saca", x + width / 2, footerTop, width / 2, 24, bold, 7.5, { align: "center" });
 }
 
 function dibujarParte(page, x, top, width, titulo, regular, bold) {
-  const cols = [44, 37, 39, width - 120];
-  celda(page, titulo, x, top, width, 16, bold, 7.2, { fill: LIGHT, align: "center" });
-  ["Minutos", "Dorsal", "Equipo", "Accion"].forEach((header, index) => {
+  const rowHeight = 14.8;
+  const cols = [43, 36, 39, width - 118];
+  celda(page, titulo, x, top, width, 17, bold, 7.8, { fill: LIGHT, align: "center" });
+  ["Minutos", "Dorsal", "Equipo", "Acción"].forEach((header, index) => {
     const left = x + cols.slice(0, index).reduce((sum, size) => sum + size, 0);
-    celda(page, header, left, top + 16, cols[index], 16, bold, 6.2, { fill: PALE, align: "center" });
+    celda(page, header, left, top + 17, cols[index], 17, bold, 6.8, { fill: PALE, align: "center" });
   });
   for (let index = 0; index < 23; index += 1) {
     let left = x;
-    const y = top + 32 + index * 14.2;
+    const y = top + 34 + index * rowHeight;
     cols.forEach((columnWidth) => {
-      celda(page, "", left, y, columnWidth, 14.2, regular, 6, { fill: index % 2 ? PALE : undefined });
+      celda(page, "", left, y, columnWidth, rowHeight, regular, 6, { fill: index % 2 ? PALE : undefined });
       left += columnWidth;
     });
   }
-  const foulTop = top + 32 + 23 * 14.2;
-  celda(page, "Faltas L:  1  2  3  4 [5] 6  7  8  9", x, foulTop, width, 18, regular, 6.4);
-  celda(page, "Faltas V:  1  2  3  4 [5] 6  7  8  9", x, foulTop + 18, width, 18, regular, 6.4);
+  const foulTop = top + 34 + 23 * rowHeight;
+  celda(page, "Faltas L:  1  2  3  4 [5] 6  7  8  9", x, foulTop, width, 18, bold, 7);
+  celda(page, "Faltas V:  1  2  3  4 [5] 6  7  8  9", x, foulTop + 18, width, 18, bold, 7);
 }
 
 function dibujarPrimera(page, partido, logo, escudoLocal, escudoVisitante, regular, bold, temporada) {
   const header = dibujarCabecera(page, partido, temporada, logo, regular, bold);
-  const top = 96;
+  const top = 94;
   const localX = 22;
   const localWidth = 222;
   const medioX = 255;
@@ -223,11 +254,18 @@ function dibujarPrimera(page, partido, logo, escudoLocal, escudoVisitante, regul
 
 function dibujarSegunda(page, partido, logo, escudoLocal, escudoVisitante, regular, bold, temporada) {
   const header = dibujarCabecera(page, partido, temporada, logo, regular, bold);
-  celda(page, `${header.nombreLocal} VS ${header.nombreVisitante}`, 22, 96, 384, 17, bold, 7.5, { fill: LIGHT, align: "center" });
   const tablaX = 22;
-  const tablaTop = 113;
-  const tablaWidth = 384;
-  celda(page, "PUNTOS / SANCION ECONOMICA", tablaX, tablaTop, tablaWidth, 17, bold, 7, { fill: LIGHT, align: "center" });
+  const tablaTop = 96;
+  const tablaWidth = 435;
+  const altoTitulo = 20;
+  const altoCabecera = 20;
+  const altoFila = 23;
+  const anchoConcepto = 261;
+  const anchoEquipo = (tablaWidth - anchoConcepto) / 2;
+  celda(page, `${header.nombreLocal} VS ${header.nombreVisitante}`, tablaX, tablaTop, tablaWidth, altoTitulo, bold, 8.5, { fill: LIGHT, align: "center" });
+  celda(page, "PUNTOS / SANCIÓN ECONÓMICA", tablaX, tablaTop + altoTitulo, anchoConcepto, altoCabecera, bold, 8.2, { fill: LIGHT, align: "center" });
+  celda(page, "LOCAL", tablaX + anchoConcepto, tablaTop + altoTitulo, anchoEquipo, altoCabecera, bold, 8, { fill: LIGHT, align: "center" });
+  celda(page, "VISITANTE", tablaX + anchoConcepto + anchoEquipo, tablaTop + altoTitulo, anchoEquipo, altoCabecera, bold, 8, { fill: LIGHT, align: "center" });
   const conceptos = [
     "FALTA DE DELEGADO (2 puntos) (1.50€)",
     "TARJETAS AMARILLAS (2 puntos) (1€) [Por tarjeta]",
@@ -235,55 +273,79 @@ function dibujarSegunda(page, partido, logo, escudoLocal, escudoVisitante, regul
     "CALZONA DE DIF. COLOR (1 punto) (1€) [Por unidad]",
     "PERDIDA DE BOT. DE AGUA (3 puntos) (5€) [Por unidad]",
   ];
-  const leftWidth = 240;
-  celda(page, "", tablaX, tablaTop + 17, leftWidth, 17, regular, 7, { fill: LIGHT });
-  celda(page, "LOCAL", tablaX + leftWidth, tablaTop + 17, (tablaWidth - leftWidth) / 2, 17, regular, 7, { fill: LIGHT, align: "center" });
-  celda(page, "VISITANTE", tablaX + leftWidth + (tablaWidth - leftWidth) / 2, tablaTop + 17, (tablaWidth - leftWidth) / 2, 17, regular, 7, { fill: LIGHT, align: "center" });
   conceptos.forEach((concepto, index) => {
-    const y = tablaTop + 34 + index * 16;
-    celda(page, concepto, tablaX, y, leftWidth, 16, regular, 6.3, { fill: index % 2 ? PALE : undefined });
-    celda(page, "", tablaX + leftWidth, y, (tablaWidth - leftWidth) / 2, 16, regular, 6);
-    celda(page, "", tablaX + leftWidth + (tablaWidth - leftWidth) / 2, y, (tablaWidth - leftWidth) / 2, 16, regular, 6);
+    const y = tablaTop + altoTitulo + altoCabecera + index * altoFila;
+    const fill = index % 2 ? PALE : undefined;
+    celda(page, concepto, tablaX, y, anchoConcepto, altoFila, bold, 7.5, { fill });
+    celda(page, "", tablaX + anchoConcepto, y, anchoEquipo, altoFila, regular, 7);
+    celda(page, "", tablaX + anchoConcepto + anchoEquipo, y, anchoEquipo, altoFila, regular, 7);
   });
-  celda(page, "TOTALES", tablaX, tablaTop + 114, tablaWidth, 16, bold, 7, { fill: LIGHT, align: "center" });
+  const totalTop = tablaTop + altoTitulo + altoCabecera + conceptos.length * altoFila;
+  const altoTotal = 23;
+  celda(page, "TOTALES", tablaX, totalTop, anchoConcepto, altoTotal, bold, 8.2, { fill: LIGHT, align: "center" });
+  celda(page, "", tablaX + anchoConcepto, totalTop, anchoEquipo, altoTotal, regular, 7, { fill: LIGHT });
+  celda(page, "", tablaX + anchoConcepto + anchoEquipo, totalTop, anchoEquipo, altoTotal, regular, 7, { fill: LIGHT });
 
-  const leyendaX = 535;
-  const leyendaWidth = 272;
-  celda(page, "LEYENDA", leyendaX, 96, leyendaWidth, 17, bold, 7, { fill: LIGHT, align: "center" });
-  rect(page, leyendaX, 113, leyendaWidth, 108, { color: PALE });
-  dibujarTexto(page, "Acronimos: (G) Gol - (A) Amarilla - (R) Roja - (TM1/TM2)", leyendaX + 8, 122, 7, regular);
-  dibujarTexto(page, "Tiempo Muerto - (P) Penalti - (E1/E2) Entrenadores", leyendaX + 8, 136, 7, regular);
-  ["Minutos", "Dorsal", "Equipo", "Accion"].forEach((label, index) =>
-    celda(page, label, leyendaX + 8 + index * 64, 154, 64, 16, regular, 5.6, { fill: LIGHT, align: "center" })
-  );
-  dibujarTexto(page, "Explicacion", leyendaX + 8, 179, 7, regular);
-  dibujarTexto(page, "Describa aqui cualquier incidencia del partido.", leyendaX + 8, 195, 6.6, regular, { maxWidth: leyendaWidth - 16 });
+  const leyendaX = 472;
+  const leyendaWidth = 335;
+  const leyendaTop = 96;
+  celda(page, "LEYENDA", leyendaX, leyendaTop, leyendaWidth, 20, bold, 8.5, { fill: LIGHT, align: "center" });
+  rect(page, leyendaX, leyendaTop + 20, leyendaWidth, 164, { color: PALE });
+  dibujarTexto(page, "Acrónimos: (G) Gol - (A) Amarilla - (R) Roja - (TM1/TM2)", leyendaX + 9, 124, 7.8, bold);
+  dibujarTexto(page, "Tiempo Muerto - (P) Penalti - (E1/E2) Entrenadores", leyendaX + 9, 139, 7.8, bold);
+  const ejemplos = [
+    { texto: "Minutos", ancho: 66 },
+    { texto: "Dorsal", ancho: 63 },
+    { texto: "Equipo", ancho: 68 },
+    { texto: "Acción", ancho: 120 },
+  ];
+  let ejemploX = leyendaX + 9;
+  ejemplos.forEach(({ texto, ancho }) => {
+    celda(page, texto, ejemploX, 157, ancho, 18, bold, 7.2, { fill: LIGHT, align: "center" });
+    ejemploX += ancho;
+  });
+  ejemploX = leyendaX + 9;
+  ["16:35", "5 (2)", "V(1-2)", "G(3)"].forEach((valor, index) => {
+    celda(page, valor, ejemploX, 175, ejemplos[index].ancho, 18, bold, 7.2, { fill: PALE, align: "center" });
+    ejemploX += ejemplos[index].ancho;
+  });
+  dibujarTexto(page, "Explicación", leyendaX + 9, 202, 7.8, bold);
+  dibujarTexto(page, "El dorsal 5 lleva 2 goles, el marcador va 1 a 2", leyendaX + 9, 218, 7.2, regular);
+  dibujarTexto(page, "y es el tercer gol del encuentro.", leyendaX + 9, 231, 7.2, regular);
 
-  dibujarTexto(page, "INCIDENCIA:", 22, 254, 8, bold);
-  for (let index = 0; index < 6; index += 1) linea(page, 22, 281 + index * 29, 807, 281 + index * 29, rgb(0.55, 0.55, 0.55), 0.4);
+  dibujarTexto(page, "INCIDENCIA:", 22, 294, 8.5, bold);
+  for (let index = 0; index < 5; index += 1) linea(page, 22, 320 + index * 25, 807, 320 + index * 25, rgb(0.55, 0.55, 0.55), 0.5);
 
-  const penaltiesTop = 463;
-  celda(page, "EQUIPOS", 22, penaltiesTop, 175, 17, bold, 6.8, { fill: LIGHT, align: "center" });
-  celda(page, "Empieza", 197, penaltiesTop, 58, 17, regular, 6.5, { fill: LIGHT, align: "center" });
+  const penaltiesTop = 455;
+  const anchoEquipoPenaltis = 205;
+  const anchoEmpieza = 68;
+  const anchoPenalti = 36;
+  const ganadorX = 22 + anchoEquipoPenaltis + anchoEmpieza + 9 * anchoPenalti;
+  const ganadorWidth = 807 - ganadorX;
+  celda(page, "EQUIPOS", 22, penaltiesTop, anchoEquipoPenaltis, 20, bold, 7.8, { fill: LIGHT, align: "center" });
+  celda(page, "Empieza", 22 + anchoEquipoPenaltis, penaltiesTop, anchoEmpieza, 20, bold, 7.5, { fill: LIGHT, align: "center" });
   for (let index = 1; index <= 9; index += 1) {
-    celda(page, String(index), 255 + (index - 1) * 31, penaltiesTop, 31, 17, regular, 6.5, { fill: LIGHT, align: "center" });
+    celda(page, String(index), 22 + anchoEquipoPenaltis + anchoEmpieza + (index - 1) * anchoPenalti, penaltiesTop, anchoPenalti, 20, bold, 7.5, { fill: LIGHT, align: "center" });
   }
   [header.nombreLocal, header.nombreVisitante].forEach((nombre, row) => {
-    const y = penaltiesTop + 17 + row * 17;
-    celda(page, nombre, 22, y, 175, 17, regular, 6.4, { fill: row ? PALE : undefined });
-    celda(page, "", 197, y, 58, 17, regular, 6, { fill: row ? PALE : undefined });
-    for (let index = 0; index < 9; index += 1) celda(page, "", 255 + index * 31, y, 31, 17, regular, 6, { fill: row ? PALE : undefined });
+    const y = penaltiesTop + 20 + row * 20;
+    const fill = row ? PALE : undefined;
+    celda(page, nombre, 22, y, anchoEquipoPenaltis, 20, bold, 7.2, { fill });
+    celda(page, "", 22 + anchoEquipoPenaltis, y, anchoEmpieza, 20, regular, 7, { fill });
+    for (let index = 0; index < 9; index += 1) {
+      celda(page, "", 22 + anchoEquipoPenaltis + anchoEmpieza + index * anchoPenalti, y, anchoPenalti, 20, regular, 7, { fill });
+    }
   });
-  celda(page, "GANADOR RONDA PENALTIS", 632, penaltiesTop, 175, 17, bold, 6.5, { fill: LIGHT, align: "center" });
-  rect(page, 632, penaltiesTop + 17, 175, 34);
+  celda(page, "GANADOR RONDA PENALTIS", ganadorX, penaltiesTop, ganadorWidth, 20, bold, 7.5, { fill: LIGHT, align: "center" });
+  rect(page, ganadorX, penaltiesTop + 20, ganadorWidth, 40);
 
-  const escudoTop = 543;
+  const escudoTop = 535;
   if (escudoLocal) page.drawImage(escudoLocal, { x: 267, y: HEIGHT - escudoTop - 29, width: 29, height: 29 });
   if (escudoVisitante) page.drawImage(escudoVisitante, { x: 546, y: HEIGHT - escudoTop - 29, width: 29, height: 29 });
   rect(page, 323, escudoTop, 81, 27);
   rect(page, 435, escudoTop, 81, 27);
   page.drawText(":", { x: 416, y: HEIGHT - escudoTop - 20, size: 12, font: bold, color: INK });
-  dibujarTexto(page, "RESULTADO FINAL", 420, 572, 6.5, bold, { align: "center" });
+  dibujarTexto(page, "RESULTADO FINAL", 420, 565, 7.2, bold, { align: "center" });
 }
 
 export async function generarActaPdf(partido, temporada) {
