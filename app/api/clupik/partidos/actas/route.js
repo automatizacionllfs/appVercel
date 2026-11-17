@@ -1,4 +1,3 @@
-import JSZip from "jszip";
 import { createServiceDb, errorRespuesta } from "../../../../lib/entrenador";
 import { generarActaPdf, nombreArchivoActa } from "../../../../lib/acta-pdf";
 import { nombrePersonalActa } from "../../../../lib/personal-acta";
@@ -35,8 +34,8 @@ export async function POST(request) {
     arbitro2Id: String(body?.arbitro2Id || ""),
     cronoId: String(body?.cronoId || ""),
   };
-  if (!partidoIds.length || partidoIds.length > 12 || !partidoIds.every((id) => /^\d+$/.test(id))) {
-    return Response.json({ error: "Selecciona entre 1 y 12 partidos válidos." }, { status: 400 });
+  if (partidoIds.length !== 1 || !partidoIds.every((id) => /^\d+$/.test(id))) {
+    return Response.json({ error: "Selecciona un partido válido para descargar." }, { status: 400 });
   }
   const nombresAsignados = Object.fromEntries(
     Object.entries(asignacion).map(([rol, nombre]) => [rol, nombrePersonalActa(nombre)]),
@@ -91,22 +90,19 @@ export async function POST(request) {
       (a.dorsal ?? 999) - (b.dorsal ?? 999) || a.nombre.localeCompare(b.nombre, "es")
     ));
 
-    const zip = new JSZip();
-    for (const partido of partidos) {
-      partido.asignacion = asignacionPdf;
-      partido.plantillaLocal = filasPorEquipo.get(String(partido.local_id)) || [];
-      partido.plantillaVisitante = filasPorEquipo.get(String(partido.visitante_id)) || [];
-      const contenido = await generarActaPdf(partido, temporada.nombre);
-      const base = nombreArchivoActa(partido).replace(/\.pdf$/i, "");
-      zip.file(`${base}_${partido.id_clupik}.pdf`, contenido);
-    }
-
-    const archivo = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
-    return new Response(archivo, {
+    const partido = partidos[0];
+    partido.asignacion = asignacionPdf;
+    partido.plantillaLocal = filasPorEquipo.get(String(partido.local_id)) || [];
+    partido.plantillaVisitante = filasPorEquipo.get(String(partido.visitante_id)) || [];
+    const contenido = await generarActaPdf(partido, temporada.nombre);
+    const base = nombreArchivoActa(partido).replace(/\.pdf$/i, "");
+    const idArchivo = String(partido.id_clupik).replace(/[^\w-]/g, "_");
+    const nombreArchivo = `${base}_${idArchivo}.pdf`;
+    return new Response(contenido, {
       status: 200,
       headers: {
-        "Content-Type": "application/zip",
-        "Content-Disposition": 'attachment; filename="Actas_seleccionadas.zip"',
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${nombreArchivo}"`,
         "Cache-Control": "no-store",
       },
     });

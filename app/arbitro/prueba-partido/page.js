@@ -45,6 +45,7 @@ export default function PruebaCrearPartido() {
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [descargando, setDescargando] = useState(false);
+  const [progresoDescarga, setProgresoDescarga] = useState({ actual: 0, total: 0 });
   const [error, setError] = useState("");
   const [partidoCreado, setPartidoCreado] = useState(null);
 
@@ -187,34 +188,49 @@ export default function PruebaCrearPartido() {
     if (!asignacionCompleta || !partidosSeleccionados.length) return;
     setError("");
     setDescargando(true);
+    setProgresoDescarga({ actual: 0, total: partidosSeleccionados.length });
+    const seleccion = [...partidosSeleccionados];
+    let descargadas = 0;
     try {
-      const respuesta = await fetch("/api/clupik/partidos/actas", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${sesion.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          partidoIds: partidosSeleccionados,
-          ...asignacion,
-        }),
-      });
-      if (!respuesta.ok) {
-        const datos = await respuesta.json();
-        throw new Error(datos.error || `No se pudieron generar las actas (HTTP ${respuesta.status}).`);
+      for (let index = 0; index < seleccion.length; index += 1) {
+        const respuesta = await fetch("/api/clupik/partidos/actas", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${sesion.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            partidoIds: [seleccion[index]],
+            ...asignacion,
+          }),
+        });
+        if (!respuesta.ok) {
+          const datos = await respuesta.json();
+          throw new Error(datos.error || `No se pudo generar el acta (HTTP ${respuesta.status}).`);
+        }
+        const archivo = await respuesta.blob();
+        const nombre = respuesta.headers.get("content-disposition")?.match(/filename="?([^";]+)"?/i)?.[1]
+          || `Acta_${seleccion[index]}.pdf`;
+        const url = URL.createObjectURL(archivo);
+        const enlace = document.createElement("a");
+        enlace.href = url;
+        enlace.download = nombre;
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        descargadas += 1;
+        setProgresoDescarga({ actual: descargadas, total: seleccion.length });
+        if (index + 1 < seleccion.length) {
+          await new Promise((resolve) => window.setTimeout(resolve, 700));
+        }
       }
-      const archivo = await respuesta.blob();
-      const url = URL.createObjectURL(archivo);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `Actas_${partidosSeleccionados.length}_partidos.zip`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      enlace.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
       setModalAsignacion(false);
     } catch (fallo) {
-      setError(fallo.message);
+      const mensaje = fallo instanceof Error ? fallo.message : "No se pudieron descargar las actas.";
+      setError(descargadas
+        ? `Se descargaron ${descargadas} de ${seleccion.length} actas. ${mensaje}`
+        : mensaje);
     } finally {
       setDescargando(false);
     }
@@ -358,7 +374,10 @@ export default function PruebaCrearPartido() {
         }}>
           <section className="clupik-modal" role="dialog" aria-modal="true" aria-labelledby="clupik-modal-titulo">
             <h2 id="clupik-modal-titulo">Asignar árbitros y crono</h2>
-            <p className="suave">La asignación se aplicará a los {partidosSeleccionados.length} PDF y no se guardará en Clupik.</p>
+            <p className="suave">
+              La asignación se aplicará a los {partidosSeleccionados.length} PDF y no se guardará en Clupik.
+              Se descargarán como archivos separados; permite las descargas múltiples si el navegador lo solicita.
+            </p>
             {[
               ["arbitro1Id", "Árbitro 1"],
               ["arbitro2Id", "Árbitro 2"],
@@ -376,10 +395,15 @@ export default function PruebaCrearPartido() {
               </label>
             ))}
             {error && <p className="error" role="alert">{error}</p>}
+            {descargando && (
+              <p className="suave" role="status">
+                Descargando acta {Math.min(progresoDescarga.actual + 1, progresoDescarga.total)} de {progresoDescarga.total}…
+              </p>
+            )}
             <div className="clupik-modal-acciones">
               <button type="button" className="mini" disabled={descargando} onClick={() => setModalAsignacion(false)}>Cancelar</button>
               <button type="button" className="primario" disabled={!asignacionCompleta || descargando} onClick={descargarActas}>
-                {descargando ? "Generando actas…" : "Descargar Actas"}
+                {descargando ? "Descargando actas…" : "Descargar Actas"}
               </button>
             </div>
           </section>
