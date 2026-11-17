@@ -164,7 +164,7 @@ export async function POST(request) {
         groupId: grupo.id_clupik,
         localTeamId: equipoLocalId,
         visitorTeamId: equipoVisitanteId,
-        stadiumId: estadioId,
+        stadiumId: Number(estadioId),
         ...(jornada ? { round: jornada } : {}),
         status: "pending",
         date: new Date(fechaMs).toISOString(),
