@@ -211,7 +211,7 @@ function dibujarPlantilla(page, equipo, filas, etiqueta, x, top, width, regular,
     const fila = filas[index];
     const y = top + 34 + index * rowHeight;
     const fill = index % 2 ? PALE : undefined;
-    celda(page, fila?.nombre || "", x, y, nombreWidth, rowHeight, bold, 7.2, { fill, padding: 3 });
+    celda(page, fila?.nombre || "", x, y, nombreWidth, rowHeight, bold, 8.2, { fill, padding: 3 });
     celda(page, fila?.dorsal ?? "", x + nombreWidth, y, dorsalWidth, rowHeight, bold, 7.2, { fill, align: "center" });
     celda(page, "", x + nombreWidth + dorsalWidth, y, checkWidth, rowHeight, regular, 6, { fill });
   }
@@ -237,8 +237,18 @@ function dibujarParte(page, x, top, width, titulo, regular, bold) {
     });
   }
   const foulTop = top + 34 + 23 * rowHeight;
-  celda(page, "Faltas L:  1  2  3  4 [5] 6  7  8  9", x, foulTop, width, 18, bold, 7);
-  celda(page, "Faltas V:  1  2  3  4 [5] 6  7  8  9", x, foulTop + 18, width, 18, bold, 7);
+  ["Faltas L:", "Faltas V:"].forEach((label, row) => {
+    const rowTop = foulTop + row * 18;
+    const labelWidth = 39;
+    rect(page, x, rowTop, width, 18);
+    dibujarTexto(page, label, x + 3, rowTop + 5, 7, bold);
+    const slotWidth = (width - labelWidth - 6) / 9;
+    for (let index = 1; index <= 9; index += 1) {
+      const value = index === 5 ? "[5]" : String(index);
+      const center = x + labelWidth + (index - 0.5) * slotWidth;
+      dibujarTexto(page, value, center, rowTop + 5, 7, bold, { align: "center" });
+    }
+  });
 }
 
 function dibujarPrimera(page, partido, logo, escudoLocal, escudoVisitante, regular, bold, temporada) {
