@@ -50,13 +50,20 @@ export async function GET(request) {
       .eq("activa", true)
       .maybeSingle();
     if (errorTemporada) throw new Error(`No se pudo cargar la temporada activa: ${errorTemporada.message}`);
-    if (!temporada) return Response.json({ grupos: [], equipos: [], estadios: [], usuarios: [], partidos: [] });
+    if (!temporada) {
+      return Response.json({
+        grupos: [],
+        equipos: [],
+        estadios: [],
+        usuarios: NOMBRES_PERSONAL_ACTA.map((nombre) => ({ id: nombre, nombre })),
+        partidos: [],
+      });
+    }
 
     const [{ data: grupos, error: errorGrupos }, { data: equipos, error: errorEquipos },
-      { data: usuarios, error: errorUsuarios }, { data: partidos, error: errorPartidos }, estadios] = await Promise.all([
+      { data: partidos, error: errorPartidos }, estadios] = await Promise.all([
       db.from("grupos").select("id,id_clupik,nombre").eq("temporada_id", temporada.id).order("nombre"),
       db.from("equipos").select("id,id_clupik,nombre,grupo_id,escudo_url").eq("temporada_id", temporada.id).order("nombre"),
-      db.from("usuarios").select("id,nombre,rol").eq("activo", true).order("nombre"),
       db.from("partidos")
         .select("id,id_clupik,jornada,fecha,pabellon,local_id,visitante_id,grupo_id,local:equipos!partidos_local_id_fkey(id,id_clupik,nombre,escudo_url),visitante:equipos!partidos_visitante_id_fkey(id,id_clupik,nombre,escudo_url),grupo:grupos(nombre)")
         .eq("temporada_id", temporada.id)
@@ -66,20 +73,13 @@ export async function GET(request) {
     ]);
     if (errorGrupos) throw new Error(`No se pudieron cargar los grupos: ${errorGrupos.message}`);
     if (errorEquipos) throw new Error(`No se pudieron cargar los equipos: ${errorEquipos.message}`);
-    if (errorUsuarios) throw new Error(`No se pudieron cargar los árbitros: ${errorUsuarios.message}`);
     if (errorPartidos) throw new Error(`No se pudieron cargar los partidos: ${errorPartidos.message}`);
-    const usuariosActa = (usuarios || [])
-      .flatMap((usuario) => {
-        const nombre = nombrePersonalActa(usuario.nombre);
-        return nombre ? [{ ...usuario, nombre }] : [];
-      })
-      .sort((a, b) => NOMBRES_PERSONAL_ACTA.indexOf(a.nombre) - NOMBRES_PERSONAL_ACTA.indexOf(b.nombre));
     return Response.json({
       temporada,
       grupos: grupos || [],
       equipos: equipos || [],
       estadios,
-      usuarios: usuariosActa,
+      usuarios: NOMBRES_PERSONAL_ACTA.map((nombre) => ({ id: nombre, nombre })),
       partidos: partidos || [],
     });
   } catch (error) {

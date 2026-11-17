@@ -38,8 +38,11 @@ export async function POST(request) {
   if (!partidoIds.length || partidoIds.length > 12 || !partidoIds.every((id) => /^\d+$/.test(id))) {
     return Response.json({ error: "Selecciona entre 1 y 12 partidos válidos." }, { status: 400 });
   }
-  const idsUsuarios = Object.values(asignacion);
-  if (!idsUsuarios.every((id) => /^\d+$/.test(id)) || new Set(idsUsuarios).size !== 3) {
+  const nombresAsignados = Object.fromEntries(
+    Object.entries(asignacion).map(([rol, nombre]) => [rol, nombrePersonalActa(nombre)]),
+  );
+  const nombresCanonicos = Object.values(nombresAsignados);
+  if (!nombresCanonicos.every(Boolean) || new Set(nombresCanonicos).size !== 3) {
     return Response.json({ error: "Selecciona dos árbitros y un crono distintos." }, { status: 400 });
   }
 
@@ -49,36 +52,26 @@ export async function POST(request) {
       return Response.json({ error: "Se requiere una cuenta de administrador." }, { status: 403 });
     }
 
-    const [{ data: temporada, error: errorTemporada }, { data: usuarios, error: errorUsuarios },
-      { data: partidos, error: errorPartidos }] = await Promise.all([
+    const [{ data: temporada, error: errorTemporada }, { data: partidos, error: errorPartidos }] = await Promise.all([
       db.from("temporadas").select("id,nombre").eq("activa", true).maybeSingle(),
-      db.from("usuarios").select("id,nombre").eq("activo", true).in("id", idsUsuarios),
       db.from("partidos")
         .select("id,id_clupik,temporada_id,jornada,fecha,pabellon,local_id,visitante_id,grupo_id,local:equipos!partidos_local_id_fkey(id,nombre,escudo_url),visitante:equipos!partidos_visitante_id_fkey(id,nombre,escudo_url),grupo:grupos(nombre)")
         .in("id", partidoIds)
         .order("fecha", { ascending: true, nullsFirst: false }),
     ]);
     if (errorTemporada) throw new Error(`No se pudo cargar la temporada activa: ${errorTemporada.message}`);
-    if (errorUsuarios) throw new Error(`No se pudieron validar los árbitros: ${errorUsuarios.message}`);
     if (errorPartidos) throw new Error(`No se pudieron cargar los partidos: ${errorPartidos.message}`);
     if (!temporada) return Response.json({ error: "No hay una temporada activa." }, { status: 400 });
-    const usuariosActa = (usuarios || [])
-      .map((usuario) => ({ ...usuario, nombre: nombrePersonalActa(usuario.nombre) }))
-      .filter((usuario) => usuario.nombre);
-    if (usuariosActa.length !== 3) {
-      return Response.json({ error: "Selecciona personas activas de la lista autorizada de árbitros y cronos." }, { status: 400 });
-    }
     if (partidos?.length !== partidoIds.length ||
         partidos.some((partido) => String(partido.temporada_id) !== String(temporada.id)) ||
         partidos.some((partido) => !partido.local || !partido.visitante)) {
       return Response.json({ error: "Algún partido no existe o no tiene los dos equipos asociados." }, { status: 400 });
     }
 
-    const usuarioPorId = new Map(usuariosActa.map((usuario) => [String(usuario.id), usuario.nombre]));
     const asignacionPdf = {
-      arbitro1: usuarioPorId.get(asignacion.arbitro1Id),
-      arbitro2: usuarioPorId.get(asignacion.arbitro2Id),
-      crono: usuarioPorId.get(asignacion.cronoId),
+      arbitro1: nombresAsignados.arbitro1Id,
+      arbitro2: nombresAsignados.arbitro2Id,
+      crono: nombresAsignados.cronoId,
     };
     const equiposIds = [...new Set(partidos.flatMap((partido) => [partido.local_id, partido.visitante_id]))];
     const { data: plantilla, error: errorPlantilla } = await db.from("plantilla")
