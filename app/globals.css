@@ -334,6 +334,7 @@ textarea:disabled { background: #f5f8fb; color: var(--suave); }
 
 .rango-fechas label { display: grid; gap: 6px; color: var(--suave); font-size: .88rem; font-weight: 650; }
 .rango-fechas button { grid-column: 1 / -1; }
+.rango-fechas-nota { grid-column: 1 / -1; margin: 0; }
 .clupik-prueba-aviso { margin: 16px 0; padding: 14px 16px; border: 1px solid #e6c46a; border-radius: 12px; background: #fff8df; color: #59470c; font-weight: 650; }
 .clupik-prueba-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: end; gap: 14px; margin: 16px 0; padding: 18px; border: 1px solid var(--borde); border-radius: 14px; background: var(--papel); box-shadow: var(--sombra); }
 .clupik-prueba-form label { display: grid; gap: 6px; color: var(--suave); font-size: .88rem; font-weight: 650; }
@@ -402,6 +403,8 @@ textarea:disabled { background: #f5f8fb; color: var(--suave); }
 .selector-modo.pc .selector-modo-indicador { transform: translateX(100%); }
 .filtros-partidos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
 .filtros-partidos label { display: grid; gap: 5px; color: var(--suave); font-size: .83rem; font-weight: 650; }
+.filtros-partidos .filtro-busqueda-partidos { grid-column: 1 / -1; }
+.filtros-partidos input, .filtros-partidos select { width: 100%; min-width: 0; min-height: 42px; padding: 7px 10px; border: 1px solid var(--borde); border-radius: 9px; background: #fff; color: var(--tinta); font: inherit; }
 .marcador-clupik { margin: 10px 0 16px; padding: 11px 14px; border: 1px solid var(--borde); border-radius: 12px; background: var(--acento-claro); color: var(--acento-oscuro); font-size: .9rem; }
 .marcador-clupik strong { margin: 0 4px; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
 
