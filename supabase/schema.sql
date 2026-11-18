@@ -97,6 +97,7 @@ create table partidos (
   fecha                   timestamptz,          -- se muestra en Europe/Madrid
   local_id                bigint not null references equipos(id),
   visitante_id            bigint not null references equipos(id),
+  pabellon                text,
   goles_local_clupik      int,                  -- informativo, lo escribe Clupik
   goles_visitante_clupik  int,
   descripcion             text,

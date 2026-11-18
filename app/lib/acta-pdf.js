@@ -1,0 +1,397 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import sharp from "sharp";
+
+const WIDTH = 842;
+const HEIGHT = 595;
+const INK = rgb(0.13, 0.13, 0.13);
+const LIGHT = rgb(0.91, 0.91, 0.91);
+const PALE = rgb(0.96, 0.96, 0.96);
+const MAX_SHIELD_SOURCE_BYTES = 20_000_000;
+const MAX_SHIELD_DIMENSION = 512;
+const MONTHS = [
+  "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
+  "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE",
+];
+
+function textoPdf(value) {
+  return String(value ?? "")
+    .normalize("NFC")
+    .replace(/[^\x20-\xFF€]/g, "");
+}
+
+function fechaMadrid(value) {
+  if (!value) return { linea: "FECHA NO DISPONIBLE", hora: "—", dia: "—", mes: "—", anio: "—" };
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return { linea: "FECHA NO DISPONIBLE", hora: "—", dia: "—", mes: "—", anio: "—" };
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const data = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  const mes = MONTHS[Number(data.month) - 1];
+  return {
+    linea: `EN PUERTO REAL, EL DIA ${data.day} DE ${mes} DE ${data.year}`,
+    hora: `${data.hour}:${data.minute}`,
+    dia: data.day,
+    mes,
+    anio: data.year,
+  };
+}
+
+function dibujarTexto(page, text, x, top, size, font, options = {}) {
+  const value = textoPdf(text);
+  if (!value) return;
+  const maxWidth = options.maxWidth;
+  let fontSize = size;
+  while (maxWidth && font.widthOfTextAtSize(value, fontSize) > maxWidth && fontSize > 5) fontSize -= 0.25;
+  const width = font.widthOfTextAtSize(value, fontSize);
+  const drawX = options.align === "center" ? x - width / 2 : options.align === "right" ? x - width : x;
+  page.drawText(value, {
+    x: drawX,
+    y: HEIGHT - top - fontSize,
+    size: fontSize,
+    font,
+    color: options.color || INK,
+  });
+}
+
+function rect(page, x, top, width, height, options = {}) {
+  page.drawRectangle({
+    x,
+    y: HEIGHT - top - height,
+    width,
+    height,
+    borderWidth: options.borderWidth ?? 0.55,
+    borderColor: options.borderColor || INK,
+    color: options.color,
+  });
+}
+
+function linea(page, x1, top1, x2, top2, color = INK, thickness = 0.55) {
+  page.drawLine({
+    start: { x: x1, y: HEIGHT - top1 },
+    end: { x: x2, y: HEIGHT - top2 },
+    color,
+    thickness,
+  });
+}
+
+function celda(page, text, x, top, width, height, font, size = 7, options = {}) {
+  if (options.fill) rect(page, x, top, width, height, { color: options.fill, borderWidth: 0.45 });
+  else rect(page, x, top, width, height, { borderWidth: 0.45 });
+  dibujarTexto(page, text, options.align === "center" ? x + width / 2 : x + (options.padding ?? 3), top + Math.max(2, (height - size) / 2 - 0.5), size, font, {
+    align: options.align,
+    maxWidth: width - 2 * (options.padding ?? 3),
+    color: options.textColor,
+  });
+}
+
+async function imagenEscudo(pdf, url) {
+  if (!url) return null;
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  const allowedHosts = (process.env.CLUPIK_IMAGE_HOSTS || "api.clupik.com")
+    .split(",")
+    .map((host) => host.trim().toLowerCase())
+    .filter(Boolean);
+  if (parsed.protocol !== "https:" || !allowedHosts.includes(parsed.hostname.toLowerCase())) return null;
+
+  const response = await fetch(parsed, {
+    cache: "force-cache",
+    redirect: "error",
+    signal: AbortSignal.timeout(6000),
+  });
+  if (!response.ok) throw new Error(`No se pudo cargar un escudo: Clupik respondió HTTP ${response.status}.`);
+  const contentType = response.headers.get("content-type") || "";
+  const contentLength = Number(response.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_SHIELD_SOURCE_BYTES) {
+    console.warn(`Se omitió el escudo de ${parsed.hostname}: supera el tamaño máximo de origen.`);
+    return null;
+  }
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("Clupik devolvió un escudo sin contenido legible.");
+  const chunks = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_SHIELD_SOURCE_BYTES) {
+      await reader.cancel();
+      console.warn(`Se omitió el escudo de ${parsed.hostname}: supera el tamaño máximo de origen.`);
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  if (!contentType.includes("png") && !contentType.includes("jpeg") && !contentType.includes("jpg")) {
+    throw new Error("Clupik devolvió un formato de imagen no compatible para un escudo.");
+  }
+  const optimizado = await sharp(Buffer.from(bytes), { limitInputPixels: 40_000_000 })
+    .rotate()
+    .resize({
+      width: MAX_SHIELD_DIMENSION,
+      height: MAX_SHIELD_DIMENSION,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+  return pdf.embedPng(optimizado);
+}
+
+async function cargarLogo(pdf) {
+  const bytes = await readFile(join(process.cwd(), "app", "assets", "logo-LLFS.png"));
+  return pdf.embedPng(bytes);
+}
+
+function dibujarCabecera(page, partido, temporada, logo, regular, bold) {
+  const fecha = fechaMadrid(partido.fecha);
+  const nombreLocal = partido.local?.nombre || "Equipo local";
+  const nombreVisitante = partido.visitante?.nombre || "Equipo visitante";
+  celda(page, "ACTA OFICIAL", 22, 35, 83, 16, bold, 8, { fill: LIGHT, align: "center" });
+  celda(
+    page,
+    `DELEGACION LOCAL FUTBOL SALA DE PUERTO REAL - TEMPORADA ${temporada || "2026/27"}`,
+    105,
+    35,
+    566,
+    16,
+    bold,
+    8,
+    { align: "center" },
+  );
+  rect(page, 671, 35, 136, 50, { borderWidth: 0.55 });
+  const logoSize = logo.scaleToFit(120, 44);
+  page.drawImage(logo, {
+    x: 671 + (136 - logoSize.width) / 2,
+    y: HEIGHT - 35 - (50 + logoSize.height) / 2,
+    ...logoSize,
+  });
+
+  celda(page, fecha.linea, 22, 51, 310, 18, bold, 8, { align: "center" });
+  celda(page, `HORA: ${fecha.hora}`, 332, 51, 77, 18, bold, 8, { align: "center" });
+  celda(page, `PABELLÓN: ${partido.pabellon || "—"}`, 409, 51, 262, 18, bold, 8, { align: "center" });
+  celda(page, "ÁRBITROS:", 22, 69, 58, 16, bold, 7.5, { align: "center" });
+  celda(page, `1º: ${partido.asignacion?.arbitro1 || "—"}   2º: ${partido.asignacion?.arbitro2 || "—"}   Crono: ${partido.asignacion?.crono || "—"}`, 80, 69, 329, 16, bold, 7.5, { align: "center" });
+  celda(page, partido.grupo?.nombre || "Grupo —", 409, 69, 176, 16, bold, 7.5, { align: "center" });
+  celda(page, `Jornada ${partido.jornada || "—"}`, 585, 69, 86, 16, bold, 7.5, { align: "center" });
+  return { fecha, nombreLocal, nombreVisitante };
+}
+
+function dibujarPlantilla(page, equipo, filas, etiqueta, x, top, width, regular, bold) {
+  const equipoWidth = 77;
+  const dorsalWidth = 30;
+  const checkWidth = 19;
+  const nombreWidth = width - dorsalWidth - checkWidth;
+  celda(page, etiqueta, x, top, equipoWidth, 17, bold, 7.5, { fill: LIGHT, align: "center" });
+  celda(page, equipo, x + equipoWidth, top, width - equipoWidth, 17, bold, 7.5, { fill: LIGHT, align: "center" });
+  celda(page, "NOMBRE Y APELLIDOS", x, top + 17, nombreWidth, 17, bold, 7, { fill: PALE, align: "center" });
+  celda(page, "Nº", x + nombreWidth, top + 17, dorsalWidth, 17, bold, 7, { fill: PALE, align: "center" });
+  celda(page, "✓", x + nombreWidth + dorsalWidth, top + 17, checkWidth, 17, bold, 7, { fill: PALE, align: "center" });
+
+  const rowHeight = 14.8;
+  for (let index = 0; index < 23; index += 1) {
+    const fila = filas[index];
+    const y = top + 34 + index * rowHeight;
+    const fill = index % 2 ? PALE : undefined;
+    celda(page, fila?.nombre || "", x, y, nombreWidth, rowHeight, bold, 8.2, { fill, padding: 3 });
+    celda(page, fila?.dorsal ?? "", x + nombreWidth, y, dorsalWidth, rowHeight, bold, 7.2, { fill, align: "center" });
+    celda(page, "", x + nombreWidth + dorsalWidth, y, checkWidth, rowHeight, regular, 6, { fill });
+  }
+  const footerTop = top + 34 + 23 * rowHeight;
+  celda(page, "Pagado", x, footerTop, width / 2, 24, bold, 7.5, { align: "center" });
+  celda(page, "Saca", x + width / 2, footerTop, width / 2, 24, bold, 7.5, { align: "center" });
+}
+
+function dibujarParte(page, x, top, width, titulo, regular, bold) {
+  const rowHeight = 14.8;
+  const cols = [43, 36, 39, width - 118];
+  celda(page, titulo, x, top, width, 17, bold, 7.8, { fill: LIGHT, align: "center" });
+  ["Minutos", "Dorsal", "Equipo", "Acción"].forEach((header, index) => {
+    const left = x + cols.slice(0, index).reduce((sum, size) => sum + size, 0);
+    celda(page, header, left, top + 17, cols[index], 17, bold, 6.8, { fill: PALE, align: "center" });
+  });
+  for (let index = 0; index < 23; index += 1) {
+    let left = x;
+    const y = top + 34 + index * rowHeight;
+    cols.forEach((columnWidth) => {
+      celda(page, "", left, y, columnWidth, rowHeight, regular, 6, { fill: index % 2 ? PALE : undefined });
+      left += columnWidth;
+    });
+  }
+  const foulTop = top + 34 + 23 * rowHeight;
+  ["Faltas L:", "Faltas V:"].forEach((label, row) => {
+    const rowTop = foulTop + row * 18;
+    const labelWidth = 39;
+    rect(page, x, rowTop, width, 18);
+    dibujarTexto(page, label, x + 3, rowTop + 5, 7, bold);
+    const slotWidth = (width - labelWidth - 6) / 9;
+    for (let index = 1; index <= 9; index += 1) {
+      const value = index === 5 ? "[5]" : String(index);
+      const center = x + labelWidth + (index - 0.5) * slotWidth;
+      dibujarTexto(page, value, center, rowTop + 5, 7, bold, { align: "center" });
+    }
+  });
+}
+
+function dibujarPrimera(page, partido, logo, escudoLocal, escudoVisitante, regular, bold, temporada) {
+  const header = dibujarCabecera(page, partido, temporada, logo, regular, bold);
+  const top = 94;
+  const localX = 22;
+  const localWidth = 222;
+  const medioX = 255;
+  const medioWidth = 329;
+  const visitanteX = 595;
+  const visitanteWidth = 212;
+  dibujarPlantilla(page, header.nombreLocal, partido.plantillaLocal, "EQUIPO LOC.", localX, top, localWidth, regular, bold);
+  dibujarParte(page, medioX, top, medioWidth / 2 - 3, "PRIMERA PARTE", regular, bold);
+  dibujarParte(page, medioX + medioWidth / 2 + 3, top, medioWidth / 2 - 3, "SEGUNDA PARTE", regular, bold);
+  dibujarPlantilla(page, header.nombreVisitante, partido.plantillaVisitante, "EQUIPO VISIT.", visitanteX, top, visitanteWidth, regular, bold);
+
+  const escudoTop = 530;
+  if (escudoLocal) page.drawImage(escudoLocal, { x: 265, y: HEIGHT - escudoTop - 34, width: 34, height: 34 });
+  if (escudoVisitante) page.drawImage(escudoVisitante, { x: 543, y: HEIGHT - escudoTop - 34, width: 34, height: 34 });
+  rect(page, 323, escudoTop, 81, 28);
+  rect(page, 435, escudoTop, 81, 28);
+  dibujarTexto(page, "RESULTADO FINAL", 420, 562, 7, bold, { align: "center" });
+  linea(page, 404, 544, 435, 544, INK, 0.7);
+  page.drawText(":", { x: 416, y: HEIGHT - 552, size: 12, font: bold, color: INK });
+}
+
+function dibujarSegunda(page, partido, logo, escudoLocal, escudoVisitante, regular, bold, temporada) {
+  const header = dibujarCabecera(page, partido, temporada, logo, regular, bold);
+  const tablaX = 22;
+  const tablaTop = 96;
+  const tablaWidth = 435;
+  const altoTitulo = 20;
+  const altoCabecera = 20;
+  const altoFila = 23;
+  const anchoConcepto = 261;
+  const anchoEquipo = (tablaWidth - anchoConcepto) / 2;
+  celda(page, `${header.nombreLocal} VS ${header.nombreVisitante}`, tablaX, tablaTop, tablaWidth, altoTitulo, bold, 8.5, { fill: LIGHT, align: "center" });
+  celda(page, "PUNTOS / SANCIÓN ECONÓMICA", tablaX, tablaTop + altoTitulo, anchoConcepto, altoCabecera, bold, 8.2, { fill: LIGHT, align: "center" });
+  celda(page, "LOCAL", tablaX + anchoConcepto, tablaTop + altoTitulo, anchoEquipo, altoCabecera, bold, 8, { fill: LIGHT, align: "center" });
+  celda(page, "VISITANTE", tablaX + anchoConcepto + anchoEquipo, tablaTop + altoTitulo, anchoEquipo, altoCabecera, bold, 8, { fill: LIGHT, align: "center" });
+  const conceptos = [
+    "FALTA DE DELEGADO (2 puntos) (1.50€)",
+    "TARJETAS AMARILLAS (2 puntos) (1€) [Por tarjeta]",
+    "ROJA DIRECTA (10 puntos) (10€) [Por tarjeta]",
+    "CALZONA DE DIF. COLOR (1 punto) (1€) [Por unidad]",
+    "PERDIDA DE BOT. DE AGUA (3 puntos) (5€) [Por unidad]",
+  ];
+  conceptos.forEach((concepto, index) => {
+    const y = tablaTop + altoTitulo + altoCabecera + index * altoFila;
+    const fill = index % 2 ? PALE : undefined;
+    celda(page, concepto, tablaX, y, anchoConcepto, altoFila, bold, 7.5, { fill });
+    celda(page, "", tablaX + anchoConcepto, y, anchoEquipo, altoFila, regular, 7);
+    celda(page, "", tablaX + anchoConcepto + anchoEquipo, y, anchoEquipo, altoFila, regular, 7);
+  });
+  const totalTop = tablaTop + altoTitulo + altoCabecera + conceptos.length * altoFila;
+  const altoTotal = 23;
+  celda(page, "TOTALES", tablaX, totalTop, anchoConcepto, altoTotal, bold, 8.2, { fill: LIGHT, align: "center" });
+  celda(page, "", tablaX + anchoConcepto, totalTop, anchoEquipo, altoTotal, regular, 7, { fill: LIGHT });
+  celda(page, "", tablaX + anchoConcepto + anchoEquipo, totalTop, anchoEquipo, altoTotal, regular, 7, { fill: LIGHT });
+
+  const leyendaX = 472;
+  const leyendaWidth = 335;
+  const leyendaTop = 96;
+  celda(page, "LEYENDA", leyendaX, leyendaTop, leyendaWidth, 20, bold, 8.5, { fill: LIGHT, align: "center" });
+  rect(page, leyendaX, leyendaTop + 20, leyendaWidth, 164, { color: PALE });
+  dibujarTexto(page, "Acrónimos: (G) Gol - (A) Amarilla - (R) Roja - (TM1/TM2)", leyendaX + 9, 124, 7.8, bold);
+  dibujarTexto(page, "Tiempo Muerto - (P) Penalti - (E1/E2) Entrenadores", leyendaX + 9, 139, 7.8, bold);
+  const ejemplos = [
+    { texto: "Minutos", ancho: 66 },
+    { texto: "Dorsal", ancho: 63 },
+    { texto: "Equipo", ancho: 68 },
+    { texto: "Acción", ancho: 120 },
+  ];
+  let ejemploX = leyendaX + 9;
+  ejemplos.forEach(({ texto, ancho }) => {
+    celda(page, texto, ejemploX, 157, ancho, 18, bold, 7.2, { fill: LIGHT, align: "center" });
+    ejemploX += ancho;
+  });
+  ejemploX = leyendaX + 9;
+  ["16:35", "5 (2)", "V(1-2)", "G(3)"].forEach((valor, index) => {
+    celda(page, valor, ejemploX, 175, ejemplos[index].ancho, 18, bold, 7.2, { fill: PALE, align: "center" });
+    ejemploX += ejemplos[index].ancho;
+  });
+  dibujarTexto(page, "Explicación", leyendaX + 9, 202, 7.8, bold);
+  dibujarTexto(page, "El dorsal 5 lleva 2 goles, el marcador va 1 a 2", leyendaX + 9, 218, 7.2, regular);
+  dibujarTexto(page, "y es el tercer gol del encuentro.", leyendaX + 9, 231, 7.2, regular);
+
+  dibujarTexto(page, "INCIDENCIA:", 22, 294, 8.5, bold);
+  for (let index = 0; index < 5; index += 1) linea(page, 22, 320 + index * 25, 807, 320 + index * 25, rgb(0.55, 0.55, 0.55), 0.5);
+
+  const penaltiesTop = 455;
+  const anchoEquipoPenaltis = 205;
+  const anchoEmpieza = 68;
+  const anchoPenalti = 36;
+  const ganadorX = 22 + anchoEquipoPenaltis + anchoEmpieza + 9 * anchoPenalti;
+  const ganadorWidth = 807 - ganadorX;
+  celda(page, "EQUIPOS", 22, penaltiesTop, anchoEquipoPenaltis, 20, bold, 7.8, { fill: LIGHT, align: "center" });
+  celda(page, "Empieza", 22 + anchoEquipoPenaltis, penaltiesTop, anchoEmpieza, 20, bold, 7.5, { fill: LIGHT, align: "center" });
+  for (let index = 1; index <= 9; index += 1) {
+    celda(page, String(index), 22 + anchoEquipoPenaltis + anchoEmpieza + (index - 1) * anchoPenalti, penaltiesTop, anchoPenalti, 20, bold, 7.5, { fill: LIGHT, align: "center" });
+  }
+  [header.nombreLocal, header.nombreVisitante].forEach((nombre, row) => {
+    const y = penaltiesTop + 20 + row * 20;
+    const fill = row ? PALE : undefined;
+    celda(page, nombre, 22, y, anchoEquipoPenaltis, 20, bold, 7.2, { fill });
+    celda(page, "", 22 + anchoEquipoPenaltis, y, anchoEmpieza, 20, regular, 7, { fill });
+    for (let index = 0; index < 9; index += 1) {
+      celda(page, "", 22 + anchoEquipoPenaltis + anchoEmpieza + index * anchoPenalti, y, anchoPenalti, 20, regular, 7, { fill });
+    }
+  });
+  celda(page, "GANADOR RONDA PENALTIS", ganadorX, penaltiesTop, ganadorWidth, 20, bold, 7.5, { fill: LIGHT, align: "center" });
+  rect(page, ganadorX, penaltiesTop + 20, ganadorWidth, 40);
+
+  const escudoTop = 535;
+  if (escudoLocal) page.drawImage(escudoLocal, { x: 267, y: HEIGHT - escudoTop - 29, width: 29, height: 29 });
+  if (escudoVisitante) page.drawImage(escudoVisitante, { x: 546, y: HEIGHT - escudoTop - 29, width: 29, height: 29 });
+  rect(page, 323, escudoTop, 81, 27);
+  rect(page, 435, escudoTop, 81, 27);
+  page.drawText(":", { x: 416, y: HEIGHT - escudoTop - 20, size: 12, font: bold, color: INK });
+  dibujarTexto(page, "RESULTADO FINAL", 420, 565, 7.2, bold, { align: "center" });
+}
+
+export async function generarActaPdf(partido, temporada) {
+  const pdf = await PDFDocument.create();
+  const regular = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const logo = await cargarLogo(pdf);
+  const [escudoLocal, escudoVisitante] = await Promise.all([
+    imagenEscudo(pdf, partido.local?.escudo_url),
+    imagenEscudo(pdf, partido.visitante?.escudo_url),
+  ]);
+  const primera = pdf.addPage([WIDTH, HEIGHT]);
+  const segunda = pdf.addPage([WIDTH, HEIGHT]);
+  dibujarPrimera(primera, partido, logo, escudoLocal, escudoVisitante, regular, bold, temporada);
+  dibujarSegunda(segunda, partido, logo, escudoLocal, escudoVisitante, regular, bold, temporada);
+  return pdf.save();
+}
+
+export function nombreArchivoActa(partido) {
+  const { anio, mes, dia } = fechaMadrid(partido.fecha);
+  const hora = fechaMadrid(partido.fecha).hora.replace(":", "_");
+  const jornada = partido.jornada ? `J${partido.jornada}` : "Sin_jornada";
+  const grupo = partido.grupo?.nombre || "Grupo";
+  const limpio = (value) => textoPdf(value).replace(/[^\w-]+/g, "_").replace(/^_+|_+$/g, "");
+  return `Actas_${anio}_${mes}_${dia}_${hora}_${limpio(jornada)}_${limpio(grupo)}.pdf`;
+}

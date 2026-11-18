@@ -84,6 +84,11 @@ async function sincronizar(db, fechas) {
   const equiposApi = await getJson(`${API}/clubs/${CLUB_ID}/teamsForTableBySections?seasonId=${SEASON_ID}&visibility=true&sections=${SECTIONS}`);
   if (!Array.isArray(equiposApi) || !equiposApi.length) throw new Error("La API no devolvió equipos");
   const partidosApi = await obtenerPartidos(fechas.desde, fechas.hasta);
+  const estadiosApi = await getJson(`${API}/clubs/${CLUB_ID}/stadiums?from=0&limit=1800`);
+  if (!Array.isArray(estadiosApi)) throw new Error("Clupik devolvió un listado de pabellones no válido");
+  const estadioPorId = new Map(estadiosApi
+    .filter((estadio) => estadio?.id && estadio?.name)
+    .map((estadio) => [String(estadio.id), String(estadio.name)]));
   // Temporada
   const titulo = equiposApi[0]?.team?.season?.title || SEASON_ID;
   const temp = ok(await db.from("temporadas").upsert({ id_clupik: SEASON_ID, nombre: titulo, activa: true }, { onConflict: "id_clupik" }).select("id").single());
@@ -145,6 +150,9 @@ async function sincronizar(db, fechas) {
   // Partidos (no se tocan arbitro_id ni estado)
   const filasP = partidosApi.map((g) => ({
     id_clupik: String(g.id), temporada_id: temp.id, grupo_id: grupoPorId(g.groupId), jornada: g.round, fecha: g.date,
+    ...((g.stadium?.name || estadioPorId.get(String(g.stadiumId)))
+      ? { pabellon: g.stadium?.name || estadioPorId.get(String(g.stadiumId)) }
+      : {}),
     local_id: eqId.get(String(g.localTeamId)), visitante_id: eqId.get(String(g.visitorTeamId)),
     goles_local_clupik: g.localScore, goles_visitante_clupik: g.visitorScore,
   })).filter((p) => p.local_id && p.visitante_id);
