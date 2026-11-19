@@ -271,7 +271,7 @@ export default function PruebaCrearPartido() {
   async function entrar() {
     const { error: errorAcceso } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/arbitro/prueba-partido` },
+      options: { redirectTo: `${window.location.origin}/arbitro/partidos` },
     });
     if (errorAcceso) setError(`No se pudo iniciar sesión: ${errorAcceso.message}`);
   }

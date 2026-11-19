@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 
 const enlaces = [
   { href: "/arbitro", texto: "Actas" },
-  { href: "/arbitro/prueba-partido", texto: "Crear partidos / Actas" },
+  { href: "/arbitro/partidos", texto: "Crear partidos / Actas" },
   { href: "/arbitro/log", texto: "Log" },
   { href: "/arbitro/gestion-pin", texto: "Gestión de PIN" },
   { href: "/arbitro/sin-ficha", texto: "Sin Ficha" },

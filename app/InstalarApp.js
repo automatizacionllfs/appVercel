@@ -59,13 +59,16 @@ export default function InstalarApp() {
   }
 
   return (
-    <aside className="instalar-app" aria-label="Instalar la aplicación">
-      <div>
+    <details className="instalar-app">
+      <summary>
         <strong>¡Lleva LLFS Puerto Real contigo!</strong>
+        <span className="instalar-app-toggle">Más información</span>
+      </summary>
+      <div className="instalar-app-contenido">
         <p>Descarga e instala la app para acceder más rápido desde tu dispositivo.</p>
         {mensaje && <p className="instalar-app-mensaje" role="status">{mensaje}</p>}
+        <button type="button" onClick={instalar}>Instalar app</button>
       </div>
-      <button type="button" onClick={instalar}>Instalar app</button>
-    </aside>
+    </details>
   );
 }
