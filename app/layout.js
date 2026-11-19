@@ -21,7 +21,7 @@ export const metadata = {
   },
 };
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
-const VERSION = "[TEST] - 3.9.4.3";
+const VERSION = "[TEST] - 3.9.4.4";
 const FECHA_ACTUALIZACION = "19/11/2026";
 
 export default function RootLayout({ children }) {
