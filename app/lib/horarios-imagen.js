@@ -22,7 +22,7 @@ function cargarImagen(src) {
 function dibujarTextoAjustado(contexto, texto, x, y, ancho, tamano, minimo = 12) {
   let actual = tamano;
   while (actual > minimo) {
-    contexto.font = `700 ${actual}px Arial, sans-serif`;
+    contexto.font = `800 ${actual}px Arial, sans-serif`;
     if (contexto.measureText(texto).width <= ancho) break;
     actual -= 1;
   }
@@ -43,34 +43,68 @@ function fechaPartido(fecha) {
 }
 
 function dibujarLogo(contexto, imagen, x, y, ancho, alto) {
+  const fuente = document.createElement("canvas");
+  fuente.width = imagen.naturalWidth;
+  fuente.height = imagen.naturalHeight;
+  const fuenteContexto = fuente.getContext("2d", { willReadFrequently: true });
+  if (!fuenteContexto) throw new Error("No se pudo preparar uno de los logos del cartel.");
+  fuenteContexto.drawImage(imagen, 0, 0);
+  const pixeles = fuenteContexto.getImageData(0, 0, fuente.width, fuente.height).data;
+  let izquierdaVisible = fuente.width;
+  let arribaVisible = fuente.height;
+  let derechaVisible = -1;
+  let abajoVisible = -1;
+  for (let py = 0; py < fuente.height; py += 1) {
+    for (let px = 0; px < fuente.width; px += 1) {
+      if (pixeles[(py * fuente.width + px) * 4 + 3] > 16) {
+        izquierdaVisible = Math.min(izquierdaVisible, px);
+        arribaVisible = Math.min(arribaVisible, py);
+        derechaVisible = Math.max(derechaVisible, px);
+        abajoVisible = Math.max(abajoVisible, py);
+      }
+    }
+  }
+  if (derechaVisible < izquierdaVisible || abajoVisible < arribaVisible) return;
+  const anchoVisible = derechaVisible - izquierdaVisible + 1;
+  const altoVisible = abajoVisible - arribaVisible + 1;
   const mascara = document.createElement("canvas");
   mascara.width = Math.ceil(ancho);
   mascara.height = Math.ceil(alto);
   const contextoMascara = mascara.getContext("2d");
   if (!contextoMascara) throw new Error("No se pudo preparar uno de los logos del cartel.");
-  const escala = Math.min(ancho / imagen.width, alto / imagen.height);
-  const dibujadoAncho = imagen.width * escala;
-  const dibujadoAlto = imagen.height * escala;
+  const escala = Math.min(ancho / anchoVisible, alto / altoVisible);
+  const dibujadoAncho = anchoVisible * escala;
+  const dibujadoAlto = altoVisible * escala;
   const izquierda = (ancho - dibujadoAncho) / 2;
   const arriba = (alto - dibujadoAlto) / 2;
-  contextoMascara.drawImage(imagen, izquierda, arriba, dibujadoAncho, dibujadoAlto);
+  contextoMascara.drawImage(
+    fuente,
+    izquierdaVisible,
+    arribaVisible,
+    anchoVisible,
+    altoVisible,
+    izquierda,
+    arriba,
+    dibujadoAncho,
+    dibujadoAlto,
+  );
   contextoMascara.globalCompositeOperation = "source-in";
   contextoMascara.fillStyle = BLANCO;
   contextoMascara.fillRect(0, 0, mascara.width, mascara.height);
   contexto.drawImage(mascara, x, y, ancho, alto);
 }
 
-function dibujarTemporada(contexto, x, y) {
+function dibujarTemporada(contexto, x, y, anio) {
   contexto.fillStyle = "rgba(255,255,255,.82)";
   contexto.beginPath();
   contexto.roundRect(x, y, 250, 76, 38);
   contexto.fill();
   contexto.textAlign = "center";
   contexto.fillStyle = "#123c72";
-  contexto.font = "700 24px Arial, sans-serif";
-  contexto.fillText("PUERTO REAL", x + 125, y + 32);
-  contexto.font = "700 23px Arial, sans-serif";
-  contexto.fillText("TEMPORADA", x + 125, y + 59);
+  contexto.font = "800 21px Arial, sans-serif";
+  contexto.fillText("Puerto Real", x + 125, y + 29);
+  contexto.font = "800 24px Arial, sans-serif";
+  contexto.fillText(`${anio}/${String(anio + 1).slice(-2)}`, x + 125, y + 57);
   contexto.textAlign = "left";
 }
 
@@ -103,110 +137,142 @@ export async function generarImagenHorarios(partidos) {
   if (!contexto) throw new Error("No se pudo preparar la imagen de horarios.");
 
   const fondo = contexto.createLinearGradient(0, 0, ANCHO, ALTO);
-  fondo.addColorStop(0, "#06285f");
-  fondo.addColorStop(0.52, "#0755a1");
-  fondo.addColorStop(1, "#031d50");
+  fondo.addColorStop(0, "#04183f");
+  fondo.addColorStop(0.48, "#0755a1");
+  fondo.addColorStop(1, "#03163c");
   contexto.fillStyle = fondo;
   contexto.fillRect(0, 0, ANCHO, ALTO);
 
-  contexto.strokeStyle = "rgba(84,190,255,.18)";
-  contexto.lineWidth = 1;
-  for (let x = 0; x < ANCHO; x += 54) {
+  const resplandor = contexto.createRadialGradient(ANCHO / 2, 440, 80, ANCHO / 2, 440, 760);
+  resplandor.addColorStop(0, "rgba(42,163,255,.34)");
+  resplandor.addColorStop(1, "rgba(3,22,60,0)");
+  contexto.fillStyle = resplandor;
+  contexto.fillRect(0, 0, ANCHO, ALTO);
+
+  contexto.save();
+  contexto.translate(ANCHO / 2, ALTO / 2);
+  contexto.rotate(-0.2);
+  for (let banda = 0; banda < 7; banda += 1) {
+    contexto.fillStyle = banda % 2 ? "rgba(48,177,255,.035)" : "rgba(72,202,255,.065)";
+    contexto.fillRect(-ANCHO, -430 + banda * 132, ANCHO * 2, 38);
+  }
+  contexto.restore();
+
+  contexto.strokeStyle = "rgba(120,215,255,.14)";
+  contexto.lineWidth = 2;
+  for (let x = -ALTO; x < ANCHO; x += 94) {
     contexto.beginPath();
     contexto.moveTo(x, 0);
-    contexto.lineTo(x, ALTO);
+    contexto.lineTo(x + ALTO * 0.45, ALTO);
     contexto.stroke();
   }
-  for (let y = 0; y < ALTO; y += 54) {
-    contexto.beginPath();
-    contexto.moveTo(0, y);
-    contexto.lineTo(ANCHO, y);
-    contexto.stroke();
-  }
-  contexto.fillStyle = "rgba(38,168,240,.12)";
+  contexto.strokeStyle = "rgba(174,231,255,.2)";
+  contexto.lineWidth = 3;
   contexto.beginPath();
-  contexto.moveTo(0, 770);
-  contexto.lineTo(ANCHO, 620);
-  contexto.lineTo(ANCHO, 720);
-  contexto.lineTo(0, 860);
+  contexto.moveTo(0, 790);
+  contexto.bezierCurveTo(420, 685, 870, 855, ANCHO, 695);
+  contexto.stroke();
+  contexto.strokeStyle = "rgba(31,157,255,.38)";
+  contexto.lineWidth = 15;
+  contexto.beginPath();
+  contexto.moveTo(0, 808);
+  contexto.bezierCurveTo(430, 703, 850, 873, ANCHO, 713);
+  contexto.stroke();
+  contexto.fillStyle = "rgba(12,101,186,.25)";
+  contexto.beginPath();
+  contexto.moveTo(0, 660);
+  contexto.lineTo(ANCHO, 575);
+  contexto.lineTo(ANCHO, 690);
+  contexto.lineTo(0, 790);
   contexto.closePath();
   contexto.fill();
 
   const [logoAyuntamiento, logoLlfs, logoAlcomar, logoMeycagesal, logoCesport, logoGen] = imagenes;
-  dibujarLogo(contexto, logoAyuntamiento, 48, 28, 115, 145);
-  dibujarLogo(contexto, logoLlfs, 1390, 45, 165, 70);
+  dibujarLogo(contexto, logoAyuntamiento, 42, 24, 94, 122);
+  dibujarLogo(contexto, logoLlfs, 1390, 35, 162, 58);
 
   contexto.textAlign = "center";
-  contexto.font = "900 58px Arial, sans-serif";
+  contexto.font = "900 60px Arial, sans-serif";
   contexto.lineWidth = 3;
   contexto.strokeStyle = "#fff";
   contexto.fillStyle = "#ed3039";
   contexto.strokeText("PARTIDOS DE LA SEMANA", ANCHO / 2, 88);
   contexto.fillText("PARTIDOS DE LA SEMANA", ANCHO / 2, 88);
   contexto.fillStyle = "#ffda50";
-  contexto.font = "900 38px Arial, sans-serif";
-  contexto.fillText(textoPeriodo(filas.map((partido) => partido.fecha)), ANCHO / 2, 137, 1260);
+  contexto.font = "900 40px Arial, sans-serif";
+  contexto.fillText(textoPeriodo(filas.map((partido) => partido.fecha)), ANCHO / 2, 139, 1280);
 
-  const tablaX = 240;
-  const tablaY = 176;
-  const tablaW = 1120;
-  const headerH = 48;
-  const rowH = Math.min(43, Math.max(31, 470 / filas.length));
+  const tablaX = 135;
+  const tablaW = 1330;
+  const headerH = 56;
+  const rowH = Math.min(82, (520 - headerH) / filas.length);
   const tablaH = headerH + rowH * filas.length;
+  const tablaY = 190 + (520 - tablaH) / 2;
 
   contexto.fillStyle = "rgba(225,237,251,.46)";
   contexto.beginPath();
-  contexto.roundRect(tablaX - 18, tablaY - 16, tablaW + 36, tablaH + 34, 34);
+  contexto.roundRect(tablaX - 22, tablaY - 18, tablaW + 44, tablaH + 38, 36);
   contexto.fill();
   contexto.fillStyle = "#bc5415";
   contexto.fillRect(tablaX, tablaY, tablaW, headerH);
 
   const columnas = [
-    { titulo: "DÍA", ancho: 150, valor: (partido) => partido.dia },
-    { titulo: "PARTIDO", ancho: 405, valor: (partido) => `${partido.local?.nombre || "Local"} – ${partido.visitante?.nombre || "Visitante"}`.toLocaleUpperCase("es") },
-    { titulo: "GRUP", ancho: 86, valor: (partido) => (partido.grupo?.nombre || "—").replace(/^grupo\s*/i, "") },
-    { titulo: "JORN", ancho: 90, valor: (partido) => partido.jornada || "—" },
-    { titulo: "ARB", ancho: 75, valor: (partido) => partido.numeroArbitros ?? 1 },
-    { titulo: "HORA", ancho: 110, valor: (partido) => partido.hora },
-    { titulo: "INSTALACIÓN", ancho: 204, valor: (partido) => partido.pabellon || "—" },
+    { titulo: "DÍA", ancho: 145, valor: (partido) => partido.dia },
+    { titulo: "PARTIDO", ancho: 485, valor: (partido) => `${partido.local?.nombre || "Local"} – ${partido.visitante?.nombre || "Visitante"}`.toLocaleUpperCase("es") },
+    { titulo: "GRUP", ancho: 92, valor: (partido) => (partido.grupo?.nombre || "—").replace(/^grupo\s*/i, "") },
+    { titulo: "JORN", ancho: 88, valor: (partido) => partido.jornada || "—" },
+    { titulo: "ARB", ancho: 82, valor: (partido) => partido.numeroArbitros ?? 1 },
+    { titulo: "HORA", ancho: 118, valor: (partido) => partido.hora },
+    { titulo: "INSTALACIÓN", ancho: 320, valor: (partido) => (partido.pabellon || "—").replace(/\s*[-–]\s*Puerto Real\s*$/i, "").trim() || "—" },
   ];
   let columnaX = tablaX;
   contexto.textAlign = "center";
   contexto.textBaseline = "middle";
   contexto.fillStyle = BLANCO;
-  contexto.font = "700 19px Arial, sans-serif";
+  contexto.font = "800 21px Arial, sans-serif";
   for (const columna of columnas) {
     contexto.fillText(columna.titulo, columnaX + columna.ancho / 2, tablaY + headerH / 2);
     columnaX += columna.ancho;
   }
   filas.forEach((partido, indice) => {
     const y = tablaY + headerH + indice * rowH;
-    contexto.fillStyle = indice % 2 ? "#fff0c2" : "#ffe49a";
+    contexto.fillStyle = indice % 2 ? "#fff1c8" : "#ffe49a";
     contexto.fillRect(tablaX, y, tablaW, rowH);
     columnaX = tablaX;
     columnas.forEach((columna, columnaIndice) => {
       const texto = String(columna.valor(partido));
-      contexto.fillStyle = columnaIndice === 0 ? "#bc5415" : "#171717";
+      contexto.fillStyle = columnaIndice === 0 ? "#bc5415" : indice % 2 ? "#fff1c8" : "#ffe49a";
       contexto.fillRect(columnaX, y, columna.ancho, rowH);
-      if (columnaIndice !== 0) {
-        contexto.fillStyle = indice % 2 ? "#fff0c2" : "#ffe49a";
-        contexto.fillRect(columnaX + 1, y + 1, columna.ancho - 2, rowH - 2);
-      }
       contexto.fillStyle = columnaIndice === 0 ? BLANCO : "#171717";
-      contexto.font = `700 ${Math.min(18, rowH * 0.45)}px Arial, sans-serif`;
-      dibujarTextoAjustado(contexto, texto, columnaX + columna.ancho / 2, y + rowH / 2, columna.ancho - 12, Math.min(18, rowH * 0.45), 10);
+      const tamanoTexto = Math.min(23, rowH * 0.48);
+      contexto.font = `800 ${tamanoTexto}px Arial, sans-serif`;
+      dibujarTextoAjustado(contexto, texto, columnaX + columna.ancho / 2, y + rowH / 2, columna.ancho - 16, tamanoTexto, 13);
+      contexto.strokeStyle = "rgba(255,255,255,.8)";
+      contexto.lineWidth = 1.5;
+      contexto.strokeRect(columnaX, y, columna.ancho, rowH);
       columnaX += columna.ancho;
     });
   });
+  contexto.strokeStyle = "rgba(255,255,255,.85)";
+  contexto.lineWidth = 1.5;
+  contexto.strokeRect(tablaX, tablaY, tablaW, headerH);
+  columnaX = tablaX;
+  for (const columna of columnas.slice(0, -1)) {
+    columnaX += columna.ancho;
+    contexto.beginPath();
+    contexto.moveTo(columnaX, tablaY);
+    contexto.lineTo(columnaX, tablaY + headerH);
+    contexto.stroke();
+  }
   contexto.textBaseline = "alphabetic";
   contexto.textAlign = "left";
 
-  const pieY = 765;
-  dibujarLogo(contexto, logoAlcomar, 95, pieY, 190, 90);
-  dibujarLogo(contexto, logoMeycagesal, 340, pieY + 10, 245, 70);
-  dibujarTemporada(contexto, 675, pieY + 8);
-  dibujarLogo(contexto, logoCesport, 1000, pieY + 18, 245, 55);
-  dibujarLogo(contexto, logoGen, 1320, pieY + 2, 115, 105);
+  const pieY = 790;
+  dibujarLogo(contexto, logoAlcomar, 95, pieY, 205, 76);
+  dibujarLogo(contexto, logoMeycagesal, 350, pieY + 2, 205, 72);
+  dibujarTemporada(contexto, 675, pieY - 2, new Date().getFullYear());
+  dibujarLogo(contexto, logoCesport, 985, pieY + 5, 205, 62);
+  dibujarLogo(contexto, logoGen, 1290, pieY - 2, 200, 76);
 
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob((resultado) => resultado ? resolve(resultado) : reject(new Error("No se pudo generar el archivo de horarios.")), "image/png");
