@@ -1,5 +1,5 @@
 import ayuntamiento from "../assets/AYTO.-PUERTO-REAL_Blanco.png";
-import cesport from "../assets/CeSport.png";
+import cesport from "../assets/CeSport_Negro.png";
 import alcomar from "../assets/Grupo Alcomar.png";
 import gen from "../assets/Logo-Gen-Grupo-Energetico1.png";
 import meycagesal from "../assets/Meycagesal.png";
@@ -42,7 +42,7 @@ function fechaPartido(fecha) {
   };
 }
 
-function dibujarLogo(contexto, imagen, x, y, ancho, alto, colorAcento = null) {
+function dibujarLogo(contexto, imagen, x, y, ancho, alto, estiloColor = null) {
   const fuente = document.createElement("canvas");
   fuente.width = imagen.naturalWidth;
   fuente.height = imagen.naturalHeight;
@@ -91,11 +91,19 @@ function dibujarLogo(contexto, imagen, x, y, ancho, alto, colorAcento = null) {
   const pixelesLogo = contextoMascara.getImageData(0, 0, mascara.width, mascara.height);
   for (let indice = 0; indice < pixelesLogo.data.length; indice += 4) {
     if (pixelesLogo.data[indice + 3] === 0) continue;
+    if (estiloColor === "original") continue;
     let color = BLANCO;
-    if (colorAcento) {
+    const pixelX = (indice / 4) % mascara.width;
+    const pixelY = Math.floor(indice / 4 / mascara.width);
+    if (typeof estiloColor === "function") {
+      color = estiloColor(
+        (pixelX + 0.5 - izquierda) / dibujadoAncho,
+        (pixelY + 0.5 - arriba) / dibujadoAlto,
+      );
+    } else if (estiloColor) {
       const maximo = Math.max(pixelesLogo.data[indice], pixelesLogo.data[indice + 1], pixelesLogo.data[indice + 2]);
       const minimo = Math.min(pixelesLogo.data[indice], pixelesLogo.data[indice + 1], pixelesLogo.data[indice + 2]);
-      if (maximo - minimo > 38) color = colorAcento;
+      if (maximo - minimo > 38) color = estiloColor;
     }
     pixelesLogo.data[indice] = parseInt(color.slice(1, 3), 16);
     pixelesLogo.data[indice + 1] = parseInt(color.slice(3, 5), 16);
@@ -108,14 +116,24 @@ function dibujarLogo(contexto, imagen, x, y, ancho, alto, colorAcento = null) {
 function dibujarTemporada(contexto, x, y, anio) {
   contexto.fillStyle = "rgba(255,255,255,.82)";
   contexto.beginPath();
-  contexto.roundRect(x, y, 250, 76, 38);
+  contexto.moveTo(x + 18, y);
+  contexto.lineTo(x + 250, y);
+  contexto.lineTo(x + 232, y + 76);
+  contexto.lineTo(x, y + 76);
+  contexto.closePath();
   contexto.fill();
   contexto.textAlign = "center";
   contexto.fillStyle = "#123c72";
-  contexto.font = "800 21px Arial, sans-serif";
-  contexto.fillText("Puerto Real", x + 125, y + 29);
-  contexto.font = "800 24px Arial, sans-serif";
-  contexto.fillText(`${anio}/${String(anio + 1).slice(-2)}`, x + 125, y + 57);
+  contexto.font = "700 23px 'Trebuchet MS', Arial, sans-serif";
+  contexto.fillText("Puerto Real", x + 125, y + 30);
+  contexto.strokeStyle = "rgba(18,60,114,.3)";
+  contexto.lineWidth = 1;
+  contexto.beginPath();
+  contexto.moveTo(x + 77, y + 40);
+  contexto.lineTo(x + 173, y + 40);
+  contexto.stroke();
+  contexto.font = "800 25px 'Trebuchet MS', Arial, sans-serif";
+  contexto.fillText(`${anio}/${String(anio + 1).slice(-2)}`, x + 125, y + 64);
   contexto.textAlign = "left";
 }
 
@@ -271,10 +289,10 @@ export async function generarImagenHorarios(partidos) {
   contexto.textAlign = "left";
 
   const pieY = 790;
-  dibujarLogo(contexto, logoAlcomar, 80, pieY - 4, 220, 100, "#22b6d2");
-  dibujarLogo(contexto, logoMeycagesal, 320, pieY, 260, 90, "#d11138");
+  dibujarLogo(contexto, logoAlcomar, 80, pieY - 4, 220, 100, "original");
+  dibujarLogo(contexto, logoMeycagesal, 320, pieY, 260, 90, (_x, y) => y < 0.52 ? BLANCO : "#31b7e5");
   dibujarTemporada(contexto, 675, pieY - 2, new Date().getFullYear());
-  dibujarLogo(contexto, logoCesport, 985, pieY + 5, 230, 78, "#32a36a");
+  dibujarLogo(contexto, logoCesport, 985, pieY + 5, 230, 78, (x) => x < 0.43 ? BLANCO : "#31b7e5");
   dibujarLogo(contexto, logoGen, 1320, pieY - 18, 160, 130, "#31b7e5");
 
   const blob = await new Promise((resolve, reject) => {

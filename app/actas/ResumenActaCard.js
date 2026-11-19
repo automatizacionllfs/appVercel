@@ -5,7 +5,7 @@ import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 
 const ANCHO = 1080;
 const ALTO = 1920;
-const ROJO = "#ffffff";
+const ROJO = "#C8202F";
 
 function cargarImagen(src) {
   return new Promise((resolve) => {
