@@ -8,7 +8,9 @@ import { MADRID_TIME_ZONE, partesEnMadrid } from "./fecha-madrid";
 
 const ANCHO = 1600;
 const ALTO = 900;
+const ESCALA_EXPORTACION = 2;
 const BLANCO = "#fff";
+const limitesVisibles = new WeakMap();
 
 function cargarImagen(src) {
   return new Promise((resolve, reject) => {
@@ -43,11 +45,43 @@ function fechaPartido(fecha) {
 }
 
 function dibujarImagenAjustada(contexto, imagen, x, y, ancho, alto) {
-  const escala = Math.min(ancho / imagen.naturalWidth, alto / imagen.naturalHeight);
-  const dibujadoAncho = imagen.naturalWidth * escala;
-  const dibujadoAlto = imagen.naturalHeight * escala;
+  let limites = limitesVisibles.get(imagen);
+  if (!limites) {
+    const lienzo = document.createElement("canvas");
+    lienzo.width = imagen.naturalWidth;
+    lienzo.height = imagen.naturalHeight;
+    const lienzoContexto = lienzo.getContext("2d", { willReadFrequently: true });
+    if (!lienzoContexto) throw new Error("No se pudo preparar uno de los logos.");
+    lienzoContexto.drawImage(imagen, 0, 0);
+    const pixeles = lienzoContexto.getImageData(0, 0, lienzo.width, lienzo.height).data;
+    let izquierda = lienzo.width;
+    let arriba = lienzo.height;
+    let derecha = -1;
+    let abajo = -1;
+    for (let py = 0; py < lienzo.height; py += 1) {
+      for (let px = 0; px < lienzo.width; px += 1) {
+        if (pixeles[(py * lienzo.width + px) * 4 + 3] > 16) {
+          izquierda = Math.min(izquierda, px);
+          arriba = Math.min(arriba, py);
+          derecha = Math.max(derecha, px);
+          abajo = Math.max(abajo, py);
+        }
+      }
+    }
+    limites = derecha < izquierda || abajo < arriba
+      ? { izquierda: 0, arriba: 0, ancho: imagen.naturalWidth, alto: imagen.naturalHeight }
+      : { izquierda, arriba, ancho: derecha - izquierda + 1, alto: abajo - arriba + 1 };
+    limitesVisibles.set(imagen, limites);
+  }
+  const escala = Math.min(ancho / limites.ancho, alto / limites.alto);
+  const dibujadoAncho = limites.ancho * escala;
+  const dibujadoAlto = limites.alto * escala;
   contexto.drawImage(
     imagen,
+    limites.izquierda,
+    limites.arriba,
+    limites.ancho,
+    limites.alto,
     x + (ancho - dibujadoAncho) / 2,
     y + (alto - dibujadoAlto) / 2,
     dibujadoAncho,
@@ -57,7 +91,9 @@ function dibujarImagenAjustada(contexto, imagen, x, y, ancho, alto) {
 
 function dibujarTemporada(contexto, x, y, anio) {
   contexto.fillStyle = "rgba(255,255,255,.82)";
-  contexto.fillRect(x, y, 250, 76);
+  contexto.beginPath();
+  contexto.roundRect(x, y, 250, 76, 10);
+  contexto.fill();
   contexto.textAlign = "center";
   contexto.fillStyle = "#123c72";
   contexto.font = "700 23px 'Trebuchet MS', Arial, sans-serif";
@@ -96,10 +132,13 @@ export async function generarImagenHorarios(partidos) {
   const filas = partidos.map((partido) => ({ ...partido, ...fechaPartido(partido.fecha) }))
     .sort((a, b) => new Date(a.fecha || 0) - new Date(b.fecha || 0));
   const canvas = document.createElement("canvas");
-  canvas.width = ANCHO;
-  canvas.height = ALTO;
+  canvas.width = ANCHO * ESCALA_EXPORTACION;
+  canvas.height = ALTO * ESCALA_EXPORTACION;
   const contexto = canvas.getContext("2d");
   if (!contexto) throw new Error("No se pudo preparar la imagen de horarios.");
+  contexto.scale(ESCALA_EXPORTACION, ESCALA_EXPORTACION);
+  contexto.imageSmoothingEnabled = true;
+  contexto.imageSmoothingQuality = "high";
 
   const fondo = contexto.createLinearGradient(0, 0, ANCHO, ALTO);
   fondo.addColorStop(0, "#04183f");
@@ -225,11 +264,11 @@ export async function generarImagenHorarios(partidos) {
   contexto.textAlign = "left";
 
   const pieY = 790;
-  dibujarImagenAjustada(contexto, logoAlcomar, 115, pieY - 18, 130, 130);
-  dibujarImagenAjustada(contexto, logoMeycagesal, 355, pieY - 18, 130, 130);
+  dibujarImagenAjustada(contexto, logoAlcomar, 70, pieY - 18, 220, 110);
+  dibujarImagenAjustada(contexto, logoMeycagesal, 265, pieY - 18, 330, 110);
   dibujarTemporada(contexto, 675, pieY - 2, new Date().getFullYear());
-  dibujarImagenAjustada(contexto, logoCesport, 1025, pieY - 18, 130, 130);
-  dibujarImagenAjustada(contexto, logoGen, 1335, pieY - 18, 130, 130);
+  dibujarImagenAjustada(contexto, logoCesport, 975, pieY - 18, 250, 110);
+  dibujarImagenAjustada(contexto, logoGen, 1310, pieY - 18, 220, 110);
 
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob((resultado) => resultado ? resolve(resultado) : reject(new Error("No se pudo generar el archivo de horarios.")), "image/png");
