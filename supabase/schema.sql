@@ -231,6 +231,8 @@ create trigger aud_eventos after insert or update or delete on eventos
 -- Solo cambios hechos por personas (la sincronizacion no toca estas columnas)
 create trigger aud_partidos after update of arbitro_id, estado, descripcion on partidos
   for each row execute function auditar();
+create trigger aud_partidos_insert after insert on partidos
+  for each row execute function auditar();
 
 -- ---------- VALIDACION DE EVENTOS ----------
 create or replace function validar_evento() returns trigger

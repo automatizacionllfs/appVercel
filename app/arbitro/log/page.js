@@ -28,6 +28,11 @@ function partidoDe(registro) {
   return datos?.partido_id || null;
 }
 
+function accionLegible(registro) {
+  if (registro.tabla === "partidos" && registro.accion === "INSERT") return "Creación de partido";
+  return ACCIONES[registro.accion] || registro.accion;
+}
+
 function fechaLegible(fecha) {
   return new Date(fecha).toLocaleString("es-ES", {
     timeZone: "Europe/Madrid",
@@ -294,7 +299,7 @@ export default function LogArbitros() {
                     <tr key={registro.id}>
                       <td>{fechaLegible(registro.creado_en)}</td>
                       <td>{usuario?.nombre || (registro.usuario_id ? `Usuario #${registro.usuario_id}` : "Sin usuario identificado")}</td>
-                      <td>{ACCIONES[registro.accion] || registro.accion}</td>
+                      <td>{accionLegible(registro)}</td>
                       <td>
                         {partidoId ? (
                           <a href={`/actas/${partidoId}`}>Acta #{partidoId}</a>
