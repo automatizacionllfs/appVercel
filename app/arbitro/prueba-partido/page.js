@@ -59,7 +59,7 @@ export default function PruebaCrearPartido() {
 
   const cargarDatos = useCallback(async () => {
     const respuesta = await fetch("/api/clupik/partidos", {
-      headers: { Authorization: `Bearer ${sesion.access_token}` },
+      headers: { Authorization: `${sesion.access_token}` },
       cache: "no-store",
     });
     const datos = await respuesta.json();
