@@ -1,7 +1,7 @@
 import ayuntamiento from "../assets/AYTO.-PUERTO-REAL_Blanco.png";
-import cesport from "../assets/CeSport_Blanco.png";
+import cesport from "../assets/CeSport.png";
 import alcomar from "../assets/Grupo Alcomar.png";
-import gen from "../assets/Logo-Gen-Grupo-Energetico1_Blanco.png";
+import gen from "../assets/Logo-Gen-Grupo-Energetico1.png";
 import meycagesal from "../assets/Meycagesal.png";
 import llfs from "../assets/llfs.png";
 import { MADRID_TIME_ZONE, partesEnMadrid } from "./fecha-madrid";
@@ -42,7 +42,7 @@ function fechaPartido(fecha) {
   };
 }
 
-function dibujarLogo(contexto, imagen, x, y, ancho, alto) {
+function dibujarLogo(contexto, imagen, x, y, ancho, alto, colorAcento = null) {
   const fuente = document.createElement("canvas");
   fuente.width = imagen.naturalWidth;
   fuente.height = imagen.naturalHeight;
@@ -88,9 +88,20 @@ function dibujarLogo(contexto, imagen, x, y, ancho, alto) {
     dibujadoAncho,
     dibujadoAlto,
   );
-  contextoMascara.globalCompositeOperation = "source-in";
-  contextoMascara.fillStyle = BLANCO;
-  contextoMascara.fillRect(0, 0, mascara.width, mascara.height);
+  const pixelesLogo = contextoMascara.getImageData(0, 0, mascara.width, mascara.height);
+  for (let indice = 0; indice < pixelesLogo.data.length; indice += 4) {
+    if (pixelesLogo.data[indice + 3] === 0) continue;
+    let color = BLANCO;
+    if (colorAcento) {
+      const maximo = Math.max(pixelesLogo.data[indice], pixelesLogo.data[indice + 1], pixelesLogo.data[indice + 2]);
+      const minimo = Math.min(pixelesLogo.data[indice], pixelesLogo.data[indice + 1], pixelesLogo.data[indice + 2]);
+      if (maximo - minimo > 38) color = colorAcento;
+    }
+    pixelesLogo.data[indice] = parseInt(color.slice(1, 3), 16);
+    pixelesLogo.data[indice + 1] = parseInt(color.slice(3, 5), 16);
+    pixelesLogo.data[indice + 2] = parseInt(color.slice(5, 7), 16);
+  }
+  contextoMascara.putImageData(pixelesLogo, 0, 0);
   contexto.drawImage(mascara, x, y, ancho, alto);
 }
 
@@ -158,14 +169,6 @@ export async function generarImagenHorarios(partidos) {
   }
   contexto.restore();
 
-  contexto.strokeStyle = "rgba(120,215,255,.14)";
-  contexto.lineWidth = 2;
-  for (let x = -ALTO; x < ANCHO; x += 94) {
-    contexto.beginPath();
-    contexto.moveTo(x, 0);
-    contexto.lineTo(x + ALTO * 0.45, ALTO);
-    contexto.stroke();
-  }
   contexto.strokeStyle = "rgba(174,231,255,.2)";
   contexto.lineWidth = 3;
   contexto.beginPath();
@@ -268,11 +271,11 @@ export async function generarImagenHorarios(partidos) {
   contexto.textAlign = "left";
 
   const pieY = 790;
-  dibujarLogo(contexto, logoAlcomar, 95, pieY, 205, 76);
-  dibujarLogo(contexto, logoMeycagesal, 350, pieY + 2, 205, 72);
+  dibujarLogo(contexto, logoAlcomar, 80, pieY - 4, 220, 100, "#22b6d2");
+  dibujarLogo(contexto, logoMeycagesal, 320, pieY, 260, 90, "#d11138");
   dibujarTemporada(contexto, 675, pieY - 2, new Date().getFullYear());
-  dibujarLogo(contexto, logoCesport, 985, pieY + 5, 205, 62);
-  dibujarLogo(contexto, logoGen, 1290, pieY - 2, 200, 76);
+  dibujarLogo(contexto, logoCesport, 985, pieY + 5, 230, 78, "#32a36a");
+  dibujarLogo(contexto, logoGen, 1320, pieY - 18, 160, 130, "#31b7e5");
 
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob((resultado) => resultado ? resolve(resultado) : reject(new Error("No se pudo generar el archivo de horarios.")), "image/png");
