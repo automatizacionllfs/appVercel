@@ -37,6 +37,22 @@ body {
 
 .site-brand { display: inline-flex; border-radius: 12px; }
 .site-brand img { display: block; width: min(216px, 52vw); height: auto; object-fit: contain; }
+.aviso-base-datos {
+  position: fixed;
+  z-index: 1000;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  width: min(calc(100% - 32px), 760px);
+  transform: translateX(-50%);
+  padding: 14px 18px;
+  border: 1px solid #e8c66a;
+  border-radius: 14px;
+  background: #fff8df;
+  box-shadow: var(--sombra);
+  color: #614b0b;
+  text-align: center;
+  font-weight: 650;
+}
 .instalar-app {
   display: flex;
   width: min(100% - 32px, 760px);
