@@ -378,7 +378,16 @@ textarea:disabled { background: #f5f8fb; color: var(--suave); }
 .clupik-partido-fila > span { display: grid; min-width: 0; gap: 2px; }
 .clupik-partido-fila > span > span { color: var(--suave); font-size: .84rem; }
 .clupik-partidos-acciones, .clupik-modal-acciones { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.clupik-partidos-acciones { flex-wrap: wrap; }
 .clupik-partidos-acciones > span { margin-right: auto; color: var(--suave); font-weight: 700; }
+.clupik-horarios-config { display: grid; gap: 10px; margin-top: 18px; padding: 14px; border: 1px solid var(--borde); border-radius: 12px; background: #f7f9fc; }
+.clupik-horarios-config h3, .clupik-horarios-config p { margin: 0; }
+.clupik-horarios-config h3 { color: var(--acento-oscuro); }
+.clupik-horarios-lista { display: grid; gap: 8px; max-height: 340px; overflow: auto; }
+.clupik-horario-fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 10px; background: #fff; }
+.clupik-horario-fila > span { display: grid; min-width: 0; gap: 3px; }
+.clupik-horario-fila > span > span { color: var(--suave); font-size: .84rem; }
+.clupik-horario-fila select { min-height: 40px; padding: 7px 10px; border: 1px solid var(--borde); border-radius: 9px; background: #fff; color: var(--tinta); font: inherit; }
 .clupik-modal-fondo { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 18px; background: rgb(10 25 40 / 58%); }
 .clupik-modal { display: grid; width: min(100%, 520px); gap: 12px; padding: 22px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); box-shadow: 0 20px 70px rgb(0 0 0 / 28%); }
 .clupik-modal-acciones button:disabled { cursor: not-allowed; opacity: .6; }
