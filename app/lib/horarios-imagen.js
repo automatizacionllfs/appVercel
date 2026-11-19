@@ -42,138 +42,22 @@ function fechaPartido(fecha) {
   };
 }
 
-function dibujarLogo(contexto, imagen, x, y, ancho, alto, estiloColor = null) {
-  const fuente = document.createElement("canvas");
-  fuente.width = imagen.naturalWidth;
-  fuente.height = imagen.naturalHeight;
-  const fuenteContexto = fuente.getContext("2d", { willReadFrequently: true });
-  if (!fuenteContexto) throw new Error("No se pudo preparar uno de los logos del cartel.");
-  fuenteContexto.drawImage(imagen, 0, 0);
-  const pixeles = fuenteContexto.getImageData(0, 0, fuente.width, fuente.height).data;
-  let izquierdaVisible = fuente.width;
-  let arribaVisible = fuente.height;
-  let derechaVisible = -1;
-  let abajoVisible = -1;
-  for (let py = 0; py < fuente.height; py += 1) {
-    for (let px = 0; px < fuente.width; px += 1) {
-      if (pixeles[(py * fuente.width + px) * 4 + 3] > 16) {
-        izquierdaVisible = Math.min(izquierdaVisible, px);
-        arribaVisible = Math.min(arribaVisible, py);
-        derechaVisible = Math.max(derechaVisible, px);
-        abajoVisible = Math.max(abajoVisible, py);
-      }
-    }
-  }
-  if (derechaVisible < izquierdaVisible || abajoVisible < arribaVisible) return;
-  const anchoVisible = derechaVisible - izquierdaVisible + 1;
-  const altoVisible = abajoVisible - arribaVisible + 1;
-  const mascara = document.createElement("canvas");
-  mascara.width = Math.ceil(ancho);
-  mascara.height = Math.ceil(alto);
-  const contextoMascara = mascara.getContext("2d");
-  if (!contextoMascara) throw new Error("No se pudo preparar uno de los logos del cartel.");
-  const escala = Math.min(ancho / anchoVisible, alto / altoVisible);
-  const dibujadoAncho = anchoVisible * escala;
-  const dibujadoAlto = altoVisible * escala;
-  const izquierda = (ancho - dibujadoAncho) / 2;
-  const arriba = (alto - dibujadoAlto) / 2;
-  contextoMascara.drawImage(
-    fuente,
-    izquierdaVisible,
-    arribaVisible,
-    anchoVisible,
-    altoVisible,
-    izquierda,
-    arriba,
+function dibujarImagenAjustada(contexto, imagen, x, y, ancho, alto) {
+  const escala = Math.min(ancho / imagen.naturalWidth, alto / imagen.naturalHeight);
+  const dibujadoAncho = imagen.naturalWidth * escala;
+  const dibujadoAlto = imagen.naturalHeight * escala;
+  contexto.drawImage(
+    imagen,
+    x + (ancho - dibujadoAncho) / 2,
+    y + (alto - dibujadoAlto) / 2,
     dibujadoAncho,
     dibujadoAlto,
   );
-  const pixelesLogo = contextoMascara.getImageData(0, 0, mascara.width, mascara.height);
-  for (let indice = 0; indice < pixelesLogo.data.length; indice += 4) {
-    if (pixelesLogo.data[indice + 3] === 0) continue;
-    if (estiloColor === "original") continue;
-    let color = BLANCO;
-    const pixelX = (indice / 4) % mascara.width;
-    const pixelY = Math.floor(indice / 4 / mascara.width);
-    if (typeof estiloColor === "function") {
-      color = estiloColor(
-        (pixelX + 0.5 - izquierda) / dibujadoAncho,
-        (pixelY + 0.5 - arriba) / dibujadoAlto,
-      );
-    } else if (estiloColor) {
-      const maximo = Math.max(pixelesLogo.data[indice], pixelesLogo.data[indice + 1], pixelesLogo.data[indice + 2]);
-      const minimo = Math.min(pixelesLogo.data[indice], pixelesLogo.data[indice + 1], pixelesLogo.data[indice + 2]);
-      if (maximo - minimo > 38) color = estiloColor;
-    }
-    pixelesLogo.data[indice] = parseInt(color.slice(1, 3), 16);
-    pixelesLogo.data[indice + 1] = parseInt(color.slice(3, 5), 16);
-    pixelesLogo.data[indice + 2] = parseInt(color.slice(5, 7), 16);
-  }
-  contextoMascara.putImageData(pixelesLogo, 0, 0);
-  contexto.drawImage(mascara, x, y, ancho, alto);
-}
-
-function dibujarLogoBicolor(contexto, imagen, x, y, ancho, alto) {
-  const fuente = document.createElement("canvas");
-  fuente.width = imagen.naturalWidth;
-  fuente.height = imagen.naturalHeight;
-  const fuenteContexto = fuente.getContext("2d", { willReadFrequently: true });
-  if (!fuenteContexto) throw new Error("No se pudo preparar uno de los logos bicolor.");
-  fuenteContexto.drawImage(imagen, 0, 0);
-  const pixeles = fuenteContexto.getImageData(0, 0, fuente.width, fuente.height);
-  const { data } = pixeles;
-  const pendientes = new Uint32Array(fuente.width * fuente.height);
-  let finalPendientes = 0;
-  let siguientePendiente = 0;
-
-  function esFondoBlanco(indice) {
-    const rojo = data[indice * 4];
-    const verde = data[indice * 4 + 1];
-    const azul = data[indice * 4 + 2];
-    return data[indice * 4 + 3] > 0 &&
-      Math.min(rojo, verde, azul) >= 238 &&
-      Math.max(rojo, verde, azul) - Math.min(rojo, verde, azul) <= 20;
-  }
-
-  function agregarFondo(indice) {
-    if (!esFondoBlanco(indice)) return;
-    data[indice * 4 + 3] = 0;
-    pendientes[finalPendientes] = indice;
-    finalPendientes += 1;
-  }
-
-  for (let x = 0; x < fuente.width; x += 1) {
-    agregarFondo(x);
-    agregarFondo((fuente.height - 1) * fuente.width + x);
-  }
-  for (let y = 1; y < fuente.height - 1; y += 1) {
-    agregarFondo(y * fuente.width);
-    agregarFondo(y * fuente.width + fuente.width - 1);
-  }
-
-  while (siguientePendiente < finalPendientes) {
-    const indice = pendientes[siguientePendiente];
-    siguientePendiente += 1;
-    const x = indice % fuente.width;
-    if (x > 0) agregarFondo(indice - 1);
-    if (x < fuente.width - 1) agregarFondo(indice + 1);
-    if (indice >= fuente.width) agregarFondo(indice - fuente.width);
-    if (indice < fuente.width * (fuente.height - 1)) agregarFondo(indice + fuente.width);
-  }
-
-  fuenteContexto.putImageData(pixeles, 0, 0);
-  contexto.drawImage(fuente, x, y, ancho, alto);
 }
 
 function dibujarTemporada(contexto, x, y, anio) {
   contexto.fillStyle = "rgba(255,255,255,.82)";
-  contexto.beginPath();
-  contexto.moveTo(x + 18, y);
-  contexto.lineTo(x + 250, y);
-  contexto.lineTo(x + 232, y + 76);
-  contexto.lineTo(x, y + 76);
-  contexto.closePath();
-  contexto.fill();
+  contexto.fillRect(x, y, 250, 76);
   contexto.textAlign = "center";
   contexto.fillStyle = "#123c72";
   contexto.font = "700 23px 'Trebuchet MS', Arial, sans-serif";
@@ -261,8 +145,8 @@ export async function generarImagenHorarios(partidos) {
   contexto.fill();
 
   const [logoAyuntamiento, logoLlfs, logoAlcomar, logoMeycagesal, logoCesport, logoGen] = imagenes;
-  dibujarLogo(contexto, logoAyuntamiento, 42, 24, 94, 122);
-  dibujarLogo(contexto, logoLlfs, 1390, 35, 162, 58);
+  dibujarImagenAjustada(contexto, logoAyuntamiento, 42, 24, 94, 122);
+  dibujarImagenAjustada(contexto, logoLlfs, 1390, 35, 162, 58);
 
   contexto.textAlign = "center";
   contexto.font = "900 60px Arial, sans-serif";
@@ -341,11 +225,11 @@ export async function generarImagenHorarios(partidos) {
   contexto.textAlign = "left";
 
   const pieY = 790;
-  dibujarLogoBicolor(contexto, logoAlcomar, 70, pieY - 18, 220, 124);
-  dibujarLogoBicolor(contexto, logoMeycagesal, 320, pieY - 18, 220, 124);
+  dibujarImagenAjustada(contexto, logoAlcomar, 115, pieY - 18, 130, 130);
+  dibujarImagenAjustada(contexto, logoMeycagesal, 355, pieY - 18, 130, 130);
   dibujarTemporada(contexto, 675, pieY - 2, new Date().getFullYear());
-  dibujarLogoBicolor(contexto, logoCesport, 985, pieY - 18, 220, 124);
-  dibujarLogoBicolor(contexto, logoGen, 1310, pieY - 18, 220, 124);
+  dibujarImagenAjustada(contexto, logoCesport, 1025, pieY - 18, 130, 130);
+  dibujarImagenAjustada(contexto, logoGen, 1335, pieY - 18, 130, 130);
 
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob((resultado) => resultado ? resolve(resultado) : reject(new Error("No se pudo generar el archivo de horarios.")), "image/png");
