@@ -172,7 +172,6 @@ export default function Arbitro() {
     (!consultaPartidos || normalizarBusqueda([
       p.local?.nombre,
       p.visitante?.nombre,
-      p.jornada && `jornada ${p.jornada}`,
       p.fecha && fechaInput(p.fecha),
       p.fecha && fmt(p.fecha),
     ].filter(Boolean).join(" ")).includes(consultaPartidos)) &&
@@ -237,19 +236,25 @@ export default function Arbitro() {
       <h1>Hola, {yo.nombre}</h1>
       <h2>{yo.rol === "admin" ? "Partidos" : "Tus partidos"}</h2>
       {yo.rol === "admin" && (
-        <form className="rango-fechas" onSubmit={(e) => { e.preventDefault(); sincronizar(); }}>
-          <label>Fecha desde<input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} required /></label>
-          <label>Fecha hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} required /></label>
-          <button type="submit">Sincronizar con Clupik</button>
-          <p className="nota-datos rango-fechas-nota">El rango solo limita la importación desde Clupik. Los partidos ya guardados en la app (incluidos los creados aquí) siguen apareciendo aunque sean anteriores a la fecha inicial.</p>
-        </form>
+        <details className="rango-fechas">
+          <summary>
+            <strong>Sincronizar Clupik</strong>
+            <span>{desde} – {hasta}</span>
+          </summary>
+          <form className="rango-fechas-form" onSubmit={(e) => { e.preventDefault(); sincronizar(); }}>
+            <label>Fecha desde<input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} required /></label>
+            <label>Fecha hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} required /></label>
+            <button type="submit">Sincronizar</button>
+            <p className="nota-datos rango-fechas-nota">El rango solo limita la importación; no elimina partidos que ya estén guardados fuera de esas fechas.</p>
+          </form>
+        </details>
       )}
       <div className="filtros-partidos">
         <label className="filtro-busqueda-partidos">Buscar partido
           <input
             type="search"
             value={filtroBusqueda}
-            placeholder="Equipo, jornada o fecha"
+            placeholder="Equipo o fecha"
             onChange={(e) => setFiltroBusqueda(e.target.value)}
           />
         </label>

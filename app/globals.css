@@ -321,19 +321,24 @@ textarea:disabled { background: #f5f8fb; color: var(--suave); }
 .fila > * { min-width: 0; flex: 1; }
 
 .rango-fechas {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
   margin: 22px 0;
-  padding: 16px;
   border: 1px solid var(--borde);
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--papel);
   box-shadow: var(--sombra);
 }
 
-.rango-fechas label { display: grid; gap: 6px; color: var(--suave); font-size: .88rem; font-weight: 650; }
-.rango-fechas button { grid-column: 1 / -1; }
+.rango-fechas > summary { display: flex; min-height: 48px; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; list-style: none; }
+.rango-fechas > summary::-webkit-details-marker { display: none; }
+.rango-fechas > summary::after { margin-left: auto; content: "+"; color: var(--acento); font-size: 1.25rem; line-height: 1; }
+.rango-fechas[open] > summary { border-bottom: 1px solid var(--borde); }
+.rango-fechas[open] > summary::after { content: "−"; }
+.rango-fechas > summary strong { color: var(--tinta); }
+.rango-fechas > summary span { color: var(--suave); font-size: .85rem; }
+.rango-fechas > summary:focus-visible { outline: 3px solid #b4232e; outline-offset: 3px; }
+.rango-fechas-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px; }
+.rango-fechas-form label { display: grid; gap: 6px; color: var(--suave); font-size: .88rem; font-weight: 650; }
+.rango-fechas-form button { grid-column: 1 / -1; justify-self: start; }
 .rango-fechas-nota { grid-column: 1 / -1; margin: 0; }
 .clupik-prueba-aviso { margin: 16px 0; padding: 14px 16px; border: 1px solid #e6c46a; border-radius: 12px; background: #fff8df; color: #59470c; font-weight: 650; }
 .clupik-prueba-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: end; gap: 14px; margin: 16px 0; padding: 18px; border: 1px solid var(--borde); border-radius: 14px; background: var(--papel); box-shadow: var(--sombra); }
