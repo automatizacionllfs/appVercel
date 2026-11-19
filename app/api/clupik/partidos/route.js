@@ -1,5 +1,6 @@
 import { createServiceDb, errorRespuesta } from "../../../lib/entrenador";
 import { nombrePersonalActa, NOMBRES_PERSONAL_ACTA } from "../../../lib/personal-acta";
+import { obtenerTokenClupik } from "../../../lib/clupik-auth";
 
 export const dynamic = "force-dynamic";
 const API = "https://api.clupik.com";
@@ -95,7 +96,6 @@ export async function POST(request) {
     return Response.json({ error: "Solicitud no válida." }, { status: 400 });
   }
 
-  const tokenClupik = typeof body?.tokenClupik === "string" ? body.tokenClupik.trim() : "";
   const grupoId = String(body?.grupoId || "");
   const equipoLocalId = String(body?.equipoLocalId || "");
   const equipoVisitanteId = String(body?.equipoVisitanteId || "");
@@ -104,9 +104,6 @@ export async function POST(request) {
   const fecha = typeof body?.fecha === "string" ? body.fecha : "";
   const fechaConZona = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(fecha);
   const fechaMs = Date.parse(fecha);
-  if (!tokenClupik || tokenClupik.length > 8192 || /[\r\n]/.test(tokenClupik)) {
-    return Response.json({ error: "Introduce un token de Clupik válido." }, { status: 400 });
-  }
   if (![grupoId, equipoLocalId, equipoVisitanteId, estadioId].every((id) => /^\d+$/.test(id)) ||
       equipoLocalId === equipoVisitanteId) {
     return Response.json({ error: "Selecciona un grupo, un pabellón y dos equipos distintos." }, { status: 400 });
@@ -152,6 +149,7 @@ export async function POST(request) {
     const estadio = estadios.find((item) => item.id === estadioId);
     if (!estadio) return Response.json({ error: "El pabellón seleccionado no existe en Clupik." }, { status: 400 });
 
+    const tokenClupik = await obtenerTokenClupik();
     const respuesta = await fetch(`${API}/clubs/${CLUB_ID}/games`, {
       method: "POST",
       headers: {

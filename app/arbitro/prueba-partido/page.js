@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { fechaMadridAISO, fechaMadridInput, MADRID_TIME_ZONE, partesEnMadrid } from "../../lib/fecha-madrid";
+import { generarImagenHorarios } from "../../lib/horarios-imagen";
 import NavegacionArbitro from "../NavegacionArbitro";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
@@ -39,12 +40,13 @@ export default function PruebaCrearPartido() {
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [partidosSeleccionados, setPartidosSeleccionados] = useState([]);
+  const [arbitrosPorPartido, setArbitrosPorPartido] = useState({});
   const [modalAsignacion, setModalAsignacion] = useState(false);
   const [asignacion, setAsignacion] = useState({ arbitro1Id: "", arbitro2Id: "", cronoId: "" });
-  const [tokenClupik, setTokenClupik] = useState("");
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [descargando, setDescargando] = useState(false);
+  const [descargandoHorarios, setDescargandoHorarios] = useState(false);
   const [progresoDescarga, setProgresoDescarga] = useState({ actual: 0, total: 0 });
   const [error, setError] = useState("");
   const [partidoCreado, setPartidoCreado] = useState(null);
@@ -60,7 +62,7 @@ export default function PruebaCrearPartido() {
 
   const cargarDatos = useCallback(async () => {
     const respuesta = await fetch("/api/clupik/partidos", {
-      headers: { Authorization: `Bearer ${sesion.access_token}` },
+      headers: { Authorization: `${sesion.access_token}` },
       cache: "no-store",
     });
     const datos = await respuesta.json();
@@ -153,10 +155,10 @@ export default function PruebaCrearPartido() {
       const respuesta = await fetch("/api/clupik/partidos", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${sesion.access_token}`,
+          Authorization: `${sesion.access_token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tokenClupik, grupoId, equipoLocalId, equipoVisitanteId, estadioId, jornada, fecha: fechaISO }),
+        body: JSON.stringify({ grupoId, equipoLocalId, equipoVisitanteId, estadioId, jornada, fecha: fechaISO }),
       });
       const datos = await respuesta.json();
       if (!respuesta.ok) {
@@ -172,7 +174,6 @@ export default function PruebaCrearPartido() {
     } catch (fallo) {
       setError(fallo.message);
     } finally {
-      setTokenClupik("");
       setEnviando(false);
     }
   }
@@ -181,6 +182,37 @@ export default function PruebaCrearPartido() {
     setPartidosSeleccionados((actuales) => actuales.includes(id)
       ? actuales.filter((seleccionado) => seleccionado !== id)
       : actuales.length < 12 ? [...actuales, id] : actuales);
+  }
+
+  function cambiarCantidadArbitros(partidoId, cantidad) {
+    setArbitrosPorPartido((actuales) => ({ ...actuales, [partidoId]: Number(cantidad) }));
+  }
+
+  async function descargarHorarios() {
+    if (!partidosSeleccionados.length || descargandoHorarios) return;
+    setError("");
+    setDescargandoHorarios(true);
+    try {
+      const seleccion = partidos
+        .filter((partido) => partidosSeleccionados.includes(partido.id))
+        .map((partido) => ({
+          ...partido,
+          numeroArbitros: arbitrosPorPartido[partido.id] ?? 1,
+        }));
+      const archivo = await generarImagenHorarios(seleccion);
+      const url = URL.createObjectURL(archivo);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = "Horarios_partidos.png";
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (fallo) {
+      setError(fallo instanceof Error ? fallo.message : "No se pudo descargar el horario.");
+    } finally {
+      setDescargandoHorarios(false);
+    }
   }
 
   async function descargarActas(evento) {
@@ -196,7 +228,7 @@ export default function PruebaCrearPartido() {
         const respuesta = await fetch("/api/clupik/partidos/actas", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${sesion.access_token}`,
+            Authorization: `${sesion.access_token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -260,20 +292,9 @@ export default function PruebaCrearPartido() {
         <>
           <div className="clupik-prueba-aviso" role="note">
             Esto no es un entorno sandbox: al enviar el formulario se creará un registro real en Clupik.
-            Usa un token recién obtenido; se enviará solo para esta petición y no se guardará.
+            El servidor iniciará sesión con las credenciales privadas configuradas; no introduzcas ni compartas tokens aquí.
           </div>
           <form className="clupik-prueba-form" onSubmit={crearPartido}>
-            <label>
-              Token de Clupik
-              <input
-                type="password"
-                value={tokenClupik}
-                onChange={(evento) => setTokenClupik(evento.target.value)}
-                autoComplete="off"
-                required
-              />
-              <span className="suave">Pega el valor completo de la cabecera Authorization, con el mismo formato que usa Clupik.</span>
-            </label>
             <label>
               Grupo
               <select value={grupoId} onChange={(evento) => setGrupoId(evento.target.value)} required>
@@ -358,12 +379,42 @@ export default function PruebaCrearPartido() {
               </div>
             )}
             {partidosSeleccionados.length > 0 && (
-              <div className="clupik-partidos-acciones">
-                <span>{partidosSeleccionados.length} seleccionados</span>
-                <button type="button" className="primario" onClick={() => setModalAsignacion(true)}>
-                  Asignar árbitros
-                </button>
-              </div>
+              <>
+                <section className="clupik-horarios-config" aria-labelledby="clupik-horarios-titulo">
+                  <h3 id="clupik-horarios-titulo">Árbitros por partido</h3>
+                  <p className="suave">Indica cuántos árbitros aparecerán en cada partido de la plantilla. Esta selección es temporal y no se guarda.</p>
+                  <div className="clupik-horarios-lista">
+                    {partidos.filter((partido) => partidosSeleccionados.includes(partido.id)).map((partido) => {
+                      const nombrePartido = `${partido.local?.nombre || "Local"} – ${partido.visitante?.nombre || "Visitante"}`;
+                      return (
+                        <label className="clupik-horario-fila" key={partido.id}>
+                          <span>
+                            <strong>{nombrePartido}</strong>
+                            <span>{partido.grupo?.nombre || "Grupo —"} · Jornada {partido.jornada || "—"} · {fechaLegible(partido.fecha)}</span>
+                          </span>
+                          <select
+                            value={arbitrosPorPartido[partido.id] ?? 1}
+                            aria-label={`Cantidad de árbitros para ${nombrePartido}`}
+                            onChange={(evento) => cambiarCantidadArbitros(partido.id, evento.target.value)}
+                          >
+                            <option value={1}>1 árbitro</option>
+                            <option value={2}>2 árbitros</option>
+                          </select>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </section>
+                <div className="clupik-partidos-acciones">
+                  <span>{partidosSeleccionados.length} seleccionados</span>
+                  <button type="button" className="mini" onClick={descargarHorarios} disabled={descargandoHorarios}>
+                    {descargandoHorarios ? "Preparando horarios…" : "Descargar horarios"}
+                  </button>
+                  <button type="button" className="primario" onClick={() => setModalAsignacion(true)}>
+                    Asignar árbitros
+                  </button>
+                </div>
+              </>
             )}
           </section>
         </>

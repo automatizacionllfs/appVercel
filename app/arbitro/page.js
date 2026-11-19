@@ -6,6 +6,7 @@ import NavegacionArbitro from "./NavegacionArbitro";
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const fmt = (f) => new Date(f).toLocaleString("es-ES", { timeZone: "Europe/Madrid", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const fechaInput = (fecha) => String(fecha).slice(0, 10);
+const normalizarBusqueda = (texto) => texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
 const reloj = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const TIPOS = { gol: "Gol", amarilla: "Amarilla", roja: "Roja" };
 const tiempoJuego = (e) => (e.parte - 1) * 1320 + (1320 - e.restante_seg);
@@ -73,6 +74,7 @@ export default function Arbitro() {
   const [errorPartidos, setErrorPartidos] = useState("");
   const [abierto, setAbierto] = useState(null);
   const [modo, setModo] = useState("movil");
+  const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [filtroJornada, setFiltroJornada] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [desde, setDesde] = useState(() => fechaInput(process.env.FECHA_DESDE || "2026-09-01"));
@@ -165,7 +167,14 @@ export default function Arbitro() {
     golesActaPorPartido.set(gol.partido_id, porEquipo);
   });
   const jornadas = [...new Set(partidos.map((p) => p.jornada).filter((j) => j !== null))].sort((a, b) => a - b);
+  const consultaPartidos = normalizarBusqueda(filtroBusqueda.trim());
   const partidosFiltrados = partidos.filter((p) =>
+    (!consultaPartidos || normalizarBusqueda([
+      p.local?.nombre,
+      p.visitante?.nombre,
+      p.fecha && fechaInput(p.fecha),
+      p.fecha && fmt(p.fecha),
+    ].filter(Boolean).join(" ")).includes(consultaPartidos)) &&
     (!filtroJornada || String(p.jornada) === filtroJornada) &&
     (!filtroEstado || p.estado === filtroEstado)
   );
@@ -227,13 +236,28 @@ export default function Arbitro() {
       <h1>Hola, {yo.nombre}</h1>
       <h2>{yo.rol === "admin" ? "Partidos" : "Tus partidos"}</h2>
       {yo.rol === "admin" && (
-        <form className="rango-fechas" onSubmit={(e) => { e.preventDefault(); sincronizar(); }}>
-          <label>Fecha desde<input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} required /></label>
-          <label>Fecha hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} required /></label>
-          <button type="submit">Sincronizar con Clupik</button>
-        </form>
+        <details className="rango-fechas">
+          <summary>
+            <strong>Sincronizar Clupik</strong>
+            <span>{desde} – {hasta}</span>
+          </summary>
+          <form className="rango-fechas-form" onSubmit={(e) => { e.preventDefault(); sincronizar(); }}>
+            <label>Fecha desde<input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} required /></label>
+            <label>Fecha hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} required /></label>
+            <button type="submit">Sincronizar</button>
+            <p className="nota-datos rango-fechas-nota">El rango solo limita la importación; no elimina partidos que ya estén guardados fuera de esas fechas.</p>
+          </form>
+        </details>
       )}
       <div className="filtros-partidos">
+        <label className="filtro-busqueda-partidos">Buscar partido
+          <input
+            type="search"
+            value={filtroBusqueda}
+            placeholder="Equipo o fecha"
+            onChange={(e) => setFiltroBusqueda(e.target.value)}
+          />
+        </label>
         <label>Jornada
           <select value={filtroJornada} onChange={(e) => setFiltroJornada(e.target.value)}>
             <option value="">Todas</option>
