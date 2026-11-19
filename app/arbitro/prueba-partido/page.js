@@ -152,7 +152,7 @@ export default function PruebaCrearPartido() {
       const respuesta = await fetch("/api/clupik/partidos", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${sesion.access_token}`,
+          Authorization: `${sesion.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ grupoId, equipoLocalId, equipoVisitanteId, estadioId, jornada, fecha: fechaISO }),
@@ -194,7 +194,7 @@ export default function PruebaCrearPartido() {
         const respuesta = await fetch("/api/clupik/partidos/actas", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${sesion.access_token}`,
+            Authorization: `${sesion.access_token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
