@@ -264,7 +264,7 @@ export async function generarImagenHorarios(partidos) {
   const pieY = 790;
   dibujarImagenAjustada(contexto, logoAlcomarMeycagesal, 45, pieY - 18, 530, 110);
   dibujarTemporada(contexto, 675, pieY - 2, new Date().getFullYear());
-  dibujarImagenAjustada(contexto, logoCesportGen, 1025, pieY - 18, 530, 110);
+  dibujarImagenAjustada(contexto, logoCesportGen, 1015, pieY - 32, 550, 138);
 
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob((resultado) => resultado ? resolve(resultado) : reject(new Error("No se pudo generar el archivo de horarios.")), "image/png");
