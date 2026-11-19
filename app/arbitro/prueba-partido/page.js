@@ -290,10 +290,6 @@ export default function PruebaCrearPartido() {
         <p className="suave">No hay grupos cargados en la temporada activa.</p>
       ) : (
         <>
-          <div className="clupik-prueba-aviso" role="note">
-            Esto no es un entorno sandbox: al enviar el formulario se creará un registro real en Clupik.
-            El servidor iniciará sesión con las credenciales privadas configuradas; no introduzcas ni compartas tokens aquí.
-          </div>
           <form className="clupik-prueba-form" onSubmit={crearPartido}>
             <label>
               Grupo
