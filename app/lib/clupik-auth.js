@@ -49,5 +49,9 @@ export async function obtenerTokenClupik() {
     throw new Error("Clupik no devolvió un token de autenticación válido.");
   }
 
-  return datos.token;
+  const token = datos.token.replace(/^Bearer\s+/i, "").trim();
+  if (!token || /[\r\n]/.test(token)) {
+    throw new Error("Clupik devolvió un token de autenticación no válido.");
+  }
+  return token;
 }

@@ -154,7 +154,7 @@ export async function POST(request) {
       method: "POST",
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${tokenClupik}`,
+        Authorization: tokenClupik,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
