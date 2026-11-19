@@ -41,7 +41,6 @@ export default function PruebaCrearPartido() {
   const [partidosSeleccionados, setPartidosSeleccionados] = useState([]);
   const [modalAsignacion, setModalAsignacion] = useState(false);
   const [asignacion, setAsignacion] = useState({ arbitro1Id: "", arbitro2Id: "", cronoId: "" });
-  const [tokenClupik, setTokenClupik] = useState("");
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [descargando, setDescargando] = useState(false);
@@ -156,7 +155,7 @@ export default function PruebaCrearPartido() {
           Authorization: `Bearer ${sesion.access_token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tokenClupik, grupoId, equipoLocalId, equipoVisitanteId, estadioId, jornada, fecha: fechaISO }),
+        body: JSON.stringify({ grupoId, equipoLocalId, equipoVisitanteId, estadioId, jornada, fecha: fechaISO }),
       });
       const datos = await respuesta.json();
       if (!respuesta.ok) {
@@ -172,7 +171,6 @@ export default function PruebaCrearPartido() {
     } catch (fallo) {
       setError(fallo.message);
     } finally {
-      setTokenClupik("");
       setEnviando(false);
     }
   }
@@ -260,20 +258,9 @@ export default function PruebaCrearPartido() {
         <>
           <div className="clupik-prueba-aviso" role="note">
             Esto no es un entorno sandbox: al enviar el formulario se creará un registro real en Clupik.
-            Usa un token recién obtenido; se enviará solo para esta petición y no se guardará.
+            El servidor iniciará sesión con las credenciales privadas configuradas; no introduzcas ni compartas tokens aquí.
           </div>
           <form className="clupik-prueba-form" onSubmit={crearPartido}>
-            <label>
-              Token de Clupik
-              <input
-                type="password"
-                value={tokenClupik}
-                onChange={(evento) => setTokenClupik(evento.target.value)}
-                autoComplete="off"
-                required
-              />
-              <span className="suave">Pega el valor completo de la cabecera Authorization, con el mismo formato que usa Clupik.</span>
-            </label>
             <label>
               Grupo
               <select value={grupoId} onChange={(evento) => setGrupoId(evento.target.value)} required>
