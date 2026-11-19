@@ -1,8 +1,6 @@
 import ayuntamiento from "../assets/AYTO.-PUERTO-REAL_Blanco.png";
-import cesport from "../assets/CeSport_Bicolor.png";
-import alcomar from "../assets/Grupo Alcomar_Bicolor.png";
-import gen from "../assets/Gen_Bicolor.png";
-import meycagesal from "../assets/Meycagesal_Bicolor.png";
+import alcomarMeycagesal from "../assets/Alcomar_Meycagesal.png";
+import cesportGen from "../assets/CeSport_Gen.png";
 import llfs from "../assets/llfs.png";
 import { MADRID_TIME_ZONE, partesEnMadrid } from "./fecha-madrid";
 
@@ -128,7 +126,7 @@ function textoPeriodo(fechas) {
 export async function generarImagenHorarios(partidos) {
   if (!partidos.length) throw new Error("Selecciona al menos un partido para descargar los horarios.");
 
-  const imagenes = await Promise.all([ayuntamiento, llfs, alcomar, meycagesal, cesport, gen].map(cargarImagen));
+  const imagenes = await Promise.all([ayuntamiento, llfs, alcomarMeycagesal, cesportGen].map(cargarImagen));
   const filas = partidos.map((partido) => ({ ...partido, ...fechaPartido(partido.fecha) }))
     .sort((a, b) => new Date(a.fecha || 0) - new Date(b.fecha || 0));
   const canvas = document.createElement("canvas");
@@ -183,7 +181,7 @@ export async function generarImagenHorarios(partidos) {
   contexto.closePath();
   contexto.fill();
 
-  const [logoAyuntamiento, logoLlfs, logoAlcomar, logoMeycagesal, logoCesport, logoGen] = imagenes;
+  const [logoAyuntamiento, logoLlfs, logoAlcomarMeycagesal, logoCesportGen] = imagenes;
   dibujarImagenAjustada(contexto, logoAyuntamiento, 42, 24, 94, 122);
   dibujarImagenAjustada(contexto, logoLlfs, 1390, 35, 162, 58);
 
@@ -264,11 +262,9 @@ export async function generarImagenHorarios(partidos) {
   contexto.textAlign = "left";
 
   const pieY = 790;
-  dibujarImagenAjustada(contexto, logoAlcomar, 70, pieY - 18, 220, 110);
-  dibujarImagenAjustada(contexto, logoMeycagesal, 265, pieY - 18, 330, 110);
+  dibujarImagenAjustada(contexto, logoAlcomarMeycagesal, 45, pieY - 18, 530, 110);
   dibujarTemporada(contexto, 675, pieY - 2, new Date().getFullYear());
-  dibujarImagenAjustada(contexto, logoCesport, 975, pieY - 18, 250, 110);
-  dibujarImagenAjustada(contexto, logoGen, 1310, pieY - 18, 220, 110);
+  dibujarImagenAjustada(contexto, logoCesportGen, 1025, pieY - 18, 530, 110);
 
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob((resultado) => resultado ? resolve(resultado) : reject(new Error("No se pudo generar el archivo de horarios.")), "image/png");
