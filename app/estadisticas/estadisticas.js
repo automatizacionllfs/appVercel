@@ -286,7 +286,7 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
             {!usuarios.length ? <p className="suave">No hay jugadores de Clupik sincronizados para este equipo.</p> : (
               <div className="tabla-scroll">
                 <table className="tabla-con-podio">
-                  <thead><tr><th className="num">#</th><th className="num">Dorsal</th><th>Jugador</th><th className="num">1.er gol</th><th className="num">Goles/partido</th><th className="num">🟨</th><th className="num">🟥</th></tr></thead>
+                  <thead><tr><th className="num">#</th><th className="num">Dorsal</th><th>Jugador</th><th className="num">Tiempo medio del primer gol</th><th className="num">Goles/partido</th><th className="num">🟨</th><th className="num">🟥</th></tr></thead>
                   <tbody>
                     {usuarios.map((usuario, indice) => (
                       <tr key={usuario.id} className={indice < 3 ? `podio podio-${indice + 1}` : ""}>
