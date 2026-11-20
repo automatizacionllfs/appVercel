@@ -161,6 +161,20 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
                   const pendiente = resultadoPendiente(partido);
                   const golesEquipo = esLocal ? partido.goles_local_clupik : partido.goles_visitante_clupik;
                   const golesRival = esLocal ? partido.goles_visitante_clupik : partido.goles_local_clupik;
+                  const estadoResultado = pendiente
+                    ? null
+                    : golesEquipo > golesRival
+                      ? "ganado"
+                      : golesEquipo < golesRival
+                        ? "perdido"
+                        : "empate";
+                  const textoResultado = estadoResultado === "ganado"
+                    ? "Ganado"
+                    : estadoResultado === "perdido"
+                      ? "Perdido"
+                      : estadoResultado === "empate"
+                        ? "Empate"
+                        : "Pendiente";
                   return (
                     <article className="partido-equipo" key={partido.id}>
                       <div className="partido-info">
@@ -171,9 +185,12 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
                         {rival?.escudo_url && <img src={rival.escudo_url} alt="" width="30" height="30" />}
                         <span>{rival?.nombre || "Rival"}</span>
                       </span>
-                      <strong className={`resultado-partido ${pendiente ? "pendiente" : ""}`} aria-label={pendiente ? "Resultado pendiente" : `${golesEquipo} a ${golesRival}`}>
-                        {pendiente ? "Resultado pendiente" : `${golesEquipo} – ${golesRival}`}
-                      </strong>
+                      <div className="resultado-partido-wrapper">
+                        <strong className={`resultado-partido ${pendiente ? "pendiente" : ""}`} aria-label={pendiente ? "Resultado pendiente" : `${golesEquipo} a ${golesRival}`}>
+                          {pendiente ? "Resultado pendiente" : `${golesEquipo} – ${golesRival}`}
+                        </strong>
+                        <span className={`estado-resultado ${estadoResultado || "pendiente"}`}>{textoResultado}</span>
+                      </div>
                       {(partido.estado === "cerrado" || partidosConActa.has(partido.id)) && (
                         <a className="enlace-acta-estadisticas" href={`/actas/${partido.id}?desde=estadisticas&equipo=${equipo.id}`}>
                           Ver acta y cronología <span aria-hidden="true">→</span>
