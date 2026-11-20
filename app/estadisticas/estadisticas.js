@@ -34,11 +34,19 @@ function resumen(eventos, partidosJugados) {
   };
 }
 
-function TarjetasResumen({ titulo, datos, partidosJugados, nota }) {
+function TarjetasResumen({ titulo, datos, clasificacion, partidosJugados, nota }) {
   return (
     <section className="estadistica-card">
       <h2>{titulo}</h2>
       <dl className="metricas">
+        <div><dt>Partidos jugados</dt><dd>{clasificacion?.jugados ?? partidosJugados}</dd></div>
+        <div><dt>Victorias</dt><dd>{clasificacion?.ganados ?? 0}</dd></div>
+        <div><dt>Empates</dt><dd>{clasificacion?.empatados ?? 0}</dd></div>
+        <div><dt>Derrotas</dt><dd>{clasificacion?.perdidos ?? 0}</dd></div>
+        <div><dt>Goles a favor</dt><dd>{clasificacion?.golesFavor ?? 0}</dd></div>
+        <div><dt>Goles en contra</dt><dd>{clasificacion?.golesContra ?? 0}</dd></div>
+        <div><dt>Diferencia de goles</dt><dd>{clasificacion ? clasificacion.golesFavor - clasificacion.golesContra : 0}</dd></div>
+        <div><dt>Puntos</dt><dd>{clasificacion?.puntos ?? 0}</dd></div>
         <div><dt>Tiempo medio del primer gol</dt><dd>{reloj(datos.primerGol)}</dd></div>
         <div><dt>Goles por partido</dt><dd>{datos.mediaGoles.toFixed(2)}</dd></div>
         <div><dt>Tarjetas amarillas</dt><dd>{datos.amarillas}</dd></div>
@@ -59,7 +67,7 @@ function formatFecha(fecha) {
   });
 }
 
-function calcularPosicionGrupo(equipos, partidos, equipo) {
+function calcularClasificacionGrupo(equipos, partidos, equipo) {
   if (!equipo?.grupo_id) return null;
 
   const filas = new Map(
@@ -68,6 +76,10 @@ function calcularPosicionGrupo(equipos, partidos, equipo) {
       .map((item) => [item.id, {
         id: item.id,
         nombre: item.nombre,
+        jugados: 0,
+        ganados: 0,
+        empatados: 0,
+        perdidos: 0,
         golesFavor: 0,
         golesContra: 0,
         puntos: 0,
@@ -81,16 +93,24 @@ function calcularPosicionGrupo(equipos, partidos, equipo) {
 
     const golesLocal = Number(partido.goles_local_clupik);
     const golesVisitante = Number(partido.goles_visitante_clupik);
+    local.jugados += 1;
+    visitante.jugados += 1;
     local.golesFavor += golesLocal;
     local.golesContra += golesVisitante;
     visitante.golesFavor += golesVisitante;
     visitante.golesContra += golesLocal;
 
     if (golesLocal > golesVisitante) {
+      local.ganados += 1;
+      visitante.perdidos += 1;
       local.puntos += 3;
     } else if (golesLocal < golesVisitante) {
+      visitante.ganados += 1;
+      local.perdidos += 1;
       visitante.puntos += 3;
     } else {
+      local.empatados += 1;
+      visitante.empatados += 1;
       local.puntos += 1;
       visitante.puntos += 1;
     }
@@ -103,7 +123,8 @@ function calcularPosicionGrupo(equipos, partidos, equipo) {
     a.nombre.localeCompare(b.nombre, "es"),
   );
   const posicion = clasificacion.findIndex((item) => item.id === equipo.id);
-  return posicion >= 0 ? posicion + 1 : null;
+  if (posicion < 0) return null;
+  return { posicion: posicion + 1, fila: clasificacion[posicion] };
 }
 
 export default function Estadisticas({ equipos, partidos, eventos, plantilla, equipoInicial = "" }) {
@@ -134,8 +155,8 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
   const partidosConResultado = partidosEquipo.filter(tieneResultado);
   const eventosEquipo = equipo ? eventosConSegundasAmarillas.filter((evento) => evento.equipo_id === equipo.id) : [];
   const resumenEquipo = useMemo(() => resumen(eventosEquipo, partidosConResultado.length), [eventosEquipo, partidosConResultado.length]);
-  const posicionGrupo = useMemo(
-    () => calcularPosicionGrupo(equipos, partidos, equipo),
+  const clasificacionGrupo = useMemo(
+    () => calcularClasificacionGrupo(equipos, partidos, equipo),
     [equipos, partidos, equipo],
   );
 
@@ -193,16 +214,17 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
               <span className="suave">{equipo.grupo?.nombre || "Equipo"}</span>
               <h2>{equipo.nombre}</h2>
             </div>
-            {posicionGrupo !== null && (
-              <div className="equipo-posicion" aria-label={`Posición ${posicionGrupo} en su grupo`}>
+            {clasificacionGrupo && (
+              <div className="equipo-posicion" aria-label={`Posición ${clasificacionGrupo.posicion} en su grupo`}>
                 <span>Pos.</span>
-                <strong>{posicionGrupo}</strong>
+                <strong>{clasificacionGrupo.posicion}</strong>
               </div>
             )}
           </div>
           <TarjetasResumen
             titulo="Resumen del equipo"
             datos={resumenEquipo}
+            clasificacion={clasificacionGrupo?.fila}
             partidosJugados={partidosConResultado.length}
             nota="estadísticas de eventos registrados en acta"
           />
