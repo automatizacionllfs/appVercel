@@ -59,6 +59,53 @@ function formatFecha(fecha) {
   });
 }
 
+function calcularPosicionGrupo(equipos, partidos, equipo) {
+  if (!equipo?.grupo_id) return null;
+
+  const filas = new Map(
+    equipos
+      .filter((item) => item.grupo_id === equipo.grupo_id)
+      .map((item) => [item.id, {
+        id: item.id,
+        nombre: item.nombre,
+        golesFavor: 0,
+        golesContra: 0,
+        puntos: 0,
+      }]),
+  );
+
+  partidos.forEach((partido) => {
+    const local = filas.get(partido.local_id);
+    const visitante = filas.get(partido.visitante_id);
+    if (!local || !visitante || partido.goles_local_clupik == null || partido.goles_visitante_clupik == null) return;
+
+    const golesLocal = Number(partido.goles_local_clupik);
+    const golesVisitante = Number(partido.goles_visitante_clupik);
+    local.golesFavor += golesLocal;
+    local.golesContra += golesVisitante;
+    visitante.golesFavor += golesVisitante;
+    visitante.golesContra += golesLocal;
+
+    if (golesLocal > golesVisitante) {
+      local.puntos += 3;
+    } else if (golesLocal < golesVisitante) {
+      visitante.puntos += 3;
+    } else {
+      local.puntos += 1;
+      visitante.puntos += 1;
+    }
+  });
+
+  const clasificacion = [...filas.values()].sort((a, b) =>
+    b.puntos - a.puntos ||
+    (b.golesFavor - b.golesContra) - (a.golesFavor - a.golesContra) ||
+    b.golesFavor - a.golesFavor ||
+    a.nombre.localeCompare(b.nombre, "es"),
+  );
+  const posicion = clasificacion.findIndex((item) => item.id === equipo.id);
+  return posicion >= 0 ? posicion + 1 : null;
+}
+
 export default function Estadisticas({ equipos, partidos, eventos, plantilla, equipoInicial = "" }) {
   const [equipoId, setEquipoId] = useState(String(equipoInicial));
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState("");
@@ -87,6 +134,10 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
   const partidosConResultado = partidosEquipo.filter(tieneResultado);
   const eventosEquipo = equipo ? eventosConSegundasAmarillas.filter((evento) => evento.equipo_id === equipo.id) : [];
   const resumenEquipo = useMemo(() => resumen(eventosEquipo, partidosConResultado.length), [eventosEquipo, partidosConResultado.length]);
+  const posicionGrupo = useMemo(
+    () => calcularPosicionGrupo(equipos, partidos, equipo),
+    [equipos, partidos, equipo],
+  );
 
   const usuarios = useMemo(() => {
     const eventosPorJugador = new Map();
@@ -138,10 +189,16 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
         <>
           <div className="equipo-destacado">
             {equipo.escudo_url && <img src={equipo.escudo_url} alt={`Escudo de ${equipo.nombre}`} width="76" height="76" />}
-            <div>
+            <div className="equipo-destacado-nombre">
               <span className="suave">{equipo.grupo?.nombre || "Equipo"}</span>
               <h2>{equipo.nombre}</h2>
             </div>
+            {posicionGrupo !== null && (
+              <div className="equipo-posicion" aria-label={`Posición ${posicionGrupo} en su grupo`}>
+                <span>Pos.</span>
+                <strong>{posicionGrupo}</strong>
+              </div>
+            )}
           </div>
           <TarjetasResumen
             titulo="Resumen del equipo"

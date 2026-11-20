@@ -692,7 +692,11 @@ table {
   box-shadow: var(--sombra);
 }
 .equipo-destacado img { flex: 0 0 auto; object-fit: contain; }
+.equipo-destacado-nombre { min-width: 0; }
 .equipo-destacado h2 { margin: 2px 0 0; color: var(--acento-oscuro); }
+.equipo-posicion { display: grid; justify-items: center; margin-left: auto; padding: 7px 11px; border: 1px solid var(--borde); border-radius: 10px; background: var(--acento-claro); color: var(--acento-oscuro); }
+.equipo-posicion span { font-size: .72rem; font-weight: 800; }
+.equipo-posicion strong { font-size: 1.35rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .partidos-equipo { display: grid; gap: 9px; }
 .partido-equipo {
   display: grid;
