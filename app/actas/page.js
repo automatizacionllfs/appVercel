@@ -30,7 +30,14 @@ export default async function ActasDigitales() {
 
     const ids = (partidos || []).map((partido) => partido.id);
     const eventos = [];
+    const alineaciones = [];
     if (ids.length) {
+      const { data: jugadoresAlineacion, error: errorAlineacion } = await db.from("alineacion_acta")
+        .select("partido_id")
+        .in("partido_id", ids);
+      if (errorAlineacion) throw new Error(`No se pudieron cargar las alineaciones: ${errorAlineacion.message}`);
+      alineaciones.push(...(jugadoresAlineacion || []));
+
       for (let desde = 0; ; desde += 1000) {
         const { data: pagina, error } = await db.from("eventos")
           .select("partido_id,tipo")
@@ -45,6 +52,10 @@ export default async function ActasDigitales() {
 
     const equipoPorId = new Map((equipos || []).map((equipo) => [equipo.id, equipo]));
     const resumenEventos = new Map();
+    const jugadoresPorPartido = new Map();
+    alineaciones.forEach(({ partido_id: partidoId }) => {
+      jugadoresPorPartido.set(partidoId, (jugadoresPorPartido.get(partidoId) || 0) + 1);
+    });
     eventos.forEach((evento) => {
       const resumen = resumenEventos.get(evento.partido_id) || { goles: 0, tarjetas: 0, eventos: 0 };
       resumen.eventos += 1;
@@ -58,8 +69,11 @@ export default async function ActasDigitales() {
         ...partido,
         local: equipoPorId.get(partido.local_id),
         visitante: equipoPorId.get(partido.visitante_id),
-        resumen: resumenEventos.get(partido.id) || { goles: 0, tarjetas: 0, eventos: 0 },
-        actaDigitalizada: partido.estado === "cerrado" || resumenEventos.has(partido.id),
+        resumen: {
+          ...(resumenEventos.get(partido.id) || { goles: 0, tarjetas: 0, eventos: 0 }),
+          jugadoresAlineacion: jugadoresPorPartido.get(partido.id) || 0,
+        },
+        actaDigitalizada: partido.estado === "cerrado" || resumenEventos.has(partido.id) || jugadoresPorPartido.has(partido.id),
       }));
   }
 

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useRef, useId } from "react";
 import { createClient } from "@supabase/supabase-js";
+import AvatarJugador from "../AvatarJugador";
 import NavegacionArbitro from "./NavegacionArbitro";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
@@ -10,6 +11,15 @@ const normalizarBusqueda = (texto) => texto.normalize("NFD").replace(/[\u0300-\u
 const reloj = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const TIPOS = { gol: "Gol", amarilla: "Amarilla", roja: "Roja" };
 const tiempoJuego = (e) => (e.parte - 1) * 1320 + (1320 - e.restante_seg);
+const fotoJugador = (equipoClupikId, jugador) => {
+  if (!equipoClupikId || !jugador?.id_clupik || !jugador?.image_id) return null;
+  const params = new URLSearchParams({
+    equipo: String(equipoClupikId),
+    jugador: String(jugador.id_clupik),
+    imagen: String(jugador.image_id),
+  });
+  return `/api/mvp/foto?${params}`;
+};
 
 function SelectorTiempo({ etiqueta, valor, opciones, sufijo, onChange }) {
   const [abierto, setAbierto] = useState(false);
@@ -329,6 +339,8 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const [descripcion, setDescripcion] = useState("");
   const [msgDescripcion, setMsgDescripcion] = useState("");
   const [guardandoDescripcion, setGuardandoDescripcion] = useState(false);
+  const [guardandoAlineacion, setGuardandoAlineacion] = useState(false);
+  const [msgAlineacion, setMsgAlineacion] = useState("");
   const [paso, setPaso] = useState("acciones");
   const [golPropio, setGolPropio] = useState(false);
   const [ultimaAccion, setUltimaAccion] = useState("");
@@ -336,19 +348,52 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
 
   const cargar = useCallback(async () => {
     const { data: part, error: errorPartido } = await supabase.from("partidos")
-      .select("id,jornada,fecha,estado,descripcion,local_id,visitante_id,goles_local_clupik,goles_visitante_clupik,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
+      .select("id,jornada,fecha,estado,descripcion,local_id,visitante_id,goles_local_clupik,goles_visitante_clupik,local:equipos!partidos_local_id_fkey(nombre,id_clupik),visitante:equipos!partidos_visitante_id_fkey(nombre,id_clupik)")
       .eq("id", id).single();
     if (errorPartido) {
       setMsg(`No se pudo cargar el partido: ${errorPartido.message}`);
       return;
     }
-    const { data: plan } = await supabase.from("plantilla")
-      .select("id,dorsal,baja,equipo_id,jugador:jugadores(id,nombre)")
-      .in("equipo_id", [part.local_id, part.visitante_id]);
-    const { data: eventos } = await supabase.from("eventos")
-      .select("id,tipo,parte,restante_seg,anulado,equipo_id,jugador:jugadores(nombre)")
-      .eq("partido_id", id);
-    setP(part); setPl(plan || []); setEv(eventos || []);
+    const [
+      { data: plan, error: errorPlantilla },
+      { data: eventos, error: errorEventos },
+      { data: alineacion, error: errorAlineacion },
+    ] = await Promise.all([
+      supabase.from("plantilla")
+        .select("id,dorsal,baja,equipo_id,jugador:jugadores(id,nombre,id_clupik,image_id)")
+        .in("equipo_id", [part.local_id, part.visitante_id]),
+      supabase.from("eventos")
+        .select("id,tipo,parte,restante_seg,anulado,equipo_id,jugador:jugadores(nombre)")
+        .eq("partido_id", id),
+      supabase.from("alineacion_acta")
+        .select("jugador_id,equipo_id,dorsal")
+        .eq("partido_id", id),
+    ]);
+    if (errorPlantilla || errorEventos || errorAlineacion) {
+      const error = errorPlantilla || errorEventos || errorAlineacion;
+      setMsg(`No se pudo cargar la plantilla o el acta: ${error.message}`);
+      return;
+    }
+    const dorsalesGuardados = new Map((alineacion || []).map((fila) => [
+      `${fila.equipo_id}:${fila.jugador_id}`,
+      fila.dorsal,
+    ]));
+    setP(part);
+    setPl((anterior) => (plan || []).map((fila) => {
+      const clave = `${fila.equipo_id}:${fila.jugador.id}`;
+      const filaAnterior = anterior.find((item) => item.id === fila.id);
+      return {
+        ...fila,
+        foto: fotoJugador(
+          fila.equipo_id === part.local_id ? part.local.id_clupik : part.visitante.id_clupik,
+          fila.jugador,
+        ),
+        dorsalPartido: dorsalesGuardados.has(clave)
+          ? dorsalesGuardados.get(clave)
+          : filaAnterior?.dorsalPartido ?? fila.dorsal,
+      };
+    }));
+    setEv(eventos || []);
     if (!descripcionCargada.current) {
       setDescripcion(part.descripcion || "");
       descripcionCargada.current = true;
@@ -378,7 +423,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const lista = pl
     .filter((x) => x.equipo_id === eq && (
       x.jugador.nombre.toLowerCase().includes(busca.toLowerCase()) ||
-      String(x.dorsal ?? "").includes(busca.trim())
+      String(x.dorsalPartido ?? "").includes(busca.trim())
     ))
     .sort((a, b) => a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" }));
   const orden = [...ev].sort((a, b) => tiempoJuego(a) - tiempoJuego(b));
@@ -509,6 +554,30 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
       setGuardandoDescripcion(false);
     }
   };
+  const guardarAlineacion = async () => {
+    setMsgAlineacion("");
+    setGuardandoAlineacion(true);
+    try {
+      const { error } = await supabase.rpc("guardar_alineacion_acta", {
+        p_partido: id,
+        p_jugadores: pl.map((fila) => ({
+          equipo_id: fila.equipo_id,
+          jugador_id: fila.jugador.id,
+          dorsal: fila.dorsalPartido,
+        })),
+      });
+      if (error) {
+        setMsgAlineacion(`No se pudo guardar la alineación: ${error.message}`);
+        return;
+      }
+      setMsgAlineacion("Alineación del partido guardada. La plantilla general no se ha modificado.");
+    } catch (error) {
+      const detalle = error instanceof Error ? error.message : String(error);
+      setMsgAlineacion(`No se pudo guardar la alineación: ${detalle}`);
+    } finally {
+      setGuardandoAlineacion(false);
+    }
+  };
 
   return (
     <main className={modo === "movil" ? "vista-movil" : ""}>
@@ -583,7 +652,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
                   <button key={x.id} onClick={() => {
                     if (x.baja && !confirm(`${x.jugador.nombre} está de baja. ¿Asignarle el evento igualmente?`)) return;
                     guardar(x);
-                  }}>#{x.dorsal ?? "–"} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
+                  }}>#{x.dorsalPartido ?? "–"} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
                 ))}
               </div>
               <button className="mini" onClick={sinFicha}>¿No aparece? Sin ficha</button>
@@ -607,15 +676,15 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
             ))}
           </div>
 
-          {golPropio ? <p className="suave">El gol suma al marcador del equipo seleccionado y no se asigna a un jugador.</p> : jug ? (
-            <p style={{ marginTop: 12 }}><strong>#{jug.dorsal ?? "–"} {jug.jugador.nombre}</strong>{" "}
+          {golPropio ? <p className="suave">El gol suma al marcador del equipo seleccionado y no se asigna a un jugador.</p>           : jug ? (
+            <p style={{ marginTop: 12 }}><strong>#{jug.dorsalPartido ?? "–"} {jug.jugador.nombre}</strong>{" "}
               <button className="mini" onClick={() => setJug(null)}>Cambiar</button></p>
           ) : (
             <>
               <input style={{ marginTop: 8 }} placeholder="Buscar jugador o dorsal" value={busca} onChange={(e) => setBusca(e.target.value)} />
               <div className="lista">
                 {lista.map((x) => (
-                  <button key={x.id} onClick={() => elegir(x)}>#{x.dorsal ?? "–"} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
+                  <button key={x.id} onClick={() => elegir(x)}>#{x.dorsalPartido ?? "–"} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
                 ))}
               </div>
               <button className="mini" onClick={sinFicha}>¿No aparece? Sin ficha</button>
@@ -636,6 +705,52 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
           <button className="primario" style={{ width: "100%" }} onClick={() => guardar()}>{golPropio ? "Guardar gol en propia puerta" : `Guardar ${TIPOS[tipo].toLowerCase()}`}</button>
         </>
       ))}
+
+      <section className="alineacion-editor">
+        <h2>Alineación del partido</h2>
+        <p className="suave">Ajusta los dorsales para este encuentro. Estos cambios no modifican la plantilla de Clupik.</p>
+        {!pl.length ? <p className="suave">No hay jugadores cargados para estos equipos.</p> : [p.local_id, p.visitante_id].map((equipoId) => {
+          const nombreEquipo = equipoId === p.local_id ? p.local.nombre : p.visitante.nombre;
+          const jugadoresEquipo = pl
+            .filter((fila) => fila.equipo_id === equipoId)
+            .sort((a, b) => a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" }));
+          return (
+            <div className="alineacion-editor-equipo" key={equipoId}>
+              <h3>{nombreEquipo}</h3>
+              {!jugadoresEquipo.length ? <p className="suave">No hay jugadores en la plantilla.</p> : jugadoresEquipo.map((fila) => (
+                <label className="alineacion-editor-jugador" key={fila.id}>
+                  <span className="alineacion-editor-identidad">
+                    <AvatarJugador src={fila.foto} />
+                    <span>{fila.jugador.nombre}{fila.baja ? " (baja)" : ""}</span>
+                  </span>
+                  <span className="alineacion-editor-dorsal">
+                    <span>Dorsal</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="99"
+                      step="1"
+                      aria-label={`Dorsal de ${fila.jugador.nombre} para este partido`}
+                      value={fila.dorsalPartido ?? ""}
+                      disabled={!editable || guardandoAlineacion}
+                      onChange={(event) => {
+                        const valor = event.target.value === "" ? null : Number(event.target.value);
+                        setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, dorsalPartido: valor } : item));
+                      }}
+                    />
+                  </span>
+                </label>
+              ))}
+            </div>
+          );
+        })}
+        {editable && (
+          <button className="primario" type="button" onClick={guardarAlineacion} disabled={guardandoAlineacion || !pl.length}>
+            {guardandoAlineacion ? "Guardando…" : "Guardar alineación del partido"}
+          </button>
+        )}
+        {msgAlineacion && <p aria-live="polite" className={msgAlineacion.startsWith("No se pudo") ? "error" : "mensaje-ok"}>{msgAlineacion}</p>}
+      </section>
 
       <h2>Eventos del partido</h2>
       {orden.length === 0 && <p className="suave">Aún no hay eventos.</p>}
