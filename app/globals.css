@@ -1070,6 +1070,7 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   .vista-movil .cabecera-partido .marcador-clupik { margin-bottom: 0; }
   .captura-movil { margin-top: 12px; padding: 12px; }
   .acciones-movil button { min-height: 82px; font-size: .96rem; }
+  .acta-alineacion > summary { min-height: 50px; padding: 12px; font-size: 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
