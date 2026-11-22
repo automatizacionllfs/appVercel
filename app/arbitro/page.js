@@ -391,8 +391,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
         dorsalPartido: dorsalesGuardados.has(clave)
           ? dorsalesGuardados.get(clave)
           : filaAnterior?.dorsalPartido ?? fila.dorsal,
-            // Primera carga: marcado si ya estaba guardado. Recargas posteriores: se conserva lo que el árbitro lleva marcado.
-          jugo: filaAnterior ? filaAnterior.jugo : dorsalesGuardados.has(clave),
+        jugo: filaAnterior ? filaAnterior.jugo : (dorsalesGuardados.has(clave) || anterior.length > 0),
       };
     }));
     setEv(eventos || []);
@@ -422,8 +421,9 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     setMin(22);
     setSeg(0);
   };
+  const hayConvocados = pl.some((x) => x.jugo);
   const lista = pl
-    .filter((x) => x.equipo_id === eq && (
+    .filter((x) => x.equipo_id === eq && (!hayConvocados || x.jugo) && (
       x.jugador.nombre.toLowerCase().includes(busca.toLowerCase()) ||
       String(x.dorsalPartido ?? "").includes(busca.trim())
     ))
