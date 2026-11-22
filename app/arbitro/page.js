@@ -391,6 +391,8 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
         dorsalPartido: dorsalesGuardados.has(clave)
           ? dorsalesGuardados.get(clave)
           : filaAnterior?.dorsalPartido ?? fila.dorsal,
+            // Primera carga: marcado si ya estaba guardado. Recargas posteriores: se conserva lo que el árbitro lleva marcado.
+          jugo: filaAnterior ? filaAnterior.jugo : dorsalesGuardados.has(clave),
       };
     }));
     setEv(eventos || []);
@@ -560,17 +562,19 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     try {
       const { error } = await supabase.rpc("guardar_alineacion_acta", {
         p_partido: id,
-        p_jugadores: pl.map((fila) => ({
-          equipo_id: fila.equipo_id,
-          jugador_id: fila.jugador.id,
-          dorsal: fila.dorsalPartido,
-        })),
+        p_jugadores: pl
+          .filter((fila) => fila.jugo && !fila.baja)
+          .map((fila) => ({
+            equipo_id: fila.equipo_id,
+            jugador_id: fila.jugador.id,
+            dorsal: fila.dorsalPartido,
+          })),
       });
       if (error) {
         setMsgAlineacion(`No se pudo guardar la alineación: ${error.message}`);
         return;
       }
-      setMsgAlineacion("Alineación del partido guardada. La plantilla general no se ha modificado.");
+      setMsgAlineacion("Alineación guardada. En la web pública solo se mostrarán los jugadores marcados.");
     } catch (error) {
       const detalle = error instanceof Error ? error.message : String(error);
       setMsgAlineacion(`No se pudo guardar la alineación: ${detalle}`);
@@ -716,10 +720,21 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
             .sort((a, b) => a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" }));
           return (
             <div className="alineacion-editor-equipo" key={equipoId}>
-              <h3>{nombreEquipo}</h3>
+              <h3>{nombreEquipo} <span className="suave">· {jugadoresEquipo.filter((f) => f.jugo).length} de {jugadoresEquipo.length} han jugado</span></h3>
               {!jugadoresEquipo.length ? <p className="suave">No hay jugadores en la plantilla.</p> : jugadoresEquipo.map((fila) => (
-                <label className="alineacion-editor-jugador" key={fila.id}>
+                <label className={`alineacion-editor-jugador ${fila.jugo ? "" : "fuera"}`} key={fila.id}>
                   <span className="alineacion-editor-identidad">
+                    <input
+                      className="alineacion-editor-jugo"
+                      type="checkbox"
+                      checked={Boolean(fila.jugo)}
+                      disabled={!editable || guardandoAlineacion || fila.baja}
+                      aria-label={`${fila.jugador.nombre} ha jugado el partido`}
+                      onChange={(event) => {
+                        const marcado = event.target.checked;
+                        setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, jugo: marcado } : item));
+                      }}
+                    />
                     <AvatarJugador src={fila.foto} />
                     <span>{fila.jugador.nombre}{fila.baja ? " (baja)" : ""}</span>
                   </span>
@@ -732,7 +747,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
                       step="1"
                       aria-label={`Dorsal de ${fila.jugador.nombre} para este partido`}
                       value={fila.dorsalPartido ?? ""}
-                      disabled={!editable || guardandoAlineacion}
+                      disabled={!editable || guardandoAlineacion || !fila.jugo}
                       onChange={(event) => {
                         const valor = event.target.value === "" ? null : Number(event.target.value);
                         setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, dorsalPartido: valor } : item));
