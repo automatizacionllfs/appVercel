@@ -428,7 +428,9 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
       x.jugador.nombre.toLowerCase().includes(busca.toLowerCase()) ||
       String(x.dorsalPartido ?? "").includes(busca.trim())
     ))
-    .sort((a, b) => a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" }));
+    .sort((a, b) => (a.dorsalPartido ?? 999) - (b.dorsalPartido ?? 999) ||
+    a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" })
+  );
   const orden = [...ev].sort((a, b) => tiempoJuego(a) - tiempoJuego(b));
   const equipoActivo = equipoAlineacion ?? p.local_id;
   const jugadoresActivos = pl
