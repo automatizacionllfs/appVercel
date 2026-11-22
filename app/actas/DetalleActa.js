@@ -4,6 +4,7 @@ import ResumenActaCard from "./ResumenActaCard";
 import EditarActa from "./EditarActa";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
+import AlineacionActa from "./AlineacionActa";
 
 const duracionParte = 22 * 60;
 const reloj = (segundos) => `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
@@ -139,43 +140,12 @@ export default function DetalleActa({ partido, local, visitante, alineacionLocal
           ))}
         </div>
       </section>
-      <details className="acta-alineacion">
-        <summary>
-          <span className="acta-alineacion-titulo">Alineación del partido</span>
-          {(alineacionLocal.length + alineacionVisitante.length) > 0 && (
-            <span className="acta-alineacion-total">
-              {alineacionLocal.length + alineacionVisitante.length} jugadores
-            </span>
-          )}
-        </summary>
-        <div className="acta-alineacion-contenido">
-          {!alineacionLocal.length && !alineacionVisitante.length ? (
-            <p className="suave">Todavía no se ha guardado la alineación de este partido.</p>
-          ) : (
-            <div className="acta-alineacion-equipos">
-              {[
-                { equipo: local, jugadores: alineacionLocal },
-                { equipo: visitante, jugadores: alineacionVisitante },
-              ].map(({ equipo, jugadores }) => (
-                <section className="acta-alineacion-equipo" key={equipo?.id || equipo?.nombre}>
-                  <h3>{equipo?.nombre || "Equipo"}</h3>
-                  {!jugadores.length ? <p className="suave">Sin jugadores guardados.</p> : (
-                    <ul>
-                      {jugadores.map((jugador) => (
-                        <li key={jugador.jugador_id}>
-                          <span className="acta-alineacion-dorsal">{jugador.dorsal ?? "–"}</span>
-                          <AvatarJugador src={jugador.foto} />
-                          <strong>{jugador.nombre}</strong>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-              ))}
-            </div>
-          )}
-        </div>
-      </details>
+      <AlineacionActa
+        local={local}
+        visitante={visitante}
+        alineacionLocal={alineacionLocal}
+        alineacionVisitante={alineacionVisitante}
+      />
 
       {actaDigitalizada && (
         <ResumenActaCard
