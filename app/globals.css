@@ -223,6 +223,7 @@ body {
 .alineacion-editor-jugador.fuera .alineacion-editor-identidad > span,
 .alineacion-editor-jugador.fuera .avatar-jugador { opacity: .55; }
 .alineacion-editor-equipo h3 .suave { font-size: .82rem; font-weight: 600; }
+.alineacion-pestanas button { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
 .mvp-compartir { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0 28px; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); }
 .mvp-compartir p { margin: 0; color: var(--suave); }
 .mvp-compartir h2 { margin-bottom: 5px; }
