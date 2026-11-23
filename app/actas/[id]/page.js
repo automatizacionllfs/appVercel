@@ -50,12 +50,28 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
   if (resultadoEquipos.error) throw new Error(`No se pudieron cargar los equipos: ${resultadoEquipos.error.message}`);
   if (resultadoEventos.error) throw new Error(`No se pudieron cargar los eventos del acta: ${resultadoEventos.error.message}`);
 
+  const { data: jugadoresAlineacion, error: errorAlineacion } = await db.from("alineacion_acta")
+    .select("equipo_id,jugador_id,nombre,id_clupik,image_id,dorsal,orden")
+    .eq("partido_id", partido.id)
+    .order("orden", { ascending: true });
+  if (errorAlineacion) throw new Error(`No se pudo cargar la alineación del partido: ${errorAlineacion.message}`);
+
   const { data: votosMvp, error: errorMvp } = await createServiceDb().from("mvp")
     .select("equipo_votante_id,jugador:jugadores(id,id_clupik,nombre,image_id)")
     .eq("partido_id", partido.id);
   if (errorMvp) throw new Error(`No se pudieron cargar los MVP del partido: ${errorMvp.message}`);
 
   const equipoPorId = new Map((resultadoEquipos.data || []).map((equipo) => [equipo.id, equipo]));
+  const alineacionPorEquipo = new Map([[partido.local_id, []], [partido.visitante_id, []]]);
+  (jugadoresAlineacion || []).forEach((jugador) => {
+    const equipo = equipoPorId.get(jugador.equipo_id);
+    const filas = alineacionPorEquipo.get(jugador.equipo_id);
+    if (!equipo || !filas) return;
+    filas.push({
+      ...jugador,
+      foto: urlFotoMvp(equipo.id_clupik, jugador),
+    });
+  });
   const mvpPorEquipo = new Map();
   (votosMvp || []).forEach((voto) => {
     const equipoId = voto.equipo_votante_id === partido.local_id ? partido.visitante_id : partido.local_id;
@@ -74,6 +90,8 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
         partido={partido}
         local={equipoPorId.get(partido.local_id)}
         visitante={equipoPorId.get(partido.visitante_id)}
+        alineacionLocal={alineacionPorEquipo.get(partido.local_id) || []}
+        alineacionVisitante={alineacionPorEquipo.get(partido.visitante_id) || []}
         eventos={resultadoEventos.data || []}
         mvpLocal={mvpPorEquipo.get(partido.local_id) || null}
         mvpVisitante={mvpPorEquipo.get(partido.visitante_id) || null}

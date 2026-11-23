@@ -82,7 +82,13 @@ export default function ActasLista({ partidos }) {
                   </span>
                 </span>
                 <span className="acta-partido-pie">
-                  <span>{partido.actaDigitalizada ? `${partido.resumen.eventos} eventos registrados` : "Acta pendiente de digitalizar"}</span>
+                  <span>
+                    {partido.resumen.eventos
+                      ? `${partido.resumen.eventos} eventos registrados`
+                      : partido.resumen.jugadoresAlineacion
+                        ? "Alineación cargada"
+                        : "Acta pendiente de digitalizar"}
+                  </span>
                   {partido.actaDigitalizada && (
                     <span className="acta-ver-cronologia">Ver cronología <span aria-hidden="true">→</span></span>
                   )}

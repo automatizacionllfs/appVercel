@@ -172,6 +172,58 @@ body {
 .acta-mvp-inicial { display: grid; place-items: center; background: var(--acento-claro); color: var(--acento); font-size: 1.4rem; font-weight: 800; }
 .acta-mvp-equipo div { display: grid; gap: 2px; min-width: 0; }
 .acta-mvp-equipo strong { overflow-wrap: anywhere; }
+.acta-alineacion { margin: 24px 0; }
+.acta-alineacion > summary {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid #b4232e;
+  border-radius: 14px;
+  background: var(--papel);
+  box-shadow: var(--sombra);
+  color: var(--acento-oscuro);
+  font-size: 1.15rem;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+.acta-alineacion > summary::-webkit-details-marker { display: none; }
+.acta-alineacion > summary::after { content: "+"; color: #b4232e; font-size: 1.5rem; line-height: 1; }
+.acta-alineacion[open] > summary { margin-bottom: 12px; }
+.acta-alineacion[open] > summary::after { content: "−"; }
+.acta-alineacion > summary:focus-visible { outline: 3px solid #b4232e; outline-offset: 3px; }
+.acta-alineacion-titulo { flex: 1; }
+.acta-alineacion-total { padding: 4px 9px; border-radius: 999px; background: var(--acento-claro); color: var(--acento); font-size: .76rem; font-weight: 750; white-space: nowrap; }
+.acta-alineacion-equipos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.acta-alineacion-equipo { min-width: 0; padding: 16px; border: 1px solid var(--borde); border-radius: 15px; background: var(--papel); }
+.acta-alineacion-equipo h3 { margin: 0 0 10px; color: var(--acento-oscuro); }
+.acta-alineacion-equipo ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.acta-alineacion-equipo li { display: grid; grid-template-columns: 36px 40px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 44px; }
+.acta-alineacion-equipo li img, .acta-alineacion-equipo li .avatar-jugador { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.acta-alineacion-equipo li .avatar-jugador { padding: 6px; background: var(--acento-claro); }
+.acta-alineacion-equipo li strong { overflow-wrap: anywhere; }
+.acta-alineacion-dorsal { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: var(--acento-claro); color: var(--acento); font-weight: 850; font-variant-numeric: tabular-nums; }
+.alineacion-editor { margin: 22px 0; padding: 18px; border: 1px solid var(--borde); border-radius: 14px; background: var(--papel); }
+.alineacion-editor h2 { margin: 0 0 6px; }
+.alineacion-editor-equipo { margin-top: 18px; }
+.alineacion-editor-equipo h3 { margin: 0 0 8px; color: var(--acento-oscuro); }
+.alineacion-editor-jugador { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; border-top: 1px solid var(--borde); }
+.alineacion-editor-jugador > span:first-child { overflow-wrap: anywhere; }
+.alineacion-editor-identidad { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.alineacion-editor-identidad img, .alineacion-editor-identidad .avatar-jugador { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; object-fit: cover; }
+.alineacion-editor-identidad .avatar-jugador { padding: 5px; background: var(--acento-claro); }
+.alineacion-editor-dorsal { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; color: var(--suave); font-size: .82rem; }
+.alineacion-editor-dorsal input { width: 76px; min-height: 40px; }
+.alineacion-editor > button { width: 100%; margin-top: 18px; }
+.alineacion-editor-jugo { width: 22px; height: 22px; min-height: 0; flex: 0 0 22px; padding: 0; accent-color: var(--acento); cursor: pointer; }
+.alineacion-editor-jugo:disabled { cursor: not-allowed; }
+.alineacion-editor-jugador.fuera .alineacion-editor-identidad > span,
+.alineacion-editor-jugador.fuera .avatar-jugador { opacity: .55; }
+.alineacion-editor-equipo h3 .suave { font-size: .82rem; font-weight: 600; }
+.alineacion-pestanas button { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
 .mvp-compartir { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0 28px; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); }
 .mvp-compartir p { margin: 0; color: var(--suave); }
 .mvp-compartir h2 { margin-bottom: 5px; }
@@ -190,6 +242,7 @@ body {
   .instalar-app-contenido { align-items: stretch; flex-direction: column; gap: 10px; padding: 0 12px 12px; }
   .instalar-app button { width: 100%; }
   .acta-mvp-lista { grid-template-columns: 1fr; }
+  .acta-alineacion-equipos { grid-template-columns: 1fr; }
   .admin-pin-equipo { grid-template-columns: 1fr auto; }
   .admin-pin-equipo button { grid-column: 1 / -1; }
 }
@@ -1023,6 +1076,7 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   .vista-movil .cabecera-partido .marcador-clupik { margin-bottom: 0; }
   .captura-movil { margin-top: 12px; padding: 12px; }
   .acciones-movil button { min-height: 82px; font-size: .96rem; }
+  .acta-alineacion > summary { min-height: 50px; padding: 12px; font-size: 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

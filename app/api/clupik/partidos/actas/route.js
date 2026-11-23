@@ -87,7 +87,8 @@ export async function POST(request) {
       filasPorEquipo.set(String(fila.equipo_id), lista);
     });
     filasPorEquipo.forEach((filas) => filas.sort((a, b) =>
-      (a.dorsal ?? 999) - (b.dorsal ?? 999) || a.nombre.localeCompare(b.nombre, "es")
+      a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }) ||
+      (a.dorsal ?? 999) - (b.dorsal ?? 999)
     ));
 
     const partido = partidos[0];

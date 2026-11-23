@@ -4,6 +4,7 @@ import ResumenActaCard from "./ResumenActaCard";
 import EditarActa from "./EditarActa";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
+import AlineacionActa from "./AlineacionActa";
 
 const duracionParte = 22 * 60;
 const reloj = (segundos) => `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
@@ -43,7 +44,7 @@ function IconoSilbato() {
   );
 }
 
-export default function DetalleActa({ partido, local, visitante, eventos, mvpLocal, mvpVisitante, actaDigitalizada, volver }) {
+export default function DetalleActa({ partido, local, visitante, alineacionLocal = [], alineacionVisitante = [], eventos, mvpLocal, mvpVisitante, actaDigitalizada, volver }) {
   const enlaceClupik = partido.id_clupik
     ? `https://www.llfspuertoreal.es/es/games/${encodeURIComponent(partido.id_clupik)}/location`
     : null;
@@ -139,6 +140,13 @@ export default function DetalleActa({ partido, local, visitante, eventos, mvpLoc
           ))}
         </div>
       </section>
+      <AlineacionActa
+        local={local}
+        visitante={visitante}
+        alineacionLocal={alineacionLocal}
+        alineacionVisitante={alineacionVisitante}
+      />
+
       {actaDigitalizada && (
         <ResumenActaCard
           partido={partido}
