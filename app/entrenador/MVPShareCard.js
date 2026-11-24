@@ -22,6 +22,63 @@ function texto(contexto, valor, x, y, maximo) {
   contexto.fillText(salida, x, y);
 }
 
+function lineasAjustadas(ctx, valor, maximo, maxLineas = 3) {
+  const palabras = String(valor || "").split(/\s+/).filter(Boolean);
+  const lineas = [];
+  let actual = "";
+  for (const palabra of palabras) {
+    const prueba = actual ? `${actual} ${palabra}` : palabra;
+    if (actual && ctx.measureText(prueba).width > maximo) {
+      lineas.push(actual);
+      actual = palabra;
+    } else {
+      actual = prueba;
+    }
+  }
+  if (actual) lineas.push(actual);
+  if (lineas.length > maxLineas) {
+    lineas.length = maxLineas;
+    lineas[maxLineas - 1] = `${lineas[maxLineas - 1].slice(0, -1)}…`;
+  }
+  return lineas;
+}
+
+function fotoMitadDerecha(ctx, foto, x, y, ancho, alto) {
+  // x, y, ancho, alto = recuadro completo del equipo
+  const mitad = ancho / 2;
+  const fx = x + mitad;
+  const fy = y + 10; // debajo de la franja roja superior
+  const fw = mitad;
+  const fh = alto - 10;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, ancho, alto, 28);
+  ctx.clip();
+  ctx.beginPath();
+  ctx.rect(fx, fy, fw, fh);
+  ctx.clip();
+
+  if (foto) {
+    // "cover": rellena toda la mitad recortando lo que sobre
+    const escala = Math.max(fw / foto.width, fh / foto.height);
+    const dw = foto.width * escala;
+    const dh = foto.height * escala;
+    ctx.drawImage(foto, fx + (fw - dw) / 2, fy + (fh - dh) / 2, dw, dh);
+
+    // Degradado suave en el borde izquierdo para fundir con el panel
+    const fundido = ctx.createLinearGradient(fx, 0, fx + 90, 0);
+    fundido.addColorStop(0, "rgba(16, 42, 82, 0.9)");
+    fundido.addColorStop(1, "rgba(16, 42, 82, 0)");
+    ctx.fillStyle = fundido;
+    ctx.fillRect(fx, fy, 90, fh);
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,.08)";
+    ctx.fillRect(fx, fy, fw, fh);
+  }
+  ctx.restore();
+}
+
 function circulo(contexto, imagen, x, y, radio) {
   if (!imagen) return false;
   contexto.save();
@@ -165,76 +222,70 @@ export default function MVPShareCard({ partido, mvpLocal, mvpVisitante }) {
         { equipo: partido.local, mvp: mvpLocal, y: 520 },
         { equipo: partido.visitante, mvp: mvpVisitante, y: 1070 },
       ];
-      let escudoNoDisponible = false;
+            let escudoNoDisponible = false;
       for (const candidato of candidatos) {
         const x = 64;
         const y = candidato.y;
         const anchoTarjeta = 952;
-        panel(ctx, x, y, anchoTarjeta, 510);
-        linea(ctx, x + 224, y + 112, 126, ROJO, 6);
+        const altoTarjeta = 510;
+        const izq = x + 50;      // margen izquierdo de la mitad izquierda
+        const anchoIzq = 380;    // ancho útil de la mitad izquierda
+        panel(ctx, x, y, anchoTarjeta, altoTarjeta);
 
+        const jugador = candidato.mvp?.jugador;
+        const foto = jugador?.foto ? await cargarImagen(jugador.foto) : null;
+
+        // --- Mitad derecha: foto a toda la altura ---
+        fotoMitadDerecha(ctx, foto, x, y, anchoTarjeta, altoTarjeta);
+        if (!foto) {
+          const cx = x + anchoTarjeta * 0.75;
+          const cy = y + altoTarjeta / 2 + 5;
+          if (jugador) {
+            dibujarAvatar(ctx, cx, cy, 150);
+          } else {
+            ctx.fillStyle = "#fff";
+            ctx.font = "800 120px Inter, system-ui, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("?", cx, cy + 40);
+            ctx.textAlign = "start";
+          }
+        }
+        // Línea vertical separadora
+        ctx.fillStyle = "rgba(155, 191, 235, 0.38)";
+        ctx.fillRect(x + anchoTarjeta / 2 - 1, y + 10, 2, altoTarjeta - 10);
+
+        // --- Mitad izquierda: escudo + textos ---
         const escudo = candidato.equipo?.id
           ? await cargarImagen(`/api/mvp/escudo?equipo=${encodeURIComponent(candidato.equipo.id)}`)
           : null;
         if (candidato.equipo?.escudo_url && !escudo) escudoNoDisponible = true;
         if (escudo) {
-          const ratio = Math.min(118 / escudo.width, 120 / escudo.height);
+          const ratio = Math.min(120 / escudo.width, 120 / escudo.height);
           const anchoEscudo = escudo.width * ratio;
           const altoEscudo = escudo.height * ratio;
-          const xEscudo = x + 76;
-          const yEscudo = y + 35 + (120 - altoEscudo) / 2;
           ctx.save();
           ctx.shadowColor = "rgba(0, 8, 24, 0.38)";
           ctx.shadowBlur = 10;
           ctx.shadowOffsetY = 4;
-          ctx.drawImage(escudo, xEscudo, yEscudo, anchoEscudo, altoEscudo);
+          ctx.drawImage(escudo, izq, y + 40 + (120 - altoEscudo) / 2, anchoEscudo, altoEscudo);
           ctx.restore();
         }
 
         ctx.fillStyle = "#C9D8EE";
-        ctx.font = "700 23px Inter, system-ui, sans-serif";
-        texto(ctx, candidato.equipo?.nombre || "Equipo", x + 234, y + 94, 660);
+        ctx.font = "700 26px Inter, system-ui, sans-serif";
+        texto(ctx, candidato.equipo?.nombre || "Equipo", izq, y + 205, anchoIzq);
+        linea(ctx, izq, y + 222, 126, ROJO, 6);
 
-        const jugador = candidato.mvp?.jugador;
-        const foto = jugador?.foto ? await cargarImagen(jugador.foto) : null;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x + 165, y + 350, 92, 0, Math.PI * 2);
-        ctx.shadowColor = "rgba(42, 110, 190, 0.78)";
-        ctx.shadowBlur = 28;
-        ctx.shadowOffsetY = 0;
-        ctx.fillStyle = "rgba(42, 110, 190, 0.2)";
-        ctx.fill();
-        ctx.restore();
-        ctx.fillStyle = "rgba(255,255,255,.12)";
-        ctx.beginPath();
-        ctx.arc(x + 165, y + 350, 94, 0, Math.PI * 2);
-        ctx.fill();
-        if (circulo(ctx, foto, x + 165, y + 350, 86)) {
-          ctx.strokeStyle = "#DCEAFF";
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(x + 165, y + 350, 87.5, 0, Math.PI * 2);
-          ctx.stroke();
-        } else {
-          if (jugador) {
-            dibujarAvatar(ctx, x + 165, y + 350, 70);
-          } else {
-            ctx.fillStyle = "#fff";
-            ctx.font = "800 48px Inter, system-ui, sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("?", x + 165, y + 367);
-            ctx.textAlign = "start";
-          }
-        }
         ctx.fillStyle = "#FFC940";
         ctx.font = "800 20px Inter, system-ui, sans-serif";
-        ctx.fillText(jugador ? "MVP ELEGIDO POR EL EQUIPO RIVAL" : "MVP PENDIENTE DE SELECCIÓN", x + 300, y + 332);
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "850 40px Inter, system-ui, sans-serif";
-        texto(ctx, jugador?.nombre || "Aún no seleccionado", x + 300, y + 391, 600);
-      }
+        texto(ctx, jugador ? "MVP ELEGIDO POR EL EQUIPO RIVAL" : "MVP PENDIENTE DE SELECCIÓN", izq, y + 330, anchoIzq);
 
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "850 44px Inter, system-ui, sans-serif";
+        const lineasNombre = lineasAjustadas(ctx, jugador?.nombre || "Aún no seleccionado", anchoIzq, 3);
+        lineasNombre.forEach((l, i) => ctx.fillText(l, izq, y + 385 + i * 50));
+      }
+      
       linea(ctx, 64, 1650, 952, ROJO, 5);
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "650 23px Inter, system-ui, sans-serif";
