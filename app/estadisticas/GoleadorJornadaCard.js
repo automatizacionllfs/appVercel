@@ -203,6 +203,7 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
       ctx.font = "750 30px Inter, system-ui, sans-serif";
       ctx.textAlign = "left";
       ctx.fillText(jugador.goles === 1 ? "GOL EN LA JORNADA" : "GOLES EN LA JORNADA", 460, 1510);      // antes 1420
+      linea(ctx, 64, 1720, 952, ROJO, 5);
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "650 25px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
