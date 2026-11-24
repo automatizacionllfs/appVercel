@@ -22,6 +22,39 @@ function texto(ctx, valor, x, y, maximo) {
   ctx.fillText(salida, x, y);
 }
 
+function fotoSuperior(ctx, foto, x, y, ancho, alto) {
+  // x, y, ancho, alto = recuadro completo
+  const fy = y + 9;            // debajo de la franja roja
+  const fh = 640;              // alto de la zona de foto
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, ancho, alto, 30);
+  ctx.clip();
+  ctx.beginPath();
+  ctx.rect(x, fy, ancho, fh);
+  ctx.clip();
+
+  if (foto) {
+    // "cover" con el recorte desplazado hacia arriba para no cortar la cara
+    const escala = Math.max(ancho / foto.width, fh / foto.height);
+    const dw = foto.width * escala;
+    const dh = foto.height * escala;
+    const sobrante = dh - fh;
+    ctx.drawImage(foto, x + (ancho - dw) / 2, fy - sobrante * 0.2, dw, dh);
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,.08)";
+    ctx.fillRect(x, fy, ancho, fh);
+  }
+
+  // Fundido inferior hacia el color del panel
+  const fundido = ctx.createLinearGradient(0, fy + fh - 300, 0, fy + fh);
+  fundido.addColorStop(0, "rgba(19, 49, 94, 0)");
+  fundido.addColorStop(1, "rgba(19, 49, 94, 1)");
+  ctx.fillStyle = fundido;
+  ctx.fillRect(x, fy + fh - 300, ancho, 300);
+  ctx.restore();
+}
+
 function panel(ctx, x, y, ancho, alto) {
   const relleno = ctx.createLinearGradient(0, y, 0, y + alto);
   relleno.addColorStop(0, "rgba(23, 58, 106, 0.9)");
@@ -103,7 +136,13 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
       ctx.font = "700 30px Inter, system-ui, sans-serif";
       ctx.fillText(`JORNADA ${jornada}`, 68, 342);
 
-      panel(ctx, 64, 410, 952, 1200);
+            const px = 64;
+      const py = 410;
+      const pAncho = 952;
+      const pAlto = 1200;
+
+      panel(ctx, px, py, pAncho, pAlto);
+
       const foto = jugador.foto ? await cargarImagen(jugador.foto) : null;
       const escudo = jugador.equipoId
         ? await cargarImagen(`/api/mvp/escudo?equipo=${encodeURIComponent(jugador.equipoId)}`)
@@ -111,49 +150,48 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
       if (jugador.escudoUrl && !escudo) {
         setError("No se pudo cargar el escudo del equipo. Comprueba CLUPIK_IMAGE_HOSTS en la configuración del servidor.");
       }
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(540, 760, 170, 0, Math.PI * 2);
-      ctx.clip();
-      if (foto) {
-        ctx.drawImage(foto, 370, 590, 340, 340);
-      } else {
-        ctx.fillStyle = "rgba(255,255,255,.12)";
-        ctx.fill();
-        dibujarAvatar(ctx, 540, 760, 150);
-      }
-      ctx.restore();
 
+      // Foto a todo el ancho
+      fotoSuperior(ctx, foto, px, py, pAncho, pAlto);
+      if (!foto) dibujarAvatar(ctx, 540, py + 330, 220);
+
+      // Nombre
       ctx.fillStyle = "#fff";
-      ctx.font = "850 52px Inter, system-ui, sans-serif";
+      ctx.font = "850 54px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
-      texto(ctx, jugador.nombre, 540, 1050, 880);
+      texto(ctx, jugador.nombre, 540, 1085, 880);
       ctx.textAlign = "start";
 
-      if (escudo) {
-        const ratio = Math.min(72 / escudo.width, 72 / escudo.height);
-        const anchoEscudo = escudo.width * ratio;
-        const altoEscudo = escudo.height * ratio;
-        ctx.drawImage(escudo, 310, 1100 + (72 - altoEscudo) / 2, anchoEscudo, altoEscudo);
-      }
+      // Escudo + equipo, centrados como grupo
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "650 30px Inter, system-ui, sans-serif";
-      texto(ctx, jugador.equipo, 410, 1145, 550);
+      const nombreEquipo = jugador.equipo || "";
+      const anchoNombre = Math.min(ctx.measureText(nombreEquipo).width, 520);
+      const tamEscudo = 72;
+      const anchoGrupo = (escudo ? tamEscudo + 20 : 0) + anchoNombre;
+      let gx = 540 - anchoGrupo / 2;
+      if (escudo) {
+        const ratio = Math.min(tamEscudo / escudo.width, tamEscudo / escudo.height);
+        const aw = escudo.width * ratio;
+        const ah = escudo.height * ratio;
+        ctx.drawImage(escudo, gx + (tamEscudo - aw) / 2, 1130 + (tamEscudo - ah) / 2, aw, ah);
+        gx += tamEscudo + 20;
+      }
+      texto(ctx, nombreEquipo, gx, 1180, 520);
 
+      // Caja de goles
       ctx.fillStyle = "rgba(255,255,255,.09)";
       ctx.beginPath();
-      ctx.roundRect(100, 1270, 880, 210, 26);
+      ctx.roundRect(100, 1290, 880, 210, 26);
       ctx.fill();
       ctx.fillStyle = "#FFC940";
       ctx.font = "900 112px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(String(jugador.goles), 330, 1410);
+      ctx.fillText(String(jugador.goles), 330, 1430);
       ctx.fillStyle = "#fff";
       ctx.font = "750 30px Inter, system-ui, sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(jugador.goles === 1 ? "GOL EN LA JORNADA" : "GOLES EN LA JORNADA", 460, 1400);
-
-      linea(ctx, 64, 1720, 952, ROJO, 5);
+      ctx.fillText(jugador.goles === 1 ? "GOL EN LA JORNADA" : "GOLES EN LA JORNADA", 460, 1420);
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "650 25px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
