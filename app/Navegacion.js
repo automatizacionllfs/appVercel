@@ -16,7 +16,7 @@ const enlacesPersonal = [
 ];
 
 export default function Navegacion() {
-  const ruta = usePathname()?.replace(/\/+$/, "") || "/";
+  const ruta = usePathname()?.replace(/\/+$/, "") || "/" || "";
   const personalActivo = ruta === "/arbitro"
     || ruta.startsWith("/arbitro/")
     || ruta === "/entrenador"
