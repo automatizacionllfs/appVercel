@@ -153,6 +153,8 @@ export default function DetalleActa({ partido, local, visitante, alineacionLocal
           local={local}
           visitante={visitante}
           eventos={eventos}
+          mvpLocal={mvpLocal}
+          mvpVisitante={mvpVisitante}
         >
           <MVPShareCard
             partido={{ ...partido, local, visitante }}
