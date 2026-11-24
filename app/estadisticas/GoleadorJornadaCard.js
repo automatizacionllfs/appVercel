@@ -150,7 +150,7 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
             const px = 64;
       const py = 410;
       const pAncho = 952;
-      const pAlto = 1200;
+      const pAlto = 1260;   // antes 1200
 
       panel(ctx, px, py, pAncho, pAlto);
 
