@@ -27,7 +27,7 @@ function linea(ctx, x, y, ancho, grosor = 5) {
   ctx.fillRect(x, y, ancho, grosor);
 }
 
-export default function ResumenActaCard({ partido, local, visitante, eventos, children }) {
+export default function ResumenActaCard({ partido, local, visitante, eventos, mvpLocal = null, mvpVisitante = null, children }) { 
   const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState("");
 
