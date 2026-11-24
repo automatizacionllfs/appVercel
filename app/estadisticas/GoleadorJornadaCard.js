@@ -23,9 +23,8 @@ function texto(ctx, valor, x, y, maximo) {
 }
 
 function fotoSuperior(ctx, foto, x, y, ancho, alto) {
-  // x, y, ancho, alto = recuadro completo
   const fy = y + 9;            // debajo de la franja roja
-  const fh = 640;              // alto de la zona de foto
+  const fh = 760;              // alto de la zona de foto
   ctx.save();
   ctx.beginPath();
   ctx.roundRect(x, y, ancho, alto, 30);
@@ -35,23 +34,35 @@ function fotoSuperior(ctx, foto, x, y, ancho, alto) {
   ctx.clip();
 
   if (foto) {
-    // "cover" con el recorte desplazado hacia arriba para no cortar la cara
-    const escala = Math.max(ancho / foto.width, fh / foto.height);
+    // "contain" al ancho completo: se ve la foto entera, sin recortar la cara.
+    // Si es más alta que la zona, se encaja por la altura y se centra.
+    const escala = Math.min(ancho / foto.width, fh / foto.height);
     const dw = foto.width * escala;
     const dh = foto.height * escala;
-    const sobrante = dh - fh;
-    ctx.drawImage(foto, x + (ancho - dw) / 2, fy - sobrante * 0.2, dw, dh);
+    const dx = x + (ancho - dw) / 2;
+    const dy = fy;
+    // Fondo desenfocado a partir de la misma foto, para rellenar los laterales
+    if (dw < ancho) {
+      ctx.save();
+      ctx.filter = "blur(30px)";
+      const e2 = Math.max(ancho / foto.width, fh / foto.height);
+      ctx.drawImage(foto, x + (ancho - foto.width * e2) / 2, fy + (fh - foto.height * e2) / 2, foto.width * e2, foto.height * e2);
+      ctx.restore();
+      ctx.fillStyle = "rgba(19, 49, 94, 0.55)";
+      ctx.fillRect(x, fy, ancho, fh);
+    }
+    ctx.drawImage(foto, dx, dy, dw, dh);
   } else {
     ctx.fillStyle = "rgba(255,255,255,.08)";
     ctx.fillRect(x, fy, ancho, fh);
   }
 
-  // Fundido inferior hacia el color del panel
-  const fundido = ctx.createLinearGradient(0, fy + fh - 300, 0, fy + fh);
+  // Fundido corto solo en el borde inferior
+  const fundido = ctx.createLinearGradient(0, fy + fh - 110, 0, fy + fh);
   fundido.addColorStop(0, "rgba(19, 49, 94, 0)");
   fundido.addColorStop(1, "rgba(19, 49, 94, 1)");
   ctx.fillStyle = fundido;
-  ctx.fillRect(x, fy + fh - 300, ancho, 300);
+  ctx.fillRect(x, fy + fh - 110, ancho, 110);
   ctx.restore();
 }
 
@@ -159,7 +170,7 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
       ctx.fillStyle = "#fff";
       ctx.font = "850 54px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
-      texto(ctx, jugador.nombre, 540, 1085, 880);
+      texto(ctx, jugador.nombre, 540, 1235, 880);          // antes 1085
       ctx.textAlign = "start";
 
       // Escudo + equipo, centrados como grupo
@@ -174,24 +185,24 @@ export default function GoleadorJornadaCard({ jornada, jugador }) {
         const ratio = Math.min(tamEscudo / escudo.width, tamEscudo / escudo.height);
         const aw = escudo.width * ratio;
         const ah = escudo.height * ratio;
-        ctx.drawImage(escudo, gx + (tamEscudo - aw) / 2, 1130 + (tamEscudo - ah) / 2, aw, ah);
+        ctx.drawImage(escudo, gx + (tamEscudo - aw) / 2, 1285 + (tamEscudo - ah) / 2, aw, ah);  // antes 1130
         gx += tamEscudo + 20;
       }
-      texto(ctx, nombreEquipo, gx, 1180, 520);
+      texto(ctx, nombreEquipo, gx, 1335, 520);             // antes 1180
 
       // Caja de goles
       ctx.fillStyle = "rgba(255,255,255,.09)";
       ctx.beginPath();
-      ctx.roundRect(100, 1290, 880, 210, 26);
+      ctx.roundRect(100, 1400, 880, 190, 26);              // antes 100, 1290, 880, 210
       ctx.fill();
       ctx.fillStyle = "#FFC940";
       ctx.font = "900 112px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(String(jugador.goles), 330, 1430);
+      ctx.fillText(String(jugador.goles), 330, 1525);      // antes 1430
       ctx.fillStyle = "#fff";
       ctx.font = "750 30px Inter, system-ui, sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(jugador.goles === 1 ? "GOL EN LA JORNADA" : "GOLES EN LA JORNADA", 460, 1420);
+      ctx.fillText(jugador.goles === 1 ? "GOL EN LA JORNADA" : "GOLES EN LA JORNADA", 460, 1510);      // antes 1420
       ctx.fillStyle = "#C9D8EE";
       ctx.font = "650 25px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
