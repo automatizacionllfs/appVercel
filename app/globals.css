@@ -435,7 +435,7 @@ body {
   margin-top: 12px;
   padding-top: 12px;
   padding-bottom: 12px;
-  border-top: 1px solid var(--borde);    
+  border-top: 1px solid var(--borde);
   position: sticky;
   top: var(--alto-barra);
   z-index: 5;
@@ -1002,6 +1002,48 @@ body {
 }
 .estadistica-mvp h2 {
   margin-top: 0;
+}
+
+.mi-equipo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: min(100% - 32px, 760px);
+  padding: 10px 14px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid #b4232e;
+  border-radius: 12px;
+  background: var(--papel);
+}
+.mi-equipo label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--acento-oscuro);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.mi-equipo select {
+  width: auto;
+  min-height: 40px;
+}
+.mi-equipo-nombre {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--acento-oscuro);
+}
+.mi-equipo-activo a {
+  color: var(--acento);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.mi-equipo-activo a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 600px) {
@@ -3611,7 +3653,7 @@ a.acta-partido:hover {
     margin-top: 12px;
     padding-top: 12px;
     padding-bottom: 12px;
-    border-top: 1px solid var(--borde);    
+    border-top: 1px solid var(--borde);
     position: sticky;
     top: var(--alto-barra);
     z-index: 5;
