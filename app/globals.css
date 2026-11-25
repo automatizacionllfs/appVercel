@@ -257,7 +257,28 @@ body {
 .alineacion-editor-identidad .avatar-jugador { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; object-fit: cover; }
 .alineacion-editor-identidad .avatar-jugador { padding: 5px; background: var(--acento-claro); }
 .alineacion-editor-equipo h3 .suave { font-size: .82rem; font-weight: 600; }
-.alineacion-pestanas button { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
+.alineacion-pestanas {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  overflow: visible;
+  margin: 0 -2px 12px;
+  padding: 8px 2px;
+  background: var(--papel);
+  border-bottom: 1px solid var(--borde);
+}
+.alineacion-pestanas button {
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 8px;
+  font-size: .9rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
 .mvp-compartir { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0 28px; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); }
 .mvp-compartir p { margin: 0; color: var(--suave); }
 .mvp-compartir h2 { margin-bottom: 5px; }
@@ -1116,6 +1137,7 @@ a.acta-partido:hover { transform: translateY(-2px); border-color: #9db8d0; box-s
   .captura-movil { margin-top: 12px; padding: 12px; }
   .acciones-movil button { min-height: 82px; font-size: .96rem; }
   .acta-alineacion > summary { min-height: 50px; padding: 12px; font-size: 1rem; }
+  .vista-movil .alineacion-pestanas { top: 118px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
