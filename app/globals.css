@@ -650,13 +650,18 @@ table {
 .historial-jugador-identidad { display: grid; justify-items: start; gap: 3px; min-width: 0; }
 .historial-jugador-identidad h2 { margin: 0; }
 .historial-jugador-dorsal { color: var(--acento); font-weight: 750; }
-.historial-jugador-resumen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-column: 1 / -1; gap: 12px; margin: 0; }
+.historial-jugador-resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-column: 1 / -1; gap: 12px; margin: 0; }
 .historial-jugador-resumen > div { padding: 12px; border-radius: 12px; background: var(--acento-claro); }
 .historial-jugador-resumen dt { color: var(--suave); font-size: .8rem; font-weight: 650; }
 .historial-jugador-resumen dd { margin: 2px 0 0; color: var(--acento); font-size: 1.3rem; font-weight: 800; }
 .historial-goles ol, .historial-premios ol { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
 .historial-goles li, .historial-premios li { display: grid; grid-template-columns: minmax(95px, .7fr) minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--borde); border-radius: 12px; background: var(--papel); }
 .historial-goles li > strong:last-child, .historial-premios li > strong:last-child { color: var(--acento); white-space: nowrap; }
+.historial-iconos { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+.historial-iconos > span { display: inline-flex; align-items: center; gap: 5px; }
+.icono-tarjeta { display: inline-block; width: 13px; height: 18px; vertical-align: -3px; border: 1px solid; border-radius: 3px; }
+.icono-tarjeta.amarilla { border-color: #d8a914; background: #f1c232; }
+.icono-tarjeta.roja { border-color: #d43d3d; background: #e34d4d; }
 .tabla-con-podio tbody tr.podio-2 { background-image: linear-gradient(100deg, #e1edf7, #f8fbff); }
 .tabla-con-podio tbody tr.podio-3 { background-image: linear-gradient(100deg, #f0f5fa, #fff); }
 .tabla-con-podio tbody tr.podio-2 td:first-child,

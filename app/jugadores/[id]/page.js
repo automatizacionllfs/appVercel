@@ -2,8 +2,30 @@ import { createClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import AvatarJugador from "../../AvatarJugador";
 import { createServiceDb } from "../../lib/entrenador";
-
+import { marcarSegundasAmarillas } from "../../../lib/tarjetas";
 export const revalidate = 60;
+
+function Iconos({ goles = 0, amarillas = 0, rojas = 0 }) {
+  return (
+    <strong className="historial-iconos">
+      {goles > 0 && (
+        <span aria-label={`${goles} ${goles === 1 ? "gol" : "goles"}`}>
+          {goles} <span aria-hidden="true">⚽</span>
+        </span>
+      )}
+      {amarillas > 0 && (
+        <span aria-label={`${amarillas} ${amarillas === 1 ? "tarjeta amarilla" : "tarjetas amarillas"}`}>
+          {amarillas} <i className="icono-tarjeta amarilla" aria-hidden="true" />
+        </span>
+      )}
+      {rojas > 0 && (
+        <span aria-label={`${rojas} ${rojas === 1 ? "tarjeta roja" : "tarjetas rojas"}`}>
+          {rojas} <i className="icono-tarjeta roja" aria-hidden="true" />
+        </span>
+      )}
+    </strong>
+  );
+}
 
 export default async function HistorialJugador({ params, searchParams }) {
   const { id } = await params;
@@ -34,27 +56,37 @@ export default async function HistorialJugador({ params, searchParams }) {
 
   const [{ data: eventos, error: errorEventos }, { data: votosMvp, error: errorMvp }] = await Promise.all([
     db.from("eventos")
-      .select("partido_id")
+      .select("id,partido_id,jugador_id,tipo,parte,restante_seg")
       .eq("jugador_id", id)
       .eq("equipo_id", equipo.id)
-      .eq("tipo", "gol")
       .eq("anulado", false),
     createServiceDb().from("mvp")
       .select("partido_id")
       .eq("jugador_id", id),
   ]);
-  if (errorEventos) throw new Error(`No se pudo cargar el historial de goles: ${errorEventos.message}`);
+  if (errorEventos) throw new Error(`No se pudo cargar el historial del jugador: ${errorEventos.message}`);
   if (errorMvp) throw new Error(`No se pudo cargar el historial de MVP: ${errorMvp.message}`);
 
+  const eventosMarcados = marcarSegundasAmarillas(eventos || []);
   const golesPorPartido = new Map();
-  (eventos || []).forEach((evento) => {
-    golesPorPartido.set(evento.partido_id, (golesPorPartido.get(evento.partido_id) || 0) + 1);
+  const amarillasPorPartido = new Map();
+  const rojasPorPartido = new Map();
+  const sumar = (mapa, partidoId) => mapa.set(partidoId, (mapa.get(partidoId) || 0) + 1);
+  eventosMarcados.forEach((evento) => {
+    if (evento.tipo === "gol") sumar(golesPorPartido, evento.partido_id);
+    if (evento.tipo === "amarilla") sumar(amarillasPorPartido, evento.partido_id);
+    if (evento.tipo === "roja" || evento.segundaAmarilla) sumar(rojasPorPartido, evento.partido_id);
   });
   const premiosPorPartido = new Map();
   (votosMvp || []).forEach((voto) => {
     premiosPorPartido.set(voto.partido_id, (premiosPorPartido.get(voto.partido_id) || 0) + 1);
   });
-  const partidosConHistorial = new Set([...golesPorPartido.keys(), ...premiosPorPartido.keys()]);
+  const partidosConHistorial = new Set([
+    ...golesPorPartido.keys(),
+    ...amarillasPorPartido.keys(),
+    ...rojasPorPartido.keys(),
+    ...premiosPorPartido.keys(),
+  ]);
 
   let historial = [];
   if (partidosConHistorial.size) {
@@ -67,6 +99,8 @@ export default async function HistorialJugador({ params, searchParams }) {
       ...partido,
       rival: partido.local_id === equipo.id ? partido.visitante?.nombre : partido.local?.nombre,
       goles: golesPorPartido.get(partido.id) || 0,
+      amarillas: amarillasPorPartido.get(partido.id) || 0,
+      rojas: rojasPorPartido.get(partido.id) || 0,
       premiosMvp: premiosPorPartido.get(partido.id) || 0,
     })).sort((a, b) =>
       (a.jornada ?? Number.MAX_SAFE_INTEGER) - (b.jornada ?? Number.MAX_SAFE_INTEGER) ||
@@ -81,6 +115,9 @@ export default async function HistorialJugador({ params, searchParams }) {
   const totalMvp = historial.reduce((total, partido) => total + partido.premiosMvp, 0);
   const jornadasConGol = historial.filter((partido) => partido.goles > 0).length;
   const partidosMvp = historial.filter((partido) => partido.premiosMvp > 0).length;
+  const totalAmarillas = historial.reduce((total, partido) => total + partido.amarillas, 0);
+  const totalRojas = historial.reduce((total, partido) => total + partido.rojas, 0);
+  const partidosConGolOTarjeta = historial.filter((partido) => partido.goles || partido.amarillas || partido.rojas);
 
   return (
     <main>
@@ -95,7 +132,9 @@ export default async function HistorialJugador({ params, searchParams }) {
           <span className="historial-jugador-dorsal">Dorsal {plantilla?.dorsal ?? "—"}</span>
         </div>
         <dl className="historial-jugador-resumen">
-          <div><dt>Goles</dt><dd>{totalGoles}</dd></div>
+          <div><dt>Goles</dt><dd>{totalGoles} <span aria-hidden="true">⚽</span></dd></div>
+          <div><dt>Amarillas</dt><dd>{totalAmarillas} <i className="icono-tarjeta amarilla" aria-hidden="true" /></dd></div>
+          <div><dt>Rojas</dt><dd>{totalRojas} <i className="icono-tarjeta roja" aria-hidden="true" /></dd></div>
           <div><dt>Jornadas con gol</dt><dd>{jornadasConGol}</dd></div>
           <div><dt>Premios MVP</dt><dd>{totalMvp}</dd></div>
           <div><dt>Jornadas como MVP</dt><dd>{partidosMvp}</dd></div>
@@ -117,14 +156,14 @@ export default async function HistorialJugador({ params, searchParams }) {
       </section>
 
       <section className="historial-goles">
-        <h2>Historial de goles</h2>
-        {!jornadasConGol ? <p className="suave">Este jugador todavía no tiene goles registrados en esta temporada.</p> : (
+        <h2>Historial de goles y tarjetas</h2>
+        {!partidosConGolOTarjeta.length ? <p className="suave">Este jugador todavía no tiene goles ni tarjetas registrados en esta temporada.</p> : (
           <ol>
-            {historial.filter((partido) => partido.goles > 0).map((partido) => (
+            {partidosConGolOTarjeta.map((partido) => (
               <li key={partido.id}>
                 <strong>Jornada {partido.jornada || "—"}</strong>
                 <span>{partido.rival || "Rival no disponible"}</span>
-                <strong>{partido.goles} {partido.goles === 1 ? "gol" : "goles"}</strong>
+                <Iconos goles={partido.goles} amarillas={partido.amarillas} rojas={partido.rojas} />
               </li>
             ))}
           </ol>
