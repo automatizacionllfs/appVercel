@@ -110,7 +110,7 @@ export default function SinFicha() {
 
         const [{ data: plantilla, error: errorPlantilla }, { data: partidosTemporada, error: errorPartidos }] = await Promise.all([
           supabase.from("plantilla")
-            .select("equipo_id,dorsal,jugador:jugadores(id,nombre,sin_ficha,id_clupik)")
+                     .select("equipo_id,dorsal,entrenador,jugador:jugadores(id,nombre,sin_ficha,id_clupik)")
             .in("equipo_id", equipoIds),
           supabase.from("partidos")
             .select("id,jornada,fecha,local_id,visitante_id,local:equipos!partidos_local_id_fkey(nombre),visitante:equipos!partidos_visitante_id_fkey(nombre)")
@@ -177,7 +177,8 @@ export default function SinFicha() {
             .filter((candidata) =>
               candidata.equipo_id === fila.equipo_id &&
               candidata.jugador?.id_clupik &&
-              !candidata.jugador.sin_ficha,
+              !candidata.jugador.sin_ficha &&
+              !candidata.entrenador,
             )
             .map((candidata) => ({
               id: candidata.jugador.id,
