@@ -2,6 +2,8 @@ import "./globals.css";
 import Cabecera from "./Cabecera";
 import InstalarApp from "./InstalarApp";
 import AvisoBaseDatos from "./AvisoBaseDatos";
+import { createClient } from "@supabase/supabase-js";
+import MiEquipo from "./MiEquipo";
 
 // ...metadata, viewport, VERSION, FECHA_ACTUALIZACION sin cambios...
 
@@ -23,7 +25,7 @@ export const metadata = {
   },
 };
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
-const VERSION = "4.6.2";
+const VERSION = "4.7.0";
 const FECHA_ACTUALIZACION = "25/11/2026";
 
 export default function RootLayout({ children }) {
@@ -39,3 +41,30 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+async function cargarEquipos() {
+  try {
+    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+      auth: { persistSession: false },
+    });
+    const { data: temporada } = await db.from("temporadas").select("id").eq("activa", true).maybeSingle();
+    if (!temporada) return [];
+    const { data } = await db.from("equipos")
+      .select("id,nombre,escudo_url").eq("temporada_id", temporada.id).order("nombre");
+    return data || [];
+  } catch {
+    return []; // si falla, el layout no debe romper la web
+  }
+}
+
+export default async function RootLayout({ children }) {
+  const equipos = await cargarEquipos();
+  return (
+    <html lang="es">
+      <body>
+        <header className="site-header">
+          {/* ... lo que ya tienes ... */}
+          <Navegacion />
+          <MiEquipo equipos={equipos} />
+        </header>
+        {/* resto igual */}

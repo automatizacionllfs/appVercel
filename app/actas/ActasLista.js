@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { resultadoPendiente } from "../../lib/partidos";
+import { useMiEquipo } from "../lib/mi-equipo";
+
 
 const fecha = (valor) => valor
   ? new Date(valor).toLocaleDateString("es-ES", {
@@ -11,6 +13,11 @@ const fecha = (valor) => valor
     year: "numeric",
   })
   : "Fecha no disponible";
+
+const miEquipo = useMiEquipo();
+const [soloMiEquipo, setSoloMiEquipo] = useState(
+  () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mis") === "1",
+);
 
 export default function ActasLista({ partidos }) {
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState("");
@@ -31,11 +38,20 @@ export default function ActasLista({ partidos }) {
     const coincideEstado = estadoSeleccionado === "todas"
       || (estadoSeleccionado === "cerrada" ? partido.estado === "cerrado" : partido.estado !== "cerrado");
     return coincideJornada && coincideEstado;
+    const coincideEquipo = !soloMiEquipo || !miEquipo
+      || String(partido.local_id) === miEquipo || String(partido.visitante_id) === miEquipo;
+    return coincideJornada && coincideEstado && coincideEquipo;
   });
 
   return (
     <>
       <div className="actas-filtros" aria-label="Filtrar actas">
+        {miEquipo && (
+          <label>
+            <input type="checkbox" checked={soloMiEquipo} onChange={(e) => setSoloMiEquipo(e.target.checked)} />
+            Solo mi equipo
+          </label>
+        )}
         <label>
           Jornada
           <select value={jornadaSeleccionada} onChange={(evento) => setJornadaSeleccionada(evento.target.value)}>
