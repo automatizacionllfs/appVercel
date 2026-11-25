@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import DetalleActa from "../DetalleActa";
 import { createServiceDb } from "../../lib/entrenador";
 import { urlFotoMvp } from "../../lib/foto-mvp";
+import { urlFotoEntrenador } from "../../lib/foto-entrenador";
 
 export const revalidate = 0;
 
@@ -51,7 +52,7 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
   if (resultadoEventos.error) throw new Error(`No se pudieron cargar los eventos del acta: ${resultadoEventos.error.message}`);
 
   const { data: jugadoresAlineacion, error: errorAlineacion } = await db.from("alineacion_acta")
-    .select("equipo_id,jugador_id,nombre,id_clupik,image_id,dorsal,orden")
+    .select("equipo_id,jugador_id,nombre,id_clupik,image_id,dorsal,orden,entrenador")
     .eq("partido_id", partido.id)
     .order("orden", { ascending: true });
   if (errorAlineacion) throw new Error(`No se pudo cargar la alineación del partido: ${errorAlineacion.message}`);
@@ -69,7 +70,7 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
     if (!equipo || !filas) return;
     filas.push({
       ...jugador,
-      foto: urlFotoMvp(equipo.id_clupik, jugador),
+      foto: jugador.entrenador ? urlFotoEntrenador(equipo.id_clupik, jugador) : urlFotoMvp(equipo.id_clupik, jugador),
     });
   });
   const mvpPorEquipo = new Map();
