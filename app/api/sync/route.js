@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 const API = "https://api.clupik.com";
 const { CLUB_ID, SEASON_ID, SECTIONS = "", FECHA_DESDE, FECHA_HASTA } = process.env;
 const PARTICULAS = ["de", "del", "la", "las", "los", "el", "y", "e", "da", "di", "do", "van", "von"];
+const RUTA_ENTRENADORES = "coach"; // Endpoint de Clupik para el cuerpo técnico
 
 const limpiar = (s) => String(s ?? "").replace(/\s+/g, " ").trim();
 function normalizar(s) {
@@ -27,6 +28,13 @@ async function getJson(url, intentos = 3) {
   }
   throw new Error(`${url} -> ${ultimo}`);
 }
+async function getJsonOpcional(url) {
+  try {
+    const r = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
+    return r.ok ? await r.json() : null;
+  } catch { return null; }
+}
+
 const ok = (res) => { if (res.error) throw new Error(res.error.message); return res.data; };
 async function upsertTrozos(db, tabla, filas, conflicto, columnas) {
   const out = [];
@@ -135,7 +143,28 @@ async function sincronizar(db, fechas) {
         image_id: p.playerOne?.imageId || null,
       });
       const d = parseInt(p.playerOne?.number, 10);
-      plantillas.push({ teamId, jug: String(p.id), dorsal: Number.isNaN(d) ? null : d });
+      plantillas.push({ teamId, jug: String(p.id), dorsal: Number.isNaN(d) ? null : d, entrenador: false });    }
+  }
+  const listasEntrenadores = await Promise.all(teamIds.map(async (id) =>
+    [id, await getJsonOpcional(`${API}/clubs/${CLUB_ID}/teams/${id}/${RUTA_ENTRENADORES}`)]));
+  const jugadoresPorEquipo = new Set(plantillas.map((x) => `${x.teamId}:${x.jug}`));
+  let entrenadores = 0;
+  for (const [teamId, lista] of listasEntrenadores) {
+    if (!Array.isArray(lista)) continue;
+    for (const c of lista) {
+      const nombre = [normalizar(c.firstName), normalizar(c.lastName)].filter(Boolean).join(" ");
+      if (!c.id || !nombre) continue;
+      if (jugadoresPorEquipo.has(`${teamId}:${c.id}`)) continue; // ya es jugador de ese equipo: se respeta su dorsal
+      if (!personas.has(String(c.id))) {
+        personas.set(String(c.id), {
+          id_clupik: String(c.id),
+          nombre,
+          apodo: null,
+          image_id: c.coachOne?.imageId || null,
+        });
+      }
+      plantillas.push({ teamId, jug: String(c.id), dorsal: null, entrenador: true });
+      entrenadores += 1;
     }
   }
   const jugDb = await upsertTrozos(db, "jugadores", [...personas.values()], "id_clupik", "id,id_clupik,image_id");
@@ -143,7 +172,13 @@ async function sincronizar(db, fechas) {
   const filasPl = new Map();
   plantillas.forEach((x) => {
     const equipo_id = eqId.get(x.teamId), jugador_id = jugId.get(x.jug);
-    if (equipo_id && jugador_id) filasPl.set(`${equipo_id}-${jugador_id}`, { equipo_id, jugador_id, dorsal: x.dorsal === -1 ? null : x.dorsal, baja: x.dorsal === -1 });
+    if (equipo_id && jugador_id) filasPl.set(`${equipo_id}-${jugador_id}`, {
+      equipo_id,
+      jugador_id,
+      dorsal: x.entrenador || x.dorsal === -1 ? null : x.dorsal,
+      baja: !x.entrenador && x.dorsal === -1,
+      entrenador: x.entrenador,
+    });
   });
   await upsertTrozos(db, "plantilla", [...filasPl.values()], "equipo_id,jugador_id");
 
@@ -164,6 +199,7 @@ async function sincronizar(db, fechas) {
     jugadoresConFotoRecibida: [...personas.values()].filter((jugador) => jugador.image_id).length,
     jugadoresConFotoGuardada: jugDb.filter((jugador) => jugador.image_id).length,
     plantillas: filasPl.size,
+    entrenadores,
     partidos: filasP.length,
   };
 }
