@@ -143,7 +143,7 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
       amarillas: eventosConSegundasAmarillas.filter((evento) => evento.tipo === "amarilla").length,
       rojas: eventosConSegundasAmarillas.filter((evento) => evento.tipo === "roja" || evento.segundaAmarilla).length,
       equipos: equipos.length,
-      jugadores: new Set(plantilla.map((fila) => fila.jugador?.id).filter(Boolean)).size,
+      jugadores: new Set(plantilla.filter((fila) => !fila.entrenador).map((fila) => fila.jugador?.id).filter(Boolean)).size,
     };
   }, [eventosConSegundasAmarillas, partidosDisputados.length, equipos.length, plantilla]);
   const partidosEquipo = equipo
@@ -167,7 +167,7 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
       eventosPorJugador.get(evento.jugador_id).push(evento);
     });
     return plantilla
-      .filter((fila) => fila.equipo_id === equipo?.id && fila.jugador?.id_clupik)
+      .filter((fila) => fila.equipo_id === equipo?.id && fila.jugador?.id_clupik && !fila.entrenador)
       .map((fila) => {
         const filas = eventosPorJugador.get(fila.jugador.id) || [];
         return {
@@ -180,7 +180,11 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
       })
       .sort((a, b) => b.goles - a.goles || (a.dorsal ?? 999) - (b.dorsal ?? 999) || a.nombre.localeCompare(b.nombre, "es"));
   }, [plantilla, equipo?.id, eventosEquipo, partidosConResultado.length]);
-
+  const entrenadores = useMemo(() => plantilla
+    .filter((fila) => fila.equipo_id === equipo?.id && fila.entrenador && fila.jugador)
+    .map((fila) => ({ id: fila.jugador.id, nombre: fila.jugador.nombre, foto: fila.jugador.foto }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es")), [plantilla, equipo?.id]);
+  
   return (
     <>
       <section className="estadistica-card resumen-liga">
@@ -312,6 +316,31 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
             )}
             <p className="nota-datos">Se muestran los jugadores de la plantilla sincronizada desde Clupik. La media individual se calcula sobre los partidos con resultado del equipo.</p>
           </section>
+          {entrenadores.length > 0 && (
+            <section>
+              <h2>Cuerpo técnico</h2>
+              <div className="tabla-scroll">
+                <table>
+                  <thead><tr><th className="num">Dorsal</th><th>Entrenador</th></tr></thead>
+                  <tbody>
+                    {entrenadores.map((entrenador) => (
+                      <tr key={entrenador.id}>
+                        <td className="num">E</td>
+                        <td>
+                          <span className="estadistica-jugador">
+                            <span className="estadistica-jugador-foto">
+                              <AvatarJugador src={entrenador.foto} />
+                            </span>
+                            {entrenador.nombre}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
         </>
       )}
     </>
