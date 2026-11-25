@@ -432,6 +432,9 @@ body {
   outline-offset: 3px;
 }
 .navegacion-arbitro {
+  position: sticky;
+  top: var(--alto-barra);
+  z-index: 5;
   margin: 0 auto 18px;
 }
 .sin-ficha-lista {
