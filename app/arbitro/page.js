@@ -11,15 +11,14 @@ const normalizarBusqueda = (texto) => texto.normalize("NFD").replace(/[\u0300-\u
 const reloj = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const TIPOS = { gol: "Gol", amarilla: "Amarilla", roja: "Roja" };
 const tiempoJuego = (e) => (e.parte - 1) * 1320 + (1320 - e.restante_seg);
-const fotoJugador = (equipoClupikId, jugador) => {
+const fotoJugador = (equipoClupikId, jugador, entrenador = false) => {
   if (!equipoClupikId || !jugador?.id_clupik || !jugador?.image_id) return null;
-  const params = new URLSearchParams({
-    equipo: String(equipoClupikId),
-    jugador: String(jugador.id_clupik),
-    imagen: String(jugador.image_id),
-  });
-  return `/api/mvp/foto?${params}`;
+  const params = new URLSearchParams(entrenador
+    ? { equipo: String(equipoClupikId), persona: String(jugador.id_clupik), imagen: String(jugador.image_id) }
+    : { equipo: String(equipoClupikId), jugador: String(jugador.id_clupik), imagen: String(jugador.image_id) });
+  return `${entrenador ? "/api/foto-entrenador" : "/api/mvp/foto"}?${params}`;
 };
+const etiquetaDorsal = (f) => (f.entrenador ? "E" : `#${f.dorsalPartido ?? "–"}`);
 
 function SelectorTiempo({ etiqueta, valor, opciones, sufijo, onChange }) {
   const [abierto, setAbierto] = useState(false);
@@ -166,7 +165,8 @@ export default function Arbitro() {
     alert(
       `Sincronizado: ${j.equipos} equipos, ${j.jugadores} jugadores, ${j.partidos} partidos.\n` +
       `Fotos recibidas de Clupik: ${j.jugadoresConFotoRecibida ?? "no disponible"}.\n` +
-      `Fotos guardadas en Supabase: ${j.jugadoresConFotoGuardada ?? "no disponible"}`,
+      `Fotos guardadas en Supabase: ${j.jugadoresConFotoGuardada ?? "no disponible"}.\n` +
+      `Entrenadores importados: ${j.entrenadores ?? "no disponible"}`,
     );
     window.location.reload();
   };
@@ -361,7 +361,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
       { data: alineacion, error: errorAlineacion },
     ] = await Promise.all([
       supabase.from("plantilla")
-        .select("id,dorsal,baja,equipo_id,jugador:jugadores(id,nombre,id_clupik,image_id)")
+        .select("id,dorsal,baja,entrenador,equipo_id,jugador:jugadores(id,nombre,id_clupik,image_id)")
         .in("equipo_id", [part.local_id, part.visitante_id]),
       supabase.from("eventos")
         .select("id,tipo,parte,restante_seg,anulado,equipo_id,jugador:jugadores(nombre)")
@@ -388,11 +388,15 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
         foto: fotoJugador(
           fila.equipo_id === part.local_id ? part.local.id_clupik : part.visitante.id_clupik,
           fila.jugador,
+          fila.entrenador,
         ),
-        dorsalPartido: dorsalesGuardados.has(clave)
+        dorsalPartido: fila.entrenador ? null : (dorsalesGuardados.has(clave)
           ? dorsalesGuardados.get(clave)
-          : filaAnterior?.dorsalPartido ?? fila.dorsal,
-        jugo: filaAnterior ? filaAnterior.jugo : (dorsalesGuardados.has(clave) || anterior.length > 0),
+          : filaAnterior?.dorsalPartido ?? fila.dorsal),
+        jugo: filaAnterior
+          ? filaAnterior.jugo
+          : (dorsalesGuardados.has(clave) || anterior.length > 0 ||
+             (fila.entrenador && !(alineacion || []).length)),
       };
     }));
     setEv(eventos || []);
@@ -422,9 +426,9 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     setMin(22);
     setSeg(0);
   };
-  const hayConvocados = pl.some((x) => x.jugo);
+  const hayConvocados = pl.some((x) => x.jugo && !x.entrenador);
   const lista = pl
-    .filter((x) => x.equipo_id === eq && (!hayConvocados || x.jugo) && (
+    .filter((x) => x.equipo_id === eq && (!hayConvocados || x.jugo) && !(tipo === "gol" && x.entrenador) && (
       x.jugador.nombre.toLowerCase().includes(busca.toLowerCase()) ||
       String(x.dorsalPartido ?? "").includes(busca.trim())
     ))
@@ -435,7 +439,8 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
   const equipoActivo = equipoAlineacion ?? p.local_id;
   const jugadoresActivos = pl
     .filter((fila) => fila.equipo_id === equipoActivo)
-    .sort((a, b) => a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" }));
+    .sort((a, b) => Number(a.entrenador) - Number(b.entrenador) || 
+      a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" }));
 
   const elegir = (x) => {
     if (x.baja && !confirm(`${x.jugador.nombre} está de baja. ¿Asignarle el evento igualmente?`)) return;
@@ -571,10 +576,11 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
         p_partido: id,
         p_jugadores: pl
           .filter((fila) => fila.jugo && !fila.baja)
+          .sort((a, b) => Number(a.entrenador) - Number(b.entrenador))
           .map((fila) => ({
             equipo_id: fila.equipo_id,
             jugador_id: fila.jugador.id,
-            dorsal: fila.dorsalPartido,
+            dorsal: fila.entrenador ? 0 : fila.dorsalPartido,
           })),
       });
       if (error) {
@@ -615,7 +621,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
         <>
           <div className="pestanas alineacion-pestanas" role="tablist" aria-label="Equipo de la alineación">
             {[[p.local_id, p.local.nombre], [p.visitante_id, p.visitante.nombre]].map(([equipoId, nombre]) => {
-              const jugadoresEquipo = pl.filter((fila) => fila.equipo_id === equipoId);
+              const jugadoresEquipo = pl.filter((fila) => fila.equipo_id === equipoId && !fila.entrenador);
               const convocados = jugadoresEquipo.filter((fila) => fila.jugo).length;
               return (
                 <button
@@ -650,20 +656,26 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
                   <span>{fila.jugador.nombre}{fila.baja ? " (baja)" : ""}</span>
                 </span>
                 <span className="alineacion-editor-dorsal">
-                  <span>Dorsal</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="99"
-                    step="1"
-                    aria-label={`Dorsal de ${fila.jugador.nombre} para este partido`}
-                    value={fila.dorsalPartido ?? ""}
-                    disabled={!editable || guardandoAlineacion || !fila.jugo}
-                    onChange={(event) => {
-                      const valor = event.target.value === "" ? null : Number(event.target.value);
-                      setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, dorsalPartido: valor } : item));
-                    }}
-                  />
+                  {fila.entrenador ? (
+                    <strong aria-label="Entrenador">Entrenador · E</strong>
+                  ) : (
+                    <>
+                      <span>Dorsal</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="99"
+                        step="1"
+                        aria-label={`Dorsal de ${fila.jugador.nombre} para este partido`}
+                        value={fila.dorsalPartido ?? ""}
+                        disabled={!editable || guardandoAlineacion || !fila.jugo}
+                        onChange={(event) => {
+                          const valor = event.target.value === "" ? null : Number(event.target.value);
+                          setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, dorsalPartido: valor } : item));
+                        }}
+                      />
+                    </>
+                  )}
                 </span>
               </label>
             ))}
@@ -731,7 +743,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
                   <button key={x.id} onClick={() => {
                     if (x.baja && !confirm(`${x.jugador.nombre} está de baja. ¿Asignarle el evento igualmente?`)) return;
                     guardar(x);
-                  }}>#{x.dorsalPartido ?? "–"} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
+                  }}>{etiquetaDorsal(x)} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
                 ))}
               </div>
               <button className="mini" onClick={sinFicha}>¿No aparece? Sin ficha</button>
@@ -756,14 +768,14 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
           </div>
 
           {golPropio ? <p className="suave">El gol suma al marcador del equipo seleccionado y no se asigna a un jugador.</p>           : jug ? (
-            <p style={{ marginTop: 12 }}><strong>#{jug.dorsalPartido ?? "–"} {jug.jugador.nombre}</strong>{" "}
+            <p style={{ marginTop: 12 }}><strong>{etiquetaDorsal(jug)} {jug.jugador.nombre}</strong>{" "}
               <button className="mini" onClick={() => setJug(null)}>Cambiar</button></p>
           ) : (
             <>
               <input style={{ marginTop: 8 }} placeholder="Buscar jugador o dorsal" value={busca} onChange={(e) => setBusca(e.target.value)} />
               <div className="lista">
                 {lista.map((x) => (
-                  <button key={x.id} onClick={() => elegir(x)}>#{x.dorsalPartido ?? "–"} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
+                  <button key={x.id} onClick={() => elegir(x)}>{etiquetaDorsal(x)} {x.jugador.nombre}{x.baja ? " (baja)" : ""}</button>
                 ))}
               </div>
               <button className="mini" onClick={sinFicha}>¿No aparece? Sin ficha</button>
