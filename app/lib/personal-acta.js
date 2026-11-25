@@ -1,4 +1,5 @@
 export const NOMBRES_PERSONAL_ACTA = [
+  "-",
   "Aspe",
   "Carmen",
   "Joaquin",
