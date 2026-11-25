@@ -74,7 +74,7 @@ export async function POST(request) {
     };
     const equiposIds = [...new Set(partidos.flatMap((partido) => [partido.local_id, partido.visitante_id]))];
     const { data: plantilla, error: errorPlantilla } = await db.from("plantilla")
-      .select("equipo_id,dorsal,baja,jugador:jugadores(nombre)")
+      .select("equipo_id,dorsal,baja,entrenador,jugador:jugadores(nombre)")
       .in("equipo_id", equiposIds)
       .eq("baja", false);
     if (errorPlantilla) throw new Error(`No se pudieron cargar las plantillas: ${errorPlantilla.message}`);
@@ -83,12 +83,13 @@ export async function POST(request) {
     (plantilla || []).forEach((fila) => {
       if (!fila.jugador?.nombre) return;
       const lista = filasPorEquipo.get(String(fila.equipo_id)) || [];
-      lista.push({ nombre: fila.jugador.nombre, dorsal: fila.dorsal });
+      lista.push({ nombre: fila.jugador.nombre, dorsal: fila.entrenador ? "E" : fila.dorsal, entrenador: fila.entrenador });
       filasPorEquipo.set(String(fila.equipo_id), lista);
     });
     filasPorEquipo.forEach((filas) => filas.sort((a, b) =>
+      Number(a.entrenador) - Number(b.entrenador) ||
       a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }) ||
-      (a.dorsal ?? 999) - (b.dorsal ?? 999)
+      (Number(a.dorsal) || 999) - (Number(b.dorsal) || 999)
     ));
 
     const partido = partidos[0];
