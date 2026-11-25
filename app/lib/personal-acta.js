@@ -1,14 +1,14 @@
 export const NOMBRES_PERSONAL_ACTA = [
-  "-",
   "Aspe",
+  "-",
   "Carmen",
   "Joaquin",
   "Joni",
+  "Jose Manuel",
   "Manuel",
   "Mawito",
   "Miguel",
   "Tambora",
-  "Jose Manuel",
 ];
 
 function normalizarNombre(nombre) {
