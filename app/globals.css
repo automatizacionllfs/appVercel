@@ -432,12 +432,16 @@ body {
   outline-offset: 3px;
 }
 .navegacion-arbitro {
+  margin-top: 12px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border-top: 1px solid var(--borde);    
   position: sticky;
   top: var(--alto-barra);
   z-index: 5;
   margin: 0 auto 18px;
-  border-bottom: 1px solid var(--borde);
-  background: rgb(243 246 250 / 100%);
+  border-bottom: 3px solid var(--acento);
+  background: rgb(229 237 245);
   backdrop-filter: blur(10px);
 }
 .sin-ficha-lista {
@@ -3606,7 +3610,15 @@ a.acta-partido:hover {
   .navegacion-arbitro {
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid var(--borde);
+    padding-bottom: 12px;
+    border-top: 1px solid var(--borde);    
+    position: sticky;
+    top: var(--alto-barra);
+    z-index: 5;
+    margin: 0 auto 18px;
+    border-bottom: 3px solid var(--acento);
+    background: rgb(229 237 245);
+    backdrop-filter: blur(10px);
   }
   main {
     width: min(100% - 24px, 760px);
