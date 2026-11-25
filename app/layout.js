@@ -1,12 +1,10 @@
 import "./globals.css";
-import Image from "next/image";
-import Navegacion from "./Navegacion";
-import InstalarApp from "./InstalarApp";
-import AvisoBaseDatos from "./AvisoBaseDatos";
-import "./globals.css";
 import Cabecera from "./Cabecera";
 import InstalarApp from "./InstalarApp";
 import AvisoBaseDatos from "./AvisoBaseDatos";
+
+// ...metadata, viewport, VERSION, FECHA_ACTUALIZACION sin cambios...
+
 
 export const metadata = {
   title: "LLFS Puerto Real",
