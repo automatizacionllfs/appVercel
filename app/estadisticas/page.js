@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import Estadisticas from "./estadisticas";
 import InfoDatosPublicos from "../InfoDatosPublicos";
 import { urlFotoMvp } from "../lib/foto-mvp";
+import { urlFotoEntrenador } from "../lib/foto-entrenador";
 
 export const revalidate = 0;
 
@@ -29,7 +30,7 @@ export default async function PaginaEstadisticas({ searchParams }) {
     partidos = resultadoPartidos.data || [];
     if (equipos.length) {
       const { data, error } = await db.from("plantilla")
-        .select("equipo_id,dorsal,baja,jugador:jugadores(id,id_clupik,nombre,image_id)")
+        .select("equipo_id,dorsal,baja,entrenador,jugador:jugadores(id,id_clupik,nombre,image_id)")
         .in("equipo_id", equipos.map((equipo) => equipo.id))
         .not("jugador.id_clupik", "is", null);
       if (error) throw new Error(`No se pudo cargar la plantilla de jugadores: ${error.message}`);
@@ -37,9 +38,10 @@ export default async function PaginaEstadisticas({ searchParams }) {
       plantilla = (data || []).map((fila) => {
         const teamId = equipoClupikPorId.get(fila.equipo_id);
         const { jugador } = fila;
-        const foto = process.env.CLUB_ID && teamId && jugador?.image_id
-          ? `https://api.clupik.com/clubs/${process.env.CLUB_ID}/teams/${teamId}/players/${jugador.id_clupik}/picture/${jugador.image_id}.medium.jpg`
-          : null;
+        const foto = fila.entrenador
+         ? urlFotoEntrenador(teamId, jugador) : process.env.CLUB_ID && teamId && jugador?.image_id
+         ? `https://api.clupik.com/clubs/${process.env.CLUB_ID}/teams/${teamId}/players/${jugador.id_clupik}/picture/${jugador.image_id}.medium.jpg`
+         : null;
         return { ...fila, jugador: jugador ? { ...jugador, foto } : null };
       });
     }
