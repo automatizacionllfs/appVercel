@@ -638,48 +638,50 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
             })}
           </div>
           <div className="alineacion-editor-equipo" role="tabpanel">
-            {!jugadoresActivos.length ? <p className="suave">No hay jugadores en la plantilla.</p> : jugadoresActivos.map((fila) => (
-              <label className={`alineacion-editor-jugador ${fila.jugo ? "" : "fuera"}`} key={fila.id}>
-                <span className="alineacion-editor-identidad">
-                  <input
-                    className="alineacion-editor-jugo"
-                    type="checkbox"
-                    checked={Boolean(fila.jugo)}
-                    disabled={!editable || guardandoAlineacion || fila.baja}
-                    aria-label={`${fila.jugador.nombre} ha jugado el partido`}
-                    onChange={(event) => {
-                      const marcado = event.target.checked;
-                      setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, jugo: marcado } : item));
-                    }}
-                  />
-                  <AvatarJugador src={fila.foto} />
-                  <span>{fila.jugador.nombre}{fila.baja ? " (baja)" : ""}</span>
-                </span>
-                <span className="alineacion-editor-dorsal">
-                  {fila.entrenador ? (
-                    <strong aria-label="Entrenador">Entrenador · E</strong>
-                  ) : (
-                    <>
-                      <span>Dorsal</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="99"
-                        step="1"
-                        aria-label={`Dorsal de ${fila.jugador.nombre} para este partido`}
-                        value={fila.dorsalPartido ?? ""}
-                        disabled={!editable || guardandoAlineacion || !fila.jugo}
-                        onChange={(event) => {
-                          const valor = event.target.value === "" ? null : Number(event.target.value);
-                          setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, dorsalPartido: valor } : item));
-                        }}
-                      />
-                    </>
-                  )}
-                </span>
-              </label>
-            ))}
-          </div>
+  {!jugadoresActivos.length ? <p className="suave">No hay jugadores en la plantilla.</p> : jugadoresActivos.map((fila) => {
+    const bloqueado = !editable || guardandoAlineacion || fila.baja;
+    return (
+      <div
+        className={`alineacion-editor-jugador ${fila.jugo ? "activo" : "fuera"} ${bloqueado ? "bloqueado" : ""}`}
+        key={fila.id}
+      >
+        <label className="alineacion-editor-seleccion">
+          <input
+            className="sr-only"
+            type="checkbox"
+            checked={Boolean(fila.jugo)}
+            disabled={bloqueado}
+            aria-label={`${fila.jugador.nombre} ha jugado el partido`}
+            onChange={(event) => {
+              const marcado = event.target.checked;
+              setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, jugo: marcado } : item));
+            }}
+          />
+          <span className="alineacion-editor-identidad">
+            <AvatarJugador src={fila.foto} />
+            <span>{fila.jugador.nombre}{fila.baja ? " (baja)" : ""}</span>
+          </span>
+        </label>
+        <span className="alineacion-editor-dorsal">
+          <span>Dorsal</span>
+          <input
+            type="number"
+            min="0"
+            max="99"
+            step="1"
+            aria-label={`Dorsal de ${fila.jugador.nombre} para este partido`}
+            value={fila.dorsalPartido ?? ""}
+            disabled={!editable || guardandoAlineacion || !fila.jugo}
+            onChange={(event) => {
+              const valor = event.target.value === "" ? null : Number(event.target.value);
+              setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, dorsalPartido: valor } : item));
+            }}
+          />
+        </span>
+      </div>
+    );
+  })}
+</div>
         </>
       )}
         {editable && (

@@ -210,18 +210,52 @@ body {
 .alineacion-editor h2 { margin: 0 0 6px; }
 .alineacion-editor-equipo { margin-top: 18px; }
 .alineacion-editor-equipo h3 { margin: 0 0 8px; color: var(--acento-oscuro); }
-.alineacion-editor-jugador { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; border-top: 1px solid var(--borde); }
-.alineacion-editor-jugador > span:first-child { overflow-wrap: anywhere; }
 .alineacion-editor-identidad { display: flex; min-width: 0; align-items: center; gap: 10px; }
 .alineacion-editor-identidad img, .alineacion-editor-identidad .avatar-jugador { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; object-fit: cover; }
 .alineacion-editor-identidad .avatar-jugador { padding: 5px; background: var(--acento-claro); }
 .alineacion-editor-dorsal { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; color: var(--suave); font-size: .82rem; }
 .alineacion-editor-dorsal input { width: 76px; min-height: 40px; }
 .alineacion-editor > button { width: 100%; margin-top: 18px; }
-.alineacion-editor-jugo { width: 22px; height: 22px; min-height: 0; flex: 0 0 22px; padding: 0; accent-color: var(--acento); cursor: pointer; }
-.alineacion-editor-jugo:disabled { cursor: not-allowed; }
+.alineacion-editor-jugador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--papel);
+  transition: background-color .16s ease, border-color .16s ease;
+}
+.alineacion-editor-jugador.activo {
+  border-color: #16834a;
+  background: #e9f6ee;
+}
+.alineacion-editor-jugador.activo .alineacion-editor-identidad > span { color: #11643a; font-weight: 750; }
 .alineacion-editor-jugador.fuera .alineacion-editor-identidad > span,
 .alineacion-editor-jugador.fuera .avatar-jugador { opacity: .55; }
+.alineacion-editor-jugador.bloqueado { opacity: .7; }
+.alineacion-editor-seleccion {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  align-items: center;
+  cursor: pointer;
+}
+.alineacion-editor-jugador.bloqueado .alineacion-editor-seleccion { cursor: not-allowed; }
+.alineacion-editor-seleccion:has(input:focus-visible) {
+  outline: 3px solid #ff0000;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.alineacion-editor-identidad { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.alineacion-editor-identidad > span:last-child { overflow-wrap: anywhere; }
+.alineacion-editor-identidad img,
+.alineacion-editor-identidad .avatar-jugador { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; object-fit: cover; }
+.alineacion-editor-identidad .avatar-jugador { padding: 5px; background: var(--acento-claro); }
 .alineacion-editor-equipo h3 .suave { font-size: .82rem; font-weight: 600; }
 .alineacion-pestanas button { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
 .mvp-compartir { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0 28px; padding: 18px; border: 1px solid var(--borde); border-radius: 16px; background: var(--papel); }
