@@ -58,6 +58,7 @@ export async function POST(request) {
     const { data: plantilla, error: errorPlantilla } = await db.from("plantilla")
       .select("jugador_id")
       .eq("equipo_id", rivalId)
+      .eq("entrenador", false)
       .eq("jugador_id", jugadorId)
       .maybeSingle();
     if (errorPlantilla) throw new Error(`No se pudo validar el jugador: ${errorPlantilla.message}`);
