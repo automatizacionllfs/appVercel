@@ -23,6 +23,7 @@ export async function GET(request) {
 
     const { data: filas, error: errorPlantilla } = ids.length
       ? await db.from("plantilla").select("equipo_id,dorsal,baja,jugador:jugadores(id,nombre)")
+        .eq("entrenador", false)
         .in("equipo_id", [...new Set((partidos || []).map((partido) =>
           String(partido.local_id) === sesion.equipoId ? partido.visitante_id : partido.local_id,
         ))])
