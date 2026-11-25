@@ -40,7 +40,7 @@ export default function AlineacionActa({ local, visitante, alineacionLocal = [],
                 <ul>
                   {seleccionado.jugadores.map((jugador) => (
                     <li key={jugador.jugador_id}>
-                      <span className="acta-alineacion-dorsal">{jugador.dorsal ?? "–"}</span>
+                      <span className="acta-alineacion-dorsal">{jugador.entrenador ? "E" : jugador.dorsal ?? "–"}</span>
                       <AvatarJugador src={jugador.foto} />
                       <strong>{jugador.nombre}</strong>
                     </li>
