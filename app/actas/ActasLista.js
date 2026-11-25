@@ -14,14 +14,15 @@ const fecha = (valor) => valor
   })
   : "Fecha no disponible";
 
-const miEquipo = useMiEquipo();
-const [soloMiEquipo, setSoloMiEquipo] = useState(
-  () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mis") === "1",
-);
+
 
 export default function ActasLista({ partidos }) {
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState("");
   const [estadoSeleccionado, setEstadoSeleccionado] = useState("todas");
+  const miEquipo = useMiEquipo();
+  const [soloMiEquipo, setSoloMiEquipo] = useState(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mis") === "1",
+  );
 
   const jornadas = useMemo(() => [...new Set(partidos.map(({ jornada }) => jornada))]
     .sort((a, b) => {
@@ -37,7 +38,6 @@ export default function ActasLista({ partidos }) {
         : String(partido.jornada) === jornadaSeleccionada);
     const coincideEstado = estadoSeleccionado === "todas"
       || (estadoSeleccionado === "cerrada" ? partido.estado === "cerrado" : partido.estado !== "cerrado");
-    return coincideJornada && coincideEstado;
     const coincideEquipo = !soloMiEquipo || !miEquipo
       || String(partido.local_id) === miEquipo || String(partido.visitante_id) === miEquipo;
     return coincideJornada && coincideEstado && coincideEquipo;
