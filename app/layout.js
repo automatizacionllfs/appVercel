@@ -28,11 +28,13 @@ export const viewport = { width: "device-width", initialScale: 1, themeColor: "#
 const VERSION = "4.7.0";
 const FECHA_ACTUALIZACION = "25/11/2026";
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const equipos = await cargarEquipos();
   return (
     <html lang="es">
       <body>
         <Cabecera />
+        <MiEquipo equipos={equipos} />
         <AvisoBaseDatos />
         <InstalarApp />
         {children}
@@ -57,14 +59,3 @@ async function cargarEquipos() {
   }
 }
 
-export default async function RootLayout({ children }) {
-  const equipos = await cargarEquipos();
-  return (
-    <html lang="es">
-      <body>
-        <header className="site-header">
-          {/* ... lo que ya tienes ... */}
-          <Navegacion />
-          <MiEquipo equipos={equipos} />
-        </header>
-        {/* resto igual */}
