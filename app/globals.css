@@ -223,6 +223,21 @@ body {
   margin-top: 6px;
   box-shadow: none;
 }
+.site-header.compacta .site-nav-submenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  right: auto;
+  margin-top: 0;
+  transform: translateX(-50%);
+  box-shadow: var(--sombra);
+  z-index: 1000;
+}
+
+/* Con el menú abierto, el panel no debe recortar el submenú flotante */
+.site-header.compacta.menu-abierto .site-header-cuerpo-interno {
+  overflow: visible;
+}
 .aviso-base-datos {
   position: fixed;
   z-index: 1000;
