@@ -3,8 +3,6 @@ import Cabecera from "./Cabecera";
 import InstalarApp from "./InstalarApp";
 import AvisoBaseDatos from "./AvisoBaseDatos";
 import { createClient } from "@supabase/supabase-js";
-import MiEquipo from "./MiEquipo";
-
 // ...metadata, viewport, VERSION, FECHA_ACTUALIZACION sin cambios...
 
 
@@ -25,7 +23,7 @@ export const metadata = {
   },
 };
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
-const VERSION = "4.8.0";
+const VERSION = "4.8.1";
 const FECHA_ACTUALIZACION = "26/11/2026";
 
 export default async function RootLayout({ children }) {
@@ -34,7 +32,6 @@ export default async function RootLayout({ children }) {
     <html lang="es">
       <body>
         <Cabecera />
-        <MiEquipo equipos={equipos} />
         <AvisoBaseDatos />
         <InstalarApp />
         {children}
