@@ -13,6 +13,7 @@ const enlaces = [
 const enlacesPersonal = [
   { href: "/arbitro", texto: "Árbitros" },
   { href: "/entrenador", texto: "Entrenadores" },
+  { href: "/jugador", texto: "Jugadores" },
 ];
 
 export default function Navegacion() {
@@ -20,7 +21,8 @@ export default function Navegacion() {
   const personalActivo = ruta === "/arbitro"
     || ruta.startsWith("/arbitro/")
     || ruta === "/entrenador"
-    || ruta.startsWith("/entrenador/");
+    || ruta.startsWith("/entrenador/")
+    || ruta === "/jugador";
 
   return (
     <nav className="site-nav" aria-label="Navegación principal">
