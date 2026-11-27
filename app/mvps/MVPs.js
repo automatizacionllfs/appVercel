@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useFiltroSesion } from "../lib/filtros-sesion";
 import { useRouter } from "next/navigation";
 import AvatarJugador from "../AvatarJugador";
 
@@ -8,8 +8,8 @@ const normalizarNombre = (nombre) => nombre.normalize("NFD").replace(/[\u0300-\u
 
 export default function MVPs({ ranking }) {
   const router = useRouter();
-  const [busqueda, setBusqueda] = useState("");
-  const [pagina, setPagina] = useState(1);
+  const [busqueda, setBusqueda] = useFiltroSesion("mvps:busqueda", "");
+  const [pagina, setPagina] = useFiltroSesion("mvps:pagina", 1);
   const porPagina = 10;
   const consulta = normalizarNombre(busqueda.trim());
   const filasFiltradas = ranking

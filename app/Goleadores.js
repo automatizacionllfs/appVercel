@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import AvatarJugador from "./AvatarJugador";
+import { useFiltroSesion } from "./lib/filtros-sesion"
 
 const normalizarNombre = (nombre) => nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
 
-function TablaGoleadores({ filas }) {
+function TablaGoleadores({ filas, clave }) {
   const router = useRouter();
-  const [busqueda, setBusqueda] = useState("");
-  const [pagina, setPagina] = useState(1);
+const [busqueda, setBusqueda] = useFiltroSesion(`${clave}:busqueda`, "");
+const [pagina, setPagina] = useFiltroSesion(`${clave}:pagina`, 1);
   const porPagina = 10;
   const consulta = normalizarNombre(busqueda.trim());
   const filasFiltradas = filas
@@ -52,14 +53,14 @@ function TablaGoleadores({ filas }) {
                 {filasPagina.map(({ fila, indice }) => {
                   return (
                     <tr
-                      key={`${fila.jugador_id}-${fila.equipo_id}`}
-                      className={posiciones[indice] <= 3 ? `podio podio-${posiciones[indice]}` : ""}
+                      key={`${ fila.jugador_id } - ${ fila.equipo_id }`}
+                      className={posiciones[indice] <= 3 ? `podio podio - ${ posiciones[indice]}` : ""}
                       role="link"
                       tabIndex={0}
-                      aria-label={`${fila.jugador}, ${fila.equipo}, ${fila.goles} goles. Ver historial`}
-                      onClick={() => router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}&origen=goleadores`)}
+                      aria-label={`${ fila.jugador }, ${ fila.equipo }, ${ fila.goles } goles.Ver historial`}
+                      onClick={() => router.push(`/ jugadores / ${ fila.jugador_id } ? equipo = ${ fila.equipo_id } & origen=goleadores`)}
                       onKeyDown={(event) => {
-                        if (event.key === "Enter") router.push(`/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}&origen=goleadores`);
+                        if (event.key === "Enter") router.push(`/ jugadores / ${ fila.jugador_id } ? equipo = ${ fila.equipo_id } & origen=goleadores`);
                       }}
                     >
                       <td className="num">{posiciones[indice]}</td>
@@ -97,7 +98,7 @@ function TablaGoleadores({ filas }) {
 }
 
 export default function Goleadores({ goleadores, equipos }) {
-  const [vista, setVista] = useState("general");
+  const [vista, setVista] = useFiltroSesion("goleadores:vista", "general");
   const grupos = useMemo(() => {
     const vistos = new Map();
     equipos.forEach((equipo) => {
@@ -105,8 +106,8 @@ export default function Goleadores({ goleadores, equipos }) {
     });
     return [...vistos].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
   }, [equipos]);
-  const [grupoId, setGrupoId] = useState(null);
-  const [equipoId, setEquipoId] = useState("");
+  const [grupoId, setGrupoId] = useFiltroSesion("goleadores:grupo", null);
+  const [equipoId, setEquipoId] = useFiltroSesion("goleadores:equipo", "");
   const seleccionGrupo = grupos.some((grupo) => grupo.id === grupoId) ? grupoId : grupos[0]?.id;
   const equipoSeleccionado = equipos.find((equipo) => String(equipo.id) === equipoId);
   const goleadoresEquipo = equipoSeleccionado
@@ -133,7 +134,7 @@ export default function Goleadores({ goleadores, equipos }) {
       {vista === "general" && (
         <section>
           <h2>Goleadores de la liga</h2>
-          <TablaGoleadores key="general" filas={goleadores} />
+          <TablaGoleadores key="general" clave="goleadores-general" filas={goleadores} />
         </section>
       )}
 
@@ -147,7 +148,7 @@ export default function Goleadores({ goleadores, equipos }) {
               </button>
             ))}
           </div>
-          <TablaGoleadores key={seleccionGrupo} filas={goleadoresGrupo} />
+          <TablaGoleadores key={seleccionGrupo} clave={`goleadores-grupo-${seleccionGrupo}`} filas={goleadoresGrupo} />
         </section>
       )}
 
@@ -161,8 +162,7 @@ export default function Goleadores({ goleadores, equipos }) {
               {equipos.map((equipo) => <option key={equipo.id} value={equipo.id}>{equipo.nombre}</option>)}
             </select>
           </label>
-          {equipoSeleccionado && <TablaGoleadores key={equipoSeleccionado.id} filas={goleadoresEquipo} />}
-        </section>
+          <TablaGoleadores key={equipoSeleccionado.id} clave={`goleadores-equipo-${equipoSeleccionado.id}`} filas={goleadoresEquipo} />        </section>
       )}
 
     </>

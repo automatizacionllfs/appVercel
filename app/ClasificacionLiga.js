@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useFiltroSesion } from "./lib/filtros-sesion";
 
 function calcularTabla(equipos, partidos, grupoId) {
   const filas = new Map(
@@ -101,8 +102,8 @@ export default function ClasificacionLiga({ equipos, partidos }) {
     });
     return [...vistos].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
   }, [equipos]);
-  const [vista, setVista] = useState("general");
-  const [grupoId, setGrupoId] = useState(null);
+  const [vista, setVista] = useFiltroSesion("clasificacion:vista", "general");
+  const [grupoId, setGrupoId] = useFiltroSesion("clasificacion:grupo", null);
   const seleccionGrupo = grupos.some((grupo) => grupo.id === grupoId) ? grupoId : grupos[0]?.id;
   const general = useMemo(() => calcularTabla(equipos, partidos, null), [equipos, partidos]);
   const grupo = useMemo(() => calcularTabla(equipos, partidos, seleccionGrupo), [equipos, partidos, seleccionGrupo]);

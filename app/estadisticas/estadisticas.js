@@ -5,6 +5,7 @@ import AvatarJugador from "../AvatarJugador";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
 import { useMiEquipo } from "../lib/mi-equipo";
+import { useFiltroSesion } from "../lib/filtros-sesion";
 
 const reloj = (segundos) => {
   if (segundos === null) return "—";
@@ -130,10 +131,14 @@ function calcularClasificacionGrupo(equipos, partidos, equipo) {
 
 export default function Estadisticas({ equipos, partidos, eventos, plantilla, equipoInicial = "" }) {
   const miEquipo = useMiEquipo();
-  const [equipoElegido, setEquipoElegido] = useState(equipoInicial ? String(equipoInicial) : null);
+  const [equipoElegido, setEquipoElegido] = useFiltroSesion(
+    "estadisticas:equipo",
+    equipoInicial ? String(equipoInicial) : null,
+    { restaurar: !equipoInicial },
+  );
   const favorito = equipos.some((item) => String(item.id) === miEquipo) ? miEquipo : "";
   const equipoId = equipoElegido ?? favorito;
-  const [jornadaSeleccionada, setJornadaSeleccionada] = useState("");
+  const [jornadaSeleccionada, setJornadaSeleccionada] = useFiltroSesion("estadisticas:jornada", "");
   const equipo = equipos.find((item) => String(item.id) === equipoId);
   const eventosConSegundasAmarillas = useMemo(() => marcarSegundasAmarillas(eventos), [eventos]);
   const partidosConActa = new Set(eventosConSegundasAmarillas.map((evento) => evento.partido_id));

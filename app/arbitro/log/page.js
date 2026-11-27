@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import NavegacionArbitro from "../NavegacionArbitro";
+import { useFiltroSesion } from "../../lib/filtros-sesion";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const POR_PAGINA = 25;
@@ -52,12 +53,12 @@ export default function LogArbitros() {
   const [error, setError] = useState("");
   const [errorUsuarios, setErrorUsuarios] = useState("");
   const [errorPartidos, setErrorPartidos] = useState("");
-  const [desde, setDesde] = useState("");
-  const [hasta, setHasta] = useState("");
-  const [filtroUsuario, setFiltroUsuario] = useState("");
-  const [filtroAccion, setFiltroAccion] = useState("");
-  const [filtroPartido, setFiltroPartido] = useState("");
-  const [pagina, setPagina] = useState(0);
+  const [desde, setDesde] = useFiltroSesion("log:desde", "");
+  const [hasta, setHasta] = useFiltroSesion("log:hasta", "");
+  const [filtroUsuario, setFiltroUsuario] = useFiltroSesion("log:usuario", "");
+  const [filtroAccion, setFiltroAccion] = useFiltroSesion("log:accion", "");
+  const [filtroPartido, setFiltroPartido] = useFiltroSesion("log:partido", "");
+  const [pagina, setPagina] = useFiltroSesion("log:pagina", 0);
 
   useEffect(() => {
     let activo = true;
@@ -139,7 +140,7 @@ export default function LogArbitros() {
   }, [acceso]);
 
   useEffect(() => {
-    if (acceso !== "admin") return undefined;
+    if (acceso !== "admin" || !filtrosListos) return undefined;
     let activo = true;
 
     if (desde && hasta && desde > hasta) {
@@ -184,7 +185,7 @@ export default function LogArbitros() {
 
     cargar();
     return () => { activo = false; };
-  }, [acceso, desde, hasta, filtroUsuario, filtroAccion, filtroPartido, pagina]);
+  }, [acceso, filtrosListos, desde, hasta, filtroUsuario, filtroAccion, filtroPartido, pagina]);
 
   async function entrar() {
     const { error: errorAcceso } = await supabase.auth.signInWithOAuth({

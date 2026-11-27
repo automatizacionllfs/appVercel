@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { fechaMadridAISO, fechaMadridInput, MADRID_TIME_ZONE, partesEnMadrid } from "../../lib/fecha-madrid";
 import { generarImagenHorarios } from "../../lib/horarios-imagen";
 import NavegacionArbitro from "../NavegacionArbitro";
+import { useFiltroSesion } from "../../lib/filtros-sesion";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
@@ -37,8 +38,8 @@ export default function PruebaCrearPartido() {
   const [estadioId, setEstadioId] = useState("");
   const [jornada, setJornada] = useState("");
   const [fecha, setFecha] = useState(fechaInicial);
-  const [desde, setDesde] = useState("");
-  const [hasta, setHasta] = useState("");
+  const [desde, setDesde] = useFiltroSesion("partidos:desde", "");
+  const [hasta, setHasta] = useFiltroSesion("partidos:hasta", "");
   const [partidosSeleccionados, setPartidosSeleccionados] = useState([]);
   const [arbitrosPorPartido, setArbitrosPorPartido] = useState({});
   const [modalAsignacion, setModalAsignacion] = useState(false);

@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef, useId } from "react";
 import { createClient } from "@supabase/supabase-js";
 import AvatarJugador from "../AvatarJugador";
 import NavegacionArbitro from "./NavegacionArbitro";
+import { useFiltroSesion } from "../lib/filtros-sesion";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const fmt = (f) => new Date(f).toLocaleString("es-ES", { timeZone: "Europe/Madrid", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -83,11 +84,11 @@ export default function Arbitro() {
   const [errorPartidos, setErrorPartidos] = useState("");
   const [abierto, setAbierto] = useState(null);
   const [modo, setModo] = useState("movil");
-  const [filtroBusqueda, setFiltroBusqueda] = useState("");
-  const [filtroJornada, setFiltroJornada] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("");
-  const [desde, setDesde] = useState(() => fechaInput(process.env.FECHA_DESDE || "2026-09-01"));
-  const [hasta, setHasta] = useState(() => fechaInput(process.env.FECHA_HASTA || "2027-06-30"));
+  const [filtroBusqueda, setFiltroBusqueda] = useFiltroSesion("arbitro:busqueda", "");
+  const [filtroJornada, setFiltroJornada] = useFiltroSesion("arbitro:jornada", "");
+  const [filtroEstado, setFiltroEstado] = useFiltroSesion("arbitro:estado", "");
+  const [desde, setDesde] = useFiltroSesion("arbitro:desde", () => fechaInput(process.env.FECHA_DESDE || "2026-09-01"));  
+  const [hasta, setHasta] = useFiltroSesion("arbitro:hasta", () => fechaInput(process.env.FECHA_HASTA || "2027-06-30"));
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSesion(data.session));

@@ -2,18 +2,9 @@
 
 import { resultadoPendiente } from "../../lib/partidos";
 import { useMiEquipo } from "../lib/mi-equipo";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useFiltroSesion } from "../lib/filtros-sesion";
 
-const CLAVE_FILTROS = "llfs_actas_filtros";
-
-function guardarFiltros(cambios) {
-  try {
-    const actual = JSON.parse(window.sessionStorage.getItem(CLAVE_FILTROS) || "{}");
-    window.sessionStorage.setItem(CLAVE_FILTROS, JSON.stringify({ ...actual, ...cambios }));
-  } catch {
-    /* almacenamiento bloqueado: se ignora */
-  }
-}
 
 const fecha = (valor) => valor
   ? new Date(valor).toLocaleDateString("es-ES", {
@@ -27,21 +18,10 @@ const fecha = (valor) => valor
 
 
 export default function ActasLista({ partidos }) {
-  const [jornadaSeleccionada, setJornadaSeleccionada] = useState("");
-  const [estadoSeleccionado, setEstadoSeleccionado] = useState("todas");
+  const [jornadaSeleccionada, setJornadaSeleccionada] = useFiltroSesion("actas:jornada", "");
+  const [estadoSeleccionado, setEstadoSeleccionado] = useFiltroSesion("actas:estado", "todas");
   const miEquipo = useMiEquipo();
-  const [equipoElegido, setEquipoElegido] = useState(null);
-  useEffect(() => {
-    try {
-      const guardados = JSON.parse(window.sessionStorage.getItem(CLAVE_FILTROS) || "null");
-      if (!guardados) return;
-      setJornadaSeleccionada(guardados.jornada ?? "");
-      setEstadoSeleccionado(guardados.estado ?? "todas");
-      setEquipoElegido(guardados.equipo ?? null);
-    } catch {
-      /* ignorado */
-    }
-  }, []);
+  const [equipoElegido, setEquipoElegido] = useFiltroSesion("actas:equipo", null);
 
   const jornadas = useMemo(() => [...new Set(partidos.map(({ jornada }) => jornada))]
     .sort((a, b) => {
@@ -63,7 +43,11 @@ export default function ActasLista({ partidos }) {
 
   // Si el favorito guardado no existe en esta temporada, se ignora
   const favorito = equipos.some((equipo) => equipo.id === miEquipo) ? miEquipo : "";
-  const equipoSeleccionado = equipoElegido ?? favorito;  
+  const equipoValido = equipoElegido !== null
+    && (equipoElegido === "" || equipos.some((equipo) => equipo.id === equipoElegido));
+  const equipoSeleccionado = equipoValido ? equipoElegido : favorito;
+  const jornadaSeleccionada = jornadaGuardada === "" || jornadas.some((j) =>
+    (j == null ? "sin-jornada" : String(j)) === jornadaGuardada) ? jornadaGuardada : ""; 
 
   const partidosFiltrados = partidos.filter((partido) => {
     const coincideJornada = jornadaSeleccionada === ""
@@ -83,10 +67,7 @@ export default function ActasLista({ partidos }) {
       <div className="actas-filtros" aria-label="Filtrar actas">
         <label>
           Equipo
-          <select value={equipoSeleccionado} onChange={(e) => {
-            setEquipoElegido(e.target.value);
-            guardarFiltros({ equipo: e.target.value });
-          }}>
+          <select value={equipoSeleccionado} onChange={(e) => setEquipoElegido(e.target.value)}>
             <option value="">Todos los equipos</option>
             {equipos.map((equipo) => (
               <option key={equipo.id} value={equipo.id}>
@@ -97,18 +78,18 @@ export default function ActasLista({ partidos }) {
         </label>
         <label>
           Jornada
-          <select value={jornadaSeleccionada} onChange={(e) => {
-            setJornadaSeleccionada(e.target.value);
-            guardarFiltros({ jornada: e.target.value });
-          }}>
+          <select value={jornadaSeleccionada} onChange={(e) => setJornadaSeleccionada(e.target.value)}>
+            <option value="">Todas las jornadas</option>
+            {jornadas.map((jornada) => (
+              <option key={jornada ?? "sin-jornada"} value={jornada == null ? "sin-jornada" : String(jornada)}>
+                {jornada == null ? "Sin jornada" : `Jornada ${jornada}`}
+              </option>
+            ))}
           </select>
         </label>
         <label>
           Acta
-          <select value={estadoSeleccionado} onChange={(e) => {
-            setEstadoSeleccionado(e.target.value);
-            guardarFiltros({ estado: e.target.value });
-          }}>
+          <select value={estadoSeleccionado} onChange={(e) => setEstadoSeleccionado(e.target.value)}>
             <option value="todas">Todas</option>
             <option value="cerrada">Cerrada</option>
             <option value="no-cerrada">No cerrada</option>
