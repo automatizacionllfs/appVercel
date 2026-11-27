@@ -153,7 +153,7 @@ export default function Arbitro() {
 
   const entrar = () => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/arbitro` } });
   const salir = () => supabase.auth.signOut();
-  
+
   const sincronizar = async () => {
     const r = await fetch("/api/sync", {
       method: "POST",
@@ -401,7 +401,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
         jugo: filaAnterior
           ? filaAnterior.jugo
           : (dorsalesGuardados.has(clave) || anterior.length > 0 ||
-             (fila.entrenador && !(alineacion || []).length)),
+            (fila.entrenador && !(alineacion || []).length)),
       };
     }));
     setEv(eventos || []);
@@ -438,13 +438,13 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
       String(x.dorsalPartido ?? "").includes(busca.trim())
     ))
     .sort((a, b) => (a.dorsalPartido ?? 999) - (b.dorsalPartido ?? 999) ||
-    a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" })
-  );
+      a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" })
+    );
   const orden = [...ev].sort((a, b) => tiempoJuego(a) - tiempoJuego(b));
   const equipoActivo = equipoAlineacion ?? p.local_id;
   const jugadoresActivos = pl
     .filter((fila) => fila.equipo_id === equipoActivo)
-    .sort((a, b) => Number(a.entrenador) - Number(b.entrenador) || 
+    .sort((a, b) => Number(a.entrenador) - Number(b.entrenador) ||
       a.jugador.nombre.localeCompare(b.jugador.nombre, "es", { sensitivity: "base" }));
 
   const elegir = (x) => {
@@ -619,76 +619,76 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
         {editable && <SelectorModo modo={modo} cambiar={(nuevoModo) => { setPaso("acciones"); cambiarModo(nuevoModo); }} />}
         {p.estado === "cerrado" && <p className="suave">Acta cerrada.</p>}
       </div>
-            <details className="alineacion-editor">
-       <summary>Alineación del partido</summary>
+      <details className="alineacion-editor">
+        <summary>Alineación del partido</summary>
         <p className="suave">Ajusta los dorsales para este encuentro. Estos cambios no modifican la plantilla de Clupik.</p>
         {!pl.length ? <p className="suave">No hay jugadores cargados para estos equipos.</p> : (
-        <>
-          <div className="pestanas alineacion-pestanas" role="tablist" aria-label="Equipo de la alineación">
-            {[[p.local_id, p.local.nombre], [p.visitante_id, p.visitante.nombre]].map(([equipoId, nombre]) => {
-              const jugadoresEquipo = pl.filter((fila) => fila.equipo_id === equipoId && !fila.entrenador);
-              const convocados = jugadoresEquipo.filter((fila) => fila.jugo).length;
-              return (
-                <button
-                  key={equipoId}
-                  type="button"
-                  role="tab"
-                  aria-selected={equipoActivo === equipoId}
-                  className={equipoActivo === equipoId ? "activa" : ""}
-                  onClick={() => setEquipoAlineacion(equipoId)}
-                >
-                  {nombre} ({convocados}/{jugadoresEquipo.length})
-                </button>
-              );
-            })}
-          </div>
-          <div className="alineacion-editor-equipo" role="tabpanel">
-  {!jugadoresActivos.length ? <p className="suave">No hay jugadores en la plantilla.</p> : jugadoresActivos.map((fila) => {
-    const bloqueado = !editable || guardandoAlineacion || fila.baja;
-    return (
-      <div
-        className={`alineacion-editor-jugador ${fila.jugo ? "activo" : "fuera"} ${bloqueado ? "bloqueado" : ""}`}
-        key={fila.id}
-      >
-        <label className="alineacion-editor-seleccion">
-          <input
-            className="sr-only"
-            type="checkbox"
-            checked={Boolean(fila.jugo)}
-            disabled={bloqueado}
-            aria-label={`${fila.jugador.nombre} ha jugado el partido`}
-            onChange={(event) => {
-              const marcado = event.target.checked;
-              setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, jugo: marcado } : item));
-            }}
-          />
-          <span className="alineacion-editor-identidad">
-            <AvatarJugador src={fila.foto} />
-            <span>{fila.jugador.nombre}{fila.baja ? " (baja)" : ""}</span>
-          </span>
-        </label>
-        <span className="alineacion-editor-dorsal">
-          <span>Dorsal</span>
-          <input
-            type="number"
-            min="0"
-            max="99"
-            step="1"
-            aria-label={`Dorsal de ${fila.jugador.nombre} para este partido`}
-            value={fila.dorsalPartido ?? ""}
-            disabled={!editable || guardandoAlineacion || !fila.jugo}
-            onChange={(event) => {
-              const valor = event.target.value === "" ? null : Number(event.target.value);
-              setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, dorsalPartido: valor } : item));
-            }}
-          />
-        </span>
-      </div>
-    );
-  })}
-</div>
-        </>
-      )}
+          <>
+            <div className="pestanas alineacion-pestanas" role="tablist" aria-label="Equipo de la alineación">
+              {[[p.local_id, p.local.nombre], [p.visitante_id, p.visitante.nombre]].map(([equipoId, nombre]) => {
+                const jugadoresEquipo = pl.filter((fila) => fila.equipo_id === equipoId && !fila.entrenador);
+                const convocados = jugadoresEquipo.filter((fila) => fila.jugo).length;
+                return (
+                  <button
+                    key={equipoId}
+                    type="button"
+                    role="tab"
+                    aria-selected={equipoActivo === equipoId}
+                    className={equipoActivo === equipoId ? "activa" : ""}
+                    onClick={() => setEquipoAlineacion(equipoId)}
+                  >
+                    {nombre} ({convocados}/{jugadoresEquipo.length})
+                  </button>
+                );
+              })}
+            </div>
+            <div className="alineacion-editor-equipo" role="tabpanel">
+              {!jugadoresActivos.length ? <p className="suave">No hay jugadores en la plantilla.</p> : jugadoresActivos.map((fila) => {
+                const bloqueado = !editable || guardandoAlineacion || fila.baja;
+                return (
+                  <div
+                    className={`alineacion-editor-jugador ${fila.jugo ? "activo" : "fuera"} ${bloqueado ? "bloqueado" : ""}`}
+                    key={fila.id}
+                  >
+                    <label className="alineacion-editor-seleccion">
+                      <input
+                        className="sr-only"
+                        type="checkbox"
+                        checked={Boolean(fila.jugo)}
+                        disabled={bloqueado}
+                        aria-label={`${fila.jugador.nombre} ha jugado el partido`}
+                        onChange={(event) => {
+                          const marcado = event.target.checked;
+                          setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, jugo: marcado } : item));
+                        }}
+                      />
+                      <span className="alineacion-editor-identidad">
+                        <AvatarJugador src={fila.foto} />
+                        <span>{fila.jugador.nombre}{fila.baja ? " (baja)" : ""}</span>
+                      </span>
+                    </label>
+                    <span className="alineacion-editor-dorsal">
+                      <span>Dorsal</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="99"
+                        step="1"
+                        aria-label={`Dorsal de ${fila.jugador.nombre} para este partido`}
+                        value={fila.dorsalPartido ?? ""}
+                        disabled={!editable || guardandoAlineacion || !fila.jugo}
+                        onChange={(event) => {
+                          const valor = event.target.value === "" ? null : Number(event.target.value);
+                          setPl((filas) => filas.map((item) => item.id === fila.id ? { ...item, dorsalPartido: valor } : item));
+                        }}
+                      />
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
         {editable && (
           <button className="primario" type="button" onClick={guardarAlineacion} disabled={guardandoAlineacion || !pl.length}>
             {guardandoAlineacion ? "Guardando…" : "Guardar alineación del partido"}
@@ -774,7 +774,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
             ))}
           </div>
 
-          {golPropio ? <p className="suave">El gol suma al marcador del equipo seleccionado y no se asigna a un jugador.</p>           : jug ? (
+          {golPropio ? <p className="suave">El gol suma al marcador del equipo seleccionado y no se asigna a un jugador.</p> : jug ? (
             <p style={{ marginTop: 12 }}><strong>{etiquetaDorsal(jug)} {jug.jugador.nombre}</strong>{" "}
               <button className="mini" onClick={() => setJug(null)}>Cambiar</button></p>
           ) : (
@@ -879,6 +879,8 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
       {p.estado === "programado"
         ? <button className="peligro" style={{ width: "100%" }} onClick={cerrar}>Cerrar acta</button>
         : yo.rol === "admin" && <button style={{ width: "100%" }} onClick={reabrir}>Reabrir acta</button>}
+      <button className="mini" onClick={volver}>Volver</button>
     </main>
   );
+  
 }

@@ -55,7 +55,8 @@ export default function EditarActa({ partidoId }) {
   if (!mostrar) return null;
 
   return (
-    <a className="boton-editar-acta" href={`/arbitro?partido=${encodeURIComponent(partidoId)}&volver=acta`}>      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+    <a className="boton-editar-acta" href={`/arbitro?partido=${encodeURIComponent(partidoId)}&volver=acta`}>      
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
         <path d="m14 5 5 5M4 20l4.5-1 10.8-10.8a2.1 2.1 0 0 0-3-3L5.5 16 4 20Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       Editar
