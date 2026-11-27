@@ -23,11 +23,10 @@ export const metadata = {
   },
 };
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
-const VERSION = "4.8.5";
+const VERSION = "4.8.6";
 const FECHA_ACTUALIZACION = "26/11/2026";
 
 export default async function RootLayout({ children }) {
-  const equipos = await cargarEquipos();
   return (
     <html lang="es">
       <body>
