@@ -310,7 +310,7 @@ export default function Arbitro() {
           </button>
         );
       })}
-      <p><button className="mini" onClick={salir}>Salir</button></p>
+      <p><button className="acta-volver-final" onClick={salir}>Salir</button></p>
     </main>
   );
 }
@@ -606,7 +606,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     <main className={modo === "movil" ? "vista-movil" : ""}>
       <NavegacionArbitro />
       <div className={`cabecera-partido ${modo === "movil" ? "modo-movil" : ""}`}>
-        <button className="mini" onClick={volver}>Volver</button>
+        <button className="acta-volver-final" onClick={volver}>Volver</button>
         <h1>Jornada {p.jornada}</h1>
         <div className="marcador">
           <span>{p.local.nombre}</span><strong>{goles(p.local_id)} – {goles(p.visitante_id)}</strong><span>{p.visitante.nombre}</span>
@@ -725,7 +725,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
               </div>
               <p className="suave">Quedan {reloj(restante)} · tiempo transcurrido {reloj(tiempoIndicado)}</p>
               <button className="primario boton-paso" onClick={() => setPaso("equipo")}>Continuar</button>
-              <button className="mini" onClick={() => setPaso("acciones")}>Volver</button>
+              <button className="acta-volver-final" onClick={() => setPaso("acciones")}>Volver</button>
             </>
           )}
           {paso === "equipo" && (
@@ -739,7 +739,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
               {golPropio
                 ? <button className="primario boton-paso" onClick={() => guardar(null)}>Registrar gol en propia puerta</button>
                 : <button className="primario boton-paso" onClick={() => setPaso("jugador")}>Continuar</button>}
-              <button className="mini" onClick={() => setPaso("tiempo")}>Volver</button>
+              <button className="acta-volver-final" onClick={() => setPaso("tiempo")}>Volver</button>
             </>
           )}
           {paso === "jugador" && (
@@ -756,7 +756,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
               </div>
               <button className="mini" onClick={sinFicha}>¿No aparece? Sin ficha</button>
               {msg && <p aria-live="polite" className="error">{msg}</p>}
-              <button className="mini" onClick={() => setPaso("equipo")}>Volver</button>
+              <button className="acta-volver-final" onClick={() => setPaso("equipo")}>Volver</button>
             </>
           )}
         </section>
