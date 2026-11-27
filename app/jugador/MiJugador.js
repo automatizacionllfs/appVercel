@@ -56,7 +56,7 @@ export default function MiJugador({ equipos, plantilla }) {
           <div className="mi-jugador-enlaces">
             <a className="boton-inicio" href={`/jugadores/${jugador.id}?equipo=${equipo.id}`}>Mi historial</a>
             <a className="boton-inicio" href={`/estadisticas?equipo=${equipo.id}`}>Estadísticas de mi equipo</a>
-            <a className="boton-inicio" href="/actas?mis=1">Mis actas</a>
+            <a className="boton-inicio" href="/actas">Mis actas</a>
           </div>
           <button type="button" className="mini" onClick={() => guardarMiJugador("")}>No soy yo</button>
         </section>
