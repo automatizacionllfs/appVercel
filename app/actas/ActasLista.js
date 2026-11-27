@@ -18,7 +18,7 @@ const fecha = (valor) => valor
 
 
 export default function ActasLista({ partidos }) {
-  const [jornadaSeleccionada, setJornadaSeleccionada] = useFiltroSesion("actas:jornada", "");
+  const [jornadaGuardada, setJornadaSeleccionada] = useFiltroSesion("actas:jornada", "");
   const [estadoSeleccionado, setEstadoSeleccionado] = useFiltroSesion("actas:estado", "todas");
   const miEquipo = useMiEquipo();
   const [equipoElegido, setEquipoElegido] = useFiltroSesion("actas:equipo", null);
