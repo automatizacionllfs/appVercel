@@ -31,8 +31,12 @@ export default async function HistorialJugador({ params, searchParams }) {
   const { id } = await params;
   const query = await searchParams;
   if (!/^\d+$/.test(id) || !/^\d+$/.test(String(query?.equipo || ""))) notFound();
-  const desdeMvp = query?.origen === "mvps";
-
+  const ORIGENES = {
+    mvps: { href: "/mvps", texto: "MVPs" },
+    jugador: { href: "/jugador", texto: "Mi perfil de jugador" },
+    goleadores: { href: "/", texto: "máximos goleadores" },
+  };
+  const origen = ORIGENES[query?.origen] || ORIGENES.goleadores;
   const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
   });
@@ -169,8 +173,8 @@ export default async function HistorialJugador({ params, searchParams }) {
           </ol>
         )}
       </section>
-      <a className="boton-inicio" href={desdeMvp ? "/mvps" : "/"}>
-        ← Volver a {desdeMvp ? "MVPs" : "máximos goleadores"}
+      <a className="boton-inicio" href={origen.href}>
+        ← Volver a {origen.texto}
       </a>
     </main>
   );
