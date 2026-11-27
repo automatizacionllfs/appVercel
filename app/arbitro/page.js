@@ -606,7 +606,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     <main className={modo === "movil" ? "vista-movil" : ""}>
       <NavegacionArbitro />
       <div className={`cabecera-partido ${modo === "movil" ? "modo-movil" : ""}`}>
-        <button className="acta-volver-final" onClick={volver}>Volver</button>
+        <button className="boton-inicio acta-volver-final" onClick={volver}>Volver</button>
         <h1>Jornada {p.jornada}</h1>
         <div className="marcador">
           <span>{p.local.nombre}</span><strong>{goles(p.local_id)} – {goles(p.visitante_id)}</strong><span>{p.visitante.nombre}</span>
