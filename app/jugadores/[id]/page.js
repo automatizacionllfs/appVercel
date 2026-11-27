@@ -36,7 +36,8 @@ export default async function HistorialJugador({ params, searchParams }) {
     jugador: { href: "/jugador", texto: "Mi perfil de jugador" },
     goleadores: { href: "/", texto: "máximos goleadores" },
   };
-  const origen = ORIGENES[query?.origen] || ORIGENES.goleadores;
+  const clave = String(query?.origen || "");
+  const origen = Object.hasOwn(ORIGENES, clave) ? ORIGENES[clave] : ORIGENES.goleadores;
   const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
   });

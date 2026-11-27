@@ -3,7 +3,18 @@
 import { useMemo, useState } from "react";
 import { resultadoPendiente } from "../../lib/partidos";
 import { useMiEquipo } from "../lib/mi-equipo";
+import { useEffect, useMemo, useState } from "react";
 
+const CLAVE_FILTROS = "llfs_actas_filtros";
+
+function guardarFiltros(cambios) {
+  try {
+    const actual = JSON.parse(window.sessionStorage.getItem(CLAVE_FILTROS) || "{}");
+    window.sessionStorage.setItem(CLAVE_FILTROS, JSON.stringify({ ...actual, ...cambios }));
+  } catch {
+    /* almacenamiento bloqueado: se ignora */
+  }
+}
 
 const fecha = (valor) => valor
   ? new Date(valor).toLocaleDateString("es-ES", {
@@ -21,7 +32,17 @@ export default function ActasLista({ partidos }) {
   const [estadoSeleccionado, setEstadoSeleccionado] = useState("todas");
   const miEquipo = useMiEquipo();
   const [equipoElegido, setEquipoElegido] = useState(null);
-
+  useEffect(() => {
+    try {
+      const guardados = JSON.parse(window.sessionStorage.getItem(CLAVE_FILTROS) || "null");
+      if (!guardados) return;
+      setJornadaSeleccionada(guardados.jornada ?? "");
+      setEstadoSeleccionado(guardados.estado ?? "todas");
+      setEquipoElegido(guardados.equipo ?? null);
+    } catch {
+      /* ignorado */
+    }
+  }, []);
 
   const jornadas = useMemo(() => [...new Set(partidos.map(({ jornada }) => jornada))]
     .sort((a, b) => {
@@ -63,7 +84,10 @@ export default function ActasLista({ partidos }) {
       <div className="actas-filtros" aria-label="Filtrar actas">
         <label>
           Equipo
-          <select value={equipoSeleccionado} onChange={(evento) => setEquipoElegido(evento.target.value)}>
+          <select value={equipoSeleccionado} onChange={(e) => {
+            setEquipoElegido(e.target.value);
+            guardarFiltros({ equipo: e.target.value });
+          }}>
             <option value="">Todos los equipos</option>
             {equipos.map((equipo) => (
               <option key={equipo.id} value={equipo.id}>
@@ -74,18 +98,18 @@ export default function ActasLista({ partidos }) {
         </label>
         <label>
           Jornada
-          <select value={jornadaSeleccionada} onChange={(evento) => setJornadaSeleccionada(evento.target.value)}>
-            <option value="">Todas las jornadas</option>
-            {jornadas.map((jornada) => (
-              <option key={jornada ?? "sin-jornada"} value={jornada == null ? "sin-jornada" : String(jornada)}>
-                {jornada == null ? "Sin jornada" : `Jornada ${jornada}`}
-              </option>
-            ))}
+          <select value={jornadaSeleccionada} onChange={(e) => {
+            setJornadaSeleccionada(e.target.value);
+            guardarFiltros({ jornada: e.target.value });
+          }}>
           </select>
         </label>
         <label>
           Acta
-          <select value={estadoSeleccionado} onChange={(evento) => setEstadoSeleccionado(evento.target.value)}>
+          <select value={estadoSeleccionado} onChange={(e) => {
+            setEstadoSeleccionado(e.target.value);
+            guardarFiltros({ estado: e.target.value });
+          }}>
             <option value="todas">Todas</option>
             <option value="cerrada">Cerrada</option>
             <option value="no-cerrada">No cerrada</option>

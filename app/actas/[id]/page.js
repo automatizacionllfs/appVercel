@@ -81,9 +81,14 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
     const foto = urlFotoMvp(equipo?.id_clupik, jugador);
     mvpPorEquipo.set(equipoId, jugador ? { ...jugador, foto } : null);
   });
-  const origenEstadisticas = query?.desde === "estadisticas" && /^\d+$/.test(String(query?.equipo || ""))
+  const ORIGENES_ACTA = {
+    log: "/arbitro/log",
+    "sin-ficha": "/arbitro/sin-ficha",
+  };
+  const desde = String(query?.desde || "");
+  const volver = desde === "estadisticas" && /^\d+$/.test(String(query?.equipo || ""))
     ? `/estadisticas?equipo=${encodeURIComponent(query.equipo)}`
-    : "/actas";
+    : Object.hasOwn(ORIGENES_ACTA, desde) ? ORIGENES_ACTA[desde] : "/actas";
 
   return (
     <main>
@@ -97,7 +102,7 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
         mvpLocal={mvpPorEquipo.get(partido.local_id) || null}
         mvpVisitante={mvpPorEquipo.get(partido.visitante_id) || null}
         actaDigitalizada={partido.estado === "cerrado" || (resultadoEventos.data || []).length > 0}
-        volver={origenEstadisticas}
+        volver={volver}
       />
     </main>
   );

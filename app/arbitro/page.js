@@ -218,11 +218,11 @@ export default function Arbitro() {
       <h1>Acceso de árbitros</h1>
       <button className="primario" onClick={entrar}>Entrar con Google</button>
       <p>
-        <a className="boton-inicio" href="/" aria-label="Volver a la clasificación">
+        <a className="boton-inicio" href="/" aria-label="Volver al inicio">
           <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none">
             <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
           </svg>
-          Volver a la clasificación
+          Volver al inicio
         </a>
       </p>
     </main>
@@ -236,6 +236,11 @@ export default function Arbitro() {
     </main>
   );
   if (abierto) return <Partido id={abierto} yo={yo} volver={() => {
+    const desdeActa = new URLSearchParams(window.location.search).get("volver") === "acta";
+    if (desdeActa) {
+      window.location.assign(`/actas/${abierto}`);
+      return;
+    }
     window.history.replaceState(null, "", "/arbitro");
     setAbierto(null);
   }} modo={modo} cambiarModo={setModo} />;
@@ -600,7 +605,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     <main className={modo === "movil" ? "vista-movil" : ""}>
       <NavegacionArbitro />
       <div className={`cabecera-partido ${modo === "movil" ? "modo-movil" : ""}`}>
-        <button className="mini" onClick={volver}>‹ Mis partidos</button>
+        <button className="mini" onClick={volver}>Volver</button>
         <h1>Jornada {p.jornada}</h1>
         <div className="marcador">
           <span>{p.local.nombre}</span><strong>{goles(p.local_id)} – {goles(p.visitante_id)}</strong><span>{p.visitante.nombre}</span>

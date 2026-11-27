@@ -308,7 +308,7 @@ export default function SinFicha() {
                 <ul>
                   {jugador.partidos.map((partido) => (
                     <li key={partido.id}>
-                      <a href={`/actas/${partido.id}`}>
+                      <a href={`/actas/${partido.id}?desde=sin-ficha`}>
                         Jornada {partido.jornada || "—"} · {partido.local?.nombre || "Local"}–{partido.visitante?.nombre || "Visitante"} · {fechaPartido(partido.fecha)}
                       </a>
                       <span>

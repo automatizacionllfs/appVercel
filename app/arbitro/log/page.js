@@ -302,8 +302,7 @@ export default function LogArbitros() {
                       <td>{accionLegible(registro)}</td>
                       <td>
                         {partidoId ? (
-                          <a href={`/actas/${partidoId}`}>Acta #{partidoId}</a>
-                        ) : (
+                          <a href={`/actas/${partidoId}?desde=log`}>Acta #{partidoId}</a>                        ) : (
                           `Registro #${registro.fila_id ?? "—"}`
                         )}
                         <span className="log-tabla">{registro.tabla === "eventos" ? "Evento" : registro.tabla}</span>
