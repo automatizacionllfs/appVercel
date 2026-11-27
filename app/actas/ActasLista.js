@@ -20,9 +20,8 @@ export default function ActasLista({ partidos }) {
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState("");
   const [estadoSeleccionado, setEstadoSeleccionado] = useState("todas");
   const miEquipo = useMiEquipo();
-  const [soloMiEquipo, setSoloMiEquipo] = useState(
-    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mis") === "1",
-  );
+  const [equipoElegido, setEquipoElegido] = useState(null);
+
 
   const jornadas = useMemo(() => [...new Set(partidos.map(({ jornada }) => jornada))]
     .sort((a, b) => {
@@ -31,6 +30,21 @@ export default function ActasLista({ partidos }) {
       return Number(a) - Number(b);
     }), [partidos]);
 
+  const equipos = useMemo(() => {
+    const mapa = new Map();
+    partidos.forEach((partido) => {
+      if (partido.local) mapa.set(String(partido.local_id), partido.local.nombre);
+      if (partido.visitante) mapa.set(String(partido.visitante_id), partido.visitante.nombre);
+    });
+    return [...mapa]
+      .map(([id, nombre]) => ({ id, nombre }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  }, [partidos]);
+
+  // Si el favorito guardado no existe en esta temporada, se ignora
+  const favorito = equipos.some((equipo) => equipo.id === miEquipo) ? miEquipo : "";
+  const equipoSeleccionado = equipoElegido ?? favorito;  
+
   const partidosFiltrados = partidos.filter((partido) => {
     const coincideJornada = jornadaSeleccionada === ""
       || (jornadaSeleccionada === "sin-jornada"
@@ -38,20 +52,26 @@ export default function ActasLista({ partidos }) {
         : String(partido.jornada) === jornadaSeleccionada);
     const coincideEstado = estadoSeleccionado === "todas"
       || (estadoSeleccionado === "cerrada" ? partido.estado === "cerrado" : partido.estado !== "cerrado");
-    const coincideEquipo = !soloMiEquipo || !miEquipo
-      || String(partido.local_id) === miEquipo || String(partido.visitante_id) === miEquipo;
+    const coincideEquipo = !equipoSeleccionado
+      || String(partido.local_id) === equipoSeleccionado
+      || String(partido.visitante_id) === equipoSeleccionado;
     return coincideJornada && coincideEstado && coincideEquipo;
   });
 
   return (
     <>
       <div className="actas-filtros" aria-label="Filtrar actas">
-        {miEquipo && (
-          <label>
-            <input type="checkbox" checked={soloMiEquipo} onChange={(e) => setSoloMiEquipo(e.target.checked)} />
-            Solo mi equipo
-          </label>
-        )}
+        <label>
+          Equipo
+          <select value={equipoSeleccionado} onChange={(evento) => setEquipoElegido(evento.target.value)}>
+            <option value="">Todos los equipos</option>
+            {equipos.map((equipo) => (
+              <option key={equipo.id} value={equipo.id}>
+                {equipo.nombre}{equipo.id === favorito ? " ★ Favorito" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
         <label>
           Jornada
           <select value={jornadaSeleccionada} onChange={(evento) => setJornadaSeleccionada(evento.target.value)}>

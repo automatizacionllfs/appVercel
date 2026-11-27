@@ -23,7 +23,7 @@ export const metadata = {
   },
 };
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
-const VERSION = "4.8.1";
+const VERSION = "4.8.2";
 const FECHA_ACTUALIZACION = "26/11/2026";
 
 export default async function RootLayout({ children }) {

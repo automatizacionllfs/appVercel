@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import AvatarJugador from "../AvatarJugador";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
+import { useMiEquipo } from "../lib/mi-equipo";
 
 const reloj = (segundos) => {
   if (segundos === null) return "—";
@@ -128,7 +129,10 @@ function calcularClasificacionGrupo(equipos, partidos, equipo) {
 }
 
 export default function Estadisticas({ equipos, partidos, eventos, plantilla, equipoInicial = "" }) {
-  const [equipoId, setEquipoId] = useState(String(equipoInicial));
+  const miEquipo = useMiEquipo();
+  const [equipoElegido, setEquipoElegido] = useState(equipoInicial ? String(equipoInicial) : null);
+  const favorito = equipos.some((item) => String(item.id) === miEquipo) ? miEquipo : "";
+  const equipoId = equipoElegido ?? favorito;
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState("");
   const equipo = equipos.find((item) => String(item.id) === equipoId);
   const eventosConSegundasAmarillas = useMemo(() => marcarSegundasAmarillas(eventos), [eventos]);
@@ -204,9 +208,13 @@ export default function Estadisticas({ equipos, partidos, eventos, plantilla, eq
       <p className="suave">Selecciona un equipo para consultar sus estad&iacute;sticas y las de sus jugadores.</p>
       <label className="selector-equipo">
         Equipo
-        <select value={equipoId} onChange={(event) => setEquipoId(event.target.value)}>
+        <select value={equipoId} onChange={(event) => setEquipoElegido(event.target.value)}>
           <option value="">Selecciona un equipo</option>
-          {equipos.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
+          {equipos.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.nombre}{String(item.id) === favorito ? " ★ Favorito" : ""}
+            </option>
+          ))}
         </select>
       </label>
 
