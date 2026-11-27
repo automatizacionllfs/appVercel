@@ -3,14 +3,14 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import AvatarJugador from "./AvatarJugador";
-import { useFiltroSesion } from "./lib/filtros-sesion"
+import { useFiltroSesion } from "./lib/filtros-sesion";
 
 const normalizarNombre = (nombre) => nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
 
 function TablaGoleadores({ filas, clave }) {
   const router = useRouter();
-const [busqueda, setBusqueda] = useFiltroSesion(`${clave}:busqueda`, "");
-const [pagina, setPagina] = useFiltroSesion(`${clave}:pagina`, 1);
+  const [busqueda, setBusqueda] = useFiltroSesion(`${clave}:busqueda`, "");
+  const [pagina, setPagina] = useFiltroSesion(`${clave}:pagina`, 1);
   const porPagina = 10;
   const consulta = normalizarNombre(busqueda.trim());
   const filasFiltradas = filas
@@ -51,16 +51,17 @@ const [pagina, setPagina] = useFiltroSesion(`${clave}:pagina`, 1);
               <thead><tr><th className="num">#</th><th>Jugador</th><th className="num">Goles</th></tr></thead>
               <tbody>
                 {filasPagina.map(({ fila, indice }) => {
+                  const urlJugador = `/jugadores/${fila.jugador_id}?equipo=${fila.equipo_id}&origen=goleadores`;
                   return (
                     <tr
-                      key={`${ fila.jugador_id } - ${ fila.equipo_id }`}
-                      className={posiciones[indice] <= 3 ? `podio podio - ${ posiciones[indice]}` : ""}
+                      key={`${fila.jugador_id}-${fila.equipo_id}`}
+                      className={posiciones[indice] <= 3 ? `podio podio-${posiciones[indice]}` : ""}
                       role="link"
                       tabIndex={0}
-                      aria-label={`${ fila.jugador }, ${ fila.equipo }, ${ fila.goles } goles.Ver historial`}
-                      onClick={() => router.push(`/ jugadores / ${ fila.jugador_id } ? equipo = ${ fila.equipo_id } & origen=goleadores`)}
+                      aria-label={`${fila.jugador}, ${fila.equipo}, ${fila.goles} goles. Ver historial`}
+                      onClick={() => router.push(urlJugador)}
                       onKeyDown={(event) => {
-                        if (event.key === "Enter") router.push(`/ jugadores / ${ fila.jugador_id } ? equipo = ${ fila.equipo_id } & origen=goleadores`);
+                        if (event.key === "Enter") router.push(urlJugador);
                       }}
                     >
                       <td className="num">{posiciones[indice]}</td>
@@ -162,7 +163,12 @@ export default function Goleadores({ goleadores, equipos }) {
               {equipos.map((equipo) => <option key={equipo.id} value={equipo.id}>{equipo.nombre}</option>)}
             </select>
           </label>
-          <TablaGoleadores key={equipoSeleccionado.id} clave={`goleadores-equipo-${equipoSeleccionado.id}`} filas={goleadoresEquipo} />        </section>
+          <TablaGoleadores
+            key={equipoSeleccionado?.id ?? "sin-equipo"}
+            clave={`goleadores-equipo-${equipoSeleccionado?.id ?? "ninguno"}`}
+            filas={goleadoresEquipo}
+          />
+        </section>
       )}
 
     </>
