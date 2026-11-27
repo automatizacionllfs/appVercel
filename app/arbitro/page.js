@@ -879,7 +879,7 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
       {p.estado === "programado"
         ? <button className="peligro" style={{ width: "100%" }} onClick={cerrar}>Cerrar acta</button>
         : yo.rol === "admin" && <button style={{ width: "100%" }} onClick={reabrir}>Reabrir acta</button>}
-      <button className="mini" onClick={volver}>Volver</button>
+      <button className="boton-inicio acta-volver" onClick={volver}>Volver</button>
     </main>
   );
   
