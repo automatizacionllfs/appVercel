@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { resultadoPendiente } from "../../lib/partidos";
 import { useMiEquipo } from "../lib/mi-equipo";
 import { useEffect, useMemo, useState } from "react";
