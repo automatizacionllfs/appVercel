@@ -47,18 +47,33 @@ export default function MiJugador({ equipos, plantilla }) {
 
       {equipo && jugador && (
         <section className="mi-jugador-card">
-          <AvatarJugador src={jugador.foto} className="mi-jugador-foto" alt={`Foto de ${jugador.nombre}`} />
-          <div className="mi-jugador-datos">
-            <span className="suave">{equipo.nombre}</span>
-            <h2>{jugador.nombre}</h2>
-            <span className="suave">Dorsal {jugador.dorsal ?? "—"}</span>
+          <div className="mi-jugador-cabecera">
+            <AvatarJugador src={jugador.foto} className="mi-jugador-foto" alt={`Foto de ${jugador.nombre}`} />
+            <div className="mi-jugador-datos">
+              <span className="mi-jugador-equipo">
+                {equipo.escudo_url && <img src={equipo.escudo_url} alt="" width="22" height="22" />}
+                {equipo.nombre}
+              </span>
+              <h2>{jugador.nombre}</h2>
+              <span className="mi-jugador-dorsal">Dorsal {jugador.dorsal ?? "—"}</span>
+            </div>
           </div>
-          <div className="mi-jugador-enlaces">
-            <a className="boton-inicio" href={`/jugadores/${jugador.id}?equipo=${equipo.id}&origen=jugador`}>Mi historial</a>
-            <a className="boton-inicio" href={`/estadisticas?equipo=${equipo.id}`}>Estadísticas de mi equipo</a>
-            <a className="boton-inicio" href="/actas">Mis actas</a>
-          </div>
-          <button type="button" className="mini" onClick={() => guardarMiJugador("")}>No soy yo</button>
+
+          <nav className="mi-jugador-enlaces" aria-label="Accesos rápidos del jugador">
+            <a className="mi-jugador-enlace principal" href={`/jugadores/${jugador.id}?equipo=${equipo.id}&origen=jugador`}>
+              <span>Mi historial</span><span aria-hidden="true">→</span>
+            </a>
+            <a className="mi-jugador-enlace" href={`/estadisticas?equipo=${equipo.id}`}>
+              <span>Estadísticas de mi equipo</span><span aria-hidden="true">→</span>
+            </a>
+            <a className="mi-jugador-enlace" href="/actas">
+              <span>Mis actas</span><span aria-hidden="true">→</span>
+            </a>
+          </nav>
+
+          <button type="button" className="mi-jugador-cambiar" onClick={() => guardarMiJugador("")}>
+            ¿No eres tú? Cambiar jugador
+          </button>
         </section>
       )}
     </>
