@@ -92,10 +92,9 @@ export default function DetalleActa({ partido, local, visitante, alineacionLocal
             )}
             {comiteId && (
               <a className="acta-enlace-clupik" href={`/comite/${comiteId}`}>
-                Ver documento del Comité <span aria-hidden="true">→</span>
+                Ver Comité <span aria-hidden="true">→</span>
               </a>
             )}
-            <EditarActa partidoId={partido.id} />
           </div>
           <span className="acta-kicker">{actaDigitalizada ? "ACTA DIGITAL" : "ACTA PENDIENTE DE DIGITALIZAR"} · JORNADA {partido.jornada || "—"}</span>
         </div>
@@ -122,6 +121,7 @@ export default function DetalleActa({ partido, local, visitante, alineacionLocal
           <span>🟨 <strong>{eventos.filter((evento) => evento.tipo === "amarilla").length}</strong> amarillas</span>
           <span>🟥 <strong>{tarjetasRojas}</strong> rojas</span>
         </div>
+        <EditarActa partidoId={partido.id} />
       </header>
 
       <section className="acta-mvp" aria-label="MVP del partido">
