@@ -1,5 +1,5 @@
 import MVPShareCard from "../entrenador/MVPShareCard";
-import AvatarJugador from "../actas/AvatarJugador";
+import AvatarJugador from "../AvatarJugador";
 import ResumenActaCard from "../actas/ResumenActaCard.js";
 import EditarActa from "../actas/EditarActa";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
