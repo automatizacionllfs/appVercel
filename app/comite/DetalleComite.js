@@ -42,9 +42,11 @@ export default function DetalleComite({ documento, partido, local, visitante, sa
       </header>
 
       <dl className="comite-datos">
-        <div><dt>Temporada</dt><dd>{partido.temporada?.nombre || "—"}</dd></div>
-        <div><dt>Grupo</dt><dd>{partido.grupo?.nombre || "—"}</dd></div>
-        <div><dt>Jornada</dt><dd>{partido.jornada || "—"}</dd></div>
+        <div>
+          <dt>Temporada</dt><dd>{partido.temporada?.nombre || "—"}</dd>
+          <dt>Grupo</dt><dd>{partido.grupo?.nombre || "—"}</dd>
+          <dt>Jornada</dt><dd>{partido.jornada || "—"}</dd>
+        </div>
         <div><dt>Fecha del partido</dt><dd>{fechaPartido(partido.fecha)}</dd></div>
         <div><dt>Árbitros</dt><dd>{arbitros}</dd></div>
         <div><dt>Cronometrador</dt><dd>{persona(partido.crono) || "—"}</dd></div>
