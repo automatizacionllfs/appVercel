@@ -122,9 +122,9 @@ export default function Goleadores({ goleadores, equipos }) {
     <>
       <nav className="pestanas" aria-label="Vistas de goleadores">
         {[
-          ["general", "Tabla general"],
-          ["grupos", "Por grupos"],
-          ["equipos", "Por equipos"],
+          ["general", "General"],
+          ["grupos", "Grupos"],
+          ["equipos", "Equipos"],
         ].map(([id, label]) => (
           <button key={id} type="button" className={vista === id ? "activa" : ""} aria-pressed={vista === id} onClick={() => setVista(id)}>
             {label}
