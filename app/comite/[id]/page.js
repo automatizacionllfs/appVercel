@@ -34,7 +34,7 @@ export default async function PaginaDetalleComite({ params }) {
   const jugadorIds = [...new Set(sanciones.map((s) => s.jugador_id).filter(Boolean))];
   let plantilla = [];
   if (jugadorIds.length) {
-    const { data, error } = await db.from("plantilla")
+    const { data, error } = await db.from("alineacion_acta")
       .select("equipo_id,jugador_id,dorsal,entrenador")
       .in("equipo_id", [partido.local_id, partido.visitante_id])
       .in("jugador_id", jugadorIds);
