@@ -511,7 +511,7 @@ body {
   z-index: 5;
   margin: 0 auto 18px;
   border-bottom: 3px solid var(--acento);
-  background: rgb(229 237 245);
+  background: #eef3f9;
   backdrop-filter: blur(10px);
 }
 
