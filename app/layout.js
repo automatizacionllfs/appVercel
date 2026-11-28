@@ -22,7 +22,7 @@ export const metadata = {
   },
 };
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
-const VERSION = "6.0.3";
+const VERSION = "6.0.4";
 const FECHA_ACTUALIZACION = "28/11/2026";
 
 export default async function RootLayout({ children }) {

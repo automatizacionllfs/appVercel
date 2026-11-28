@@ -22,10 +22,10 @@ export default function DetalleComite({ documento, partido, local, visitante, sa
       <a className="boton-inicio acta-volver" href="/comite">← Volver</a>
       <header className="acta-cabecera">
         <div className="acta-cabecera-superior">
-          <span className="acta-kicker">COMITÉ DE COMPETICIÓN · JORNADA {partido.jornada || "—"}</span>
           <div className="acta-cabecera-acciones">
             <a className="acta-enlace-clupik" href={`/actas/${partido.id}`}>Ver acta del partido <span aria-hidden="true">→</span></a>
           </div>
+          <span className="acta-kicker">COMITÉ DE COMPETICIÓN · JORNADA {partido.jornada || "—"}</span>
         </div>
         <p className="acta-fecha">Acuerdos publicados el {fechaDoc(documento.fecha)}</p>
         <div className="acta-marcador-grande">
