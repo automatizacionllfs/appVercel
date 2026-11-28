@@ -18,7 +18,7 @@ export default async function ActasDigitales() {
   if (temporada) {
     const [{ data: partidos, error: errorPartidos }, { data: equipos, error: errorEquipos }] = await Promise.all([
       db.from("partidos")
-        .select("id,jornada,fecha,estado,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id")
+        .select("id,jornada,fecha,estado,goles_local_clupik,goles_visitante_clupik,local_id,visitante_id,pabellon")
         .eq("temporada_id", temporada.id)
         .order("fecha", { ascending: false }),
       db.from("equipos")
