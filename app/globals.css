@@ -1539,6 +1539,10 @@ body {
   background: var(--papel);
 }
 
+.comite-datos-superiores {
+  display:contents;
+}
+
 .comite-datos dt {
   color: var(--suave);
   font-size: 0.78rem;
