@@ -1,14 +1,14 @@
 export const NOMBRES_PERSONAL_ACTA = [
-  "Aspe",
+  "José Manuel Áspera García",
   "-",
   "Carmen",
-  "Joaquin",
-  "Joni",
+  "Joaquín López Calderón",
+  "Jonathan Márquez Monis",
   "Jose Manuel",
-  "Manuel",
-  "Mawito",
+  "Manuel López Calderón",
+  "Manuel Salvador Castaño",
   "Miguel",
-  "Tambora",
+  "Daniel Tambora Constantino",
 ];
 
 function normalizarNombre(nombre) {
