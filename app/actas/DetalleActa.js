@@ -84,7 +84,6 @@ export default function DetalleActa({ partido, local, visitante, alineacionLocal
       <a className="boton-inicio acta-volver" href={volver}>← Volver</a>
       <header className="acta-cabecera">
         <div className="acta-cabecera-superior">
-          <span className="acta-kicker">{actaDigitalizada ? "ACTA DIGITAL" : "ACTA PENDIENTE DE DIGITALIZAR"} · JORNADA {partido.jornada || "—"}</span>
           <div className="acta-cabecera-acciones">
             {enlaceClupik && (
               <a className="acta-enlace-clupik" href={enlaceClupik} target="_blank" rel="noopener noreferrer">
@@ -98,6 +97,7 @@ export default function DetalleActa({ partido, local, visitante, alineacionLocal
             )}
             <EditarActa partidoId={partido.id} />
           </div>
+          <span className="acta-kicker">{actaDigitalizada ? "ACTA DIGITAL" : "ACTA PENDIENTE DE DIGITALIZAR"} · JORNADA {partido.jornada || "—"}</span>
         </div>
         <p className="acta-fecha">{fecha(partido.fecha)}</p>
         <div className="acta-marcador-grande">
