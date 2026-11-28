@@ -73,7 +73,7 @@ export default async function ActasDigitales() {
           ...(resumenEventos.get(partido.id) || { goles: 0, tarjetas: 0, eventos: 0 }),
           jugadoresAlineacion: jugadoresPorPartido.get(partido.id) || 0,
         },
-        pabellon: partido.pabellon || "Pabellón no disponible",
+        pabellon: equipoPorId.get(partido.pabellon) || "Pabellón no disponible",
         actaDigitalizada: partido.estado === "cerrado" || resumenEventos.has(partido.id) || jugadoresPorPartido.has(partido.id),
       }));
   }
