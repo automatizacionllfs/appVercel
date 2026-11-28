@@ -79,7 +79,8 @@ export default function ComiteLista({ documentos }) {
               <span className="acta-partido-meta">
                 Publicado el {fechaDoc(doc.fecha)} <span aria-hidden="true">·</span> Jornada {doc.jornada || "—"}
                 {doc.grupo ? <> <span aria-hidden="true">·</span> {doc.grupo}</> : null}
-                {doc.pendiente && <span className="acta-estado">Pendiente de resolución</span>}
+                {doc.pendiente && <span className="acta-estado">Pendiente de resolución</span>}                
+                {!doc.pendiente && <span className="acta-estado">Resuelto</span>}
               </span>
               <span className="acta-cruce">
                 <span className="acta-equipo">
