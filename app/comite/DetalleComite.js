@@ -1,10 +1,10 @@
 import MVPShareCard from "../entrenador/MVPShareCard";
-import AvatarJugador from "../AvatarJugador";
-import ResumenActaCard from "../ResumenActaCard.js";
-import EditarActa from "../EditarActa";
+import AvatarJugador from "../actas/AvatarJugador";
+import ResumenActaCard from "../actas/ResumenActaCard.js";
+import EditarActa from "../actas/EditarActa";
 import { marcarSegundasAmarillas } from "../../lib/tarjetas";
 import { resultadoPendiente, tieneResultado } from "../../lib/partidos";
-import AlineacionActa from "../AlineacionActa.js";
+import AlineacionActa from "../actas/AlineacionActa.js";
 
 const duracionParte = 22 * 60;
 const reloj = (segundos) => `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
