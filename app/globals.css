@@ -1538,17 +1538,7 @@ body {
   border-radius: 14px;
   background: var(--papel);
 }
-.comite-datos-superiores {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-}
-.comite-datos > .datos {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
+
 .comite-datos dt {
   color: var(--suave);
   font-size: 0.78rem;
@@ -4931,6 +4921,19 @@ a.acta-partido:hover {
 
   .mi-jugador-enlaces {
     padding: 14px;
+  }
+
+  .comite-datos-superiores {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  
+  .comite-datos > .datos {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
   }
 }
 
