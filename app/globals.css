@@ -1416,6 +1416,75 @@ body {
   transform: none;
 }
 
+.comite-admin-doc {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: var(--papel);
+  box-shadow: var(--sombra);
+}
+.comite-admin-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.comite-admin-cabecera > div { display: grid; gap: 2px; min-width: 0; }
+.comite-admin-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.comite-admin-fecha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+.comite-admin-fecha label { display: grid; gap: 6px; color: var(--suave); font-size: 0.88rem; font-weight: 650; }
+.comite-sancion-form {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: #f7f9fc;
+}
+.comite-sancion-form label { display: grid; gap: 6px; color: var(--suave); font-size: 0.88rem; font-weight: 650; }
+.comite-sancion-form textarea { margin: 0; min-height: 90px; }
+.comite-sancion-form-fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.comite-sancion-form-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.comite-boton-acta { min-height: 38px; margin-top: 0; font-size: 0.82rem; }
+.comite-sancion {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid #b4232e;
+  border-radius: 14px;
+  background: var(--papel);
+}
+.comite-sancion-persona { display: grid; gap: 2px; }
+.comite-sancion-persona strong { color: var(--acento-oscuro); font-size: 1.02rem; text-transform: uppercase; }
+.comite-sancion-campo { display: grid; gap: 3px; }
+.comite-sancion-campo > span:first-child { color: var(--suave); font-size: 0.78rem; font-weight: 750; }
+.comite-sancion-campo p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.comite-sancion-campo.pendiente p { color: #795800; font-weight: 700; }
+.comite-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 16px 0 24px;
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: var(--papel);
+}
+.comite-datos dt { color: var(--suave); font-size: 0.78rem; font-weight: 650; }
+.comite-datos dd { margin: 2px 0 0; color: var(--acento-oscuro); font-weight: 700; overflow-wrap: anywhere; }
+.comite-lista-sanciones { display: grid; gap: 12px; }
+
+
 
 @media (max-width: 600px) {
   .instalar-app {

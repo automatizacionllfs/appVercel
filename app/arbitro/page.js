@@ -87,7 +87,7 @@ export default function Arbitro() {
   const [filtroBusqueda, setFiltroBusqueda] = useFiltroSesion("arbitro:busqueda", "");
   const [filtroJornada, setFiltroJornada] = useFiltroSesion("arbitro:jornada", "");
   const [filtroEstado, setFiltroEstado] = useFiltroSesion("arbitro:estado", "");
-  const [desde, setDesde] = useFiltroSesion("arbitro:desde", () => fechaInput(process.env.FECHA_DESDE || "2026-09-01"));  
+  const [desde, setDesde] = useFiltroSesion("arbitro:desde", () => fechaInput(process.env.FECHA_DESDE || "2026-09-01"));
   const [hasta, setHasta] = useFiltroSesion("arbitro:hasta", () => fechaInput(process.env.FECHA_HASTA || "2027-06-30"));
 
   useEffect(() => {
@@ -602,6 +602,19 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
     }
   };
 
+  const sinFichaAlineacion = async () => {
+    const nombre = prompt("Nombre y apellidos del jugador sin ficha");
+    if (!nombre) return;
+    const dorsal = parseInt(prompt("Dorsal"), 10);
+    setMsgAlineacion("");
+    const { error } = await supabase.rpc("crear_jugador_sin_ficha", {
+      p_partido: id, p_equipo: equipoActivo, p_nombre: nombre, p_dorsal: Number.isNaN(dorsal) ? null : dorsal,
+    });
+    if (error) { setMsgAlineacion(`No se pudo crear el jugador sin ficha: ${error.message}`); return; }
+    await cargar();
+    setMsgAlineacion("Jugador sin ficha añadido y marcado como convocado. Recuerda guardar la alineación.");
+  };
+
   return (
     <main className={modo === "movil" ? "vista-movil" : ""}>
       <NavegacionArbitro />
@@ -691,9 +704,13 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
           </>
         )}
         {editable && (
+          <button type="button" className="mini" onClick={sinFichaAlineacion}>¿No aparece? Sin ficha</button>
+        )}
+        {editable && (
           <button className="primario" type="button" onClick={guardarAlineacion} disabled={guardandoAlineacion || !pl.length}>
             {guardandoAlineacion ? "Guardando…" : "Guardar alineación del partido"}
           </button>
+
         )}
         {msgAlineacion && <p aria-live="polite" className={msgAlineacion.startsWith("No se pudo") ? "error" : "mensaje-ok"}>{msgAlineacion}</p>}
       </details>
@@ -883,5 +900,5 @@ function Partido({ id, yo, volver, modo, cambiarModo }) {
       <button className="boton-inicio acta-volver" onClick={volver}>Volver</button>
     </main>
   );
-  
+
 }

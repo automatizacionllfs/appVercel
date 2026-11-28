@@ -1,70 +1,54 @@
 "use client";
 
-import { resultadoPendiente } from "../../lib/partidos";
-import { useMiEquipo } from "../lib/mi-equipo";
+import "../globals.css";
 import { useMemo } from "react";
+import { useMiEquipo } from "../lib/mi-equipo";
 import { useFiltroSesion } from "../lib/filtros-sesion";
 
-
-const fecha = (valor) => valor
-  ? new Date(valor).toLocaleDateString("es-ES", {
-    timeZone: "Europe/Madrid",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
+const fechaDoc = (valor) => valor
+  ? new Date(`${valor}T12:00:00`).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })
   : "Fecha no disponible";
 
-
-
-export default function ComiteLista({ partidos }) {
-  const [jornadaGuardada, setJornadaSeleccionada] = useFiltroSesion("actas:jornada", "");
-  const [estadoSeleccionado, setEstadoSeleccionado] = useFiltroSesion("actas:estado", "todas");
+export default function ComiteLista({ documentos }) {
+  const [jornadaGuardada, setJornada] = useFiltroSesion("comite:jornada", "");
   const miEquipo = useMiEquipo();
-  const [equipoElegido, setEquipoElegido] = useFiltroSesion("actas:equipo", null);
+  const [equipoElegido, setEquipoElegido] = useFiltroSesion("comite:equipo", null);
 
-  const jornadas = useMemo(() => [...new Set(partidos.map(({ jornada }) => jornada))]
+  const jornadas = useMemo(() => [...new Set(documentos.map(({ jornada }) => jornada))]
     .sort((a, b) => {
       if (a == null) return 1;
       if (b == null) return -1;
       return Number(a) - Number(b);
-    }), [partidos]);
+    }), [documentos]);
 
   const equipos = useMemo(() => {
     const mapa = new Map();
-    partidos.forEach((partido) => {
-      if (partido.local) mapa.set(String(partido.local_id), partido.local.nombre);
-      if (partido.visitante) mapa.set(String(partido.visitante_id), partido.visitante.nombre);
+    documentos.forEach((doc) => {
+      if (doc.local) mapa.set(String(doc.local_id), doc.local.nombre);
+      if (doc.visitante) mapa.set(String(doc.visitante_id), doc.visitante.nombre);
     });
-    return [...mapa]
-      .map(([id, nombre]) => ({ id, nombre }))
-      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-  }, [partidos]);
+    return [...mapa].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  }, [documentos]);
 
-  // Si el favorito guardado no existe en esta temporada, se ignora
   const favorito = equipos.some((equipo) => equipo.id === miEquipo) ? miEquipo : "";
   const equipoValido = equipoElegido !== null
     && (equipoElegido === "" || equipos.some((equipo) => equipo.id === equipoElegido));
   const equipoSeleccionado = equipoValido ? equipoElegido : favorito;
   const jornadaSeleccionada = jornadaGuardada === "" || jornadas.some((j) =>
-    (j == null ? "sin-jornada" : String(j)) === jornadaGuardada) ? jornadaGuardada : ""; 
+    (j == null ? "sin-jornada" : String(j)) === jornadaGuardada) ? jornadaGuardada : "";
 
-  const partidosFiltrados = partidos.filter((partido) => {
+  const filtrados = documentos.filter((doc) => {
     const coincideJornada = jornadaSeleccionada === ""
-      || (jornadaSeleccionada === "sin-jornada"
-        ? partido.jornada == null
-        : String(partido.jornada) === jornadaSeleccionada);
-    const coincideEstado = estadoSeleccionado === "todas"
-      || (estadoSeleccionado === "cerrada" ? partido.estado === "cerrado" : partido.estado !== "cerrado");
+      || (jornadaSeleccionada === "sin-jornada" ? doc.jornada == null : String(doc.jornada) === jornadaSeleccionada);
     const coincideEquipo = !equipoSeleccionado
-      || String(partido.local_id) === equipoSeleccionado
-      || String(partido.visitante_id) === equipoSeleccionado;
-    return coincideJornada && coincideEstado && coincideEquipo;
+      || String(doc.local_id) === equipoSeleccionado
+      || String(doc.visitante_id) === equipoSeleccionado;
+    return coincideJornada && coincideEquipo;
   });
 
   return (
     <>
-      <div className="actas-filtros" aria-label="Filtrar actas">
+      <div className="actas-filtros" aria-label="Filtrar documentos">
         <label>
           Equipo
           <select value={equipoSeleccionado} onChange={(e) => setEquipoElegido(e.target.value)}>
@@ -78,7 +62,7 @@ export default function ComiteLista({ partidos }) {
         </label>
         <label>
           Jornada
-          <select value={jornadaSeleccionada} onChange={(e) => setJornadaSeleccionada(e.target.value)}>
+          <select value={jornadaSeleccionada} onChange={(e) => setJornada(e.target.value)}>
             <option value="">Todas las jornadas</option>
             {jornadas.map((jornada) => (
               <option key={jornada ?? "sin-jornada"} value={jornada == null ? "sin-jornada" : String(jornada)}>
@@ -87,62 +71,37 @@ export default function ComiteLista({ partidos }) {
             ))}
           </select>
         </label>
-        <label>
-          Acta
-          <select value={estadoSeleccionado} onChange={(e) => setEstadoSeleccionado(e.target.value)}>
-            <option value="todas">Todas</option>
-            <option value="cerrada">Cerrada</option>
-            <option value="no-cerrada">No cerrada</option>
-          </select>
-        </label>
       </div>
-      {partidosFiltrados.length ? (
-        <section className="actas-lista" aria-label="Partidos filtrados">
-          {partidosFiltrados.map((partido) => {
-            const pendiente = resultadoPendiente(partido);
-            const contenido = (
-              <>
-                <span className="acta-partido-meta">
-                  Jornada {partido.jornada || "—"} <span aria-hidden="true">·</span> {fecha(partido.fecha)}
-                  <span className={`acta-estado ${partido.estado === "cerrado" ? "cerrada" : ""} ${!partido.actaDigitalizada ? "pendiente" : ""}`}>
-                    {partido.estado === "cerrado" ? "Acta cerrada" : partido.actaDigitalizada ? "Acta en curso" : "Sin acta digital"}
-                  </span>
+      {filtrados.length ? (
+        <section className="actas-lista" aria-label="Documentos del Comité">
+          {filtrados.map((doc) => (
+            <article className="acta-partido" key={doc.id}>
+              <span className="acta-partido-meta">
+                Publicado el {fechaDoc(doc.fecha)} <span aria-hidden="true">·</span> Jornada {doc.jornada || "—"}
+                {doc.grupo ? <> <span aria-hidden="true">·</span> {doc.grupo}</> : null}
+                {doc.pendiente && <span className="acta-estado">Pendiente de resolución</span>}
+              </span>
+              <span className="acta-cruce">
+                <span className="acta-equipo">
+                  {doc.local?.escudo_url && <img src={doc.local.escudo_url} alt="" width="34" height="34" />}
+                  <strong>{doc.local?.nombre || "Equipo local"}</strong>
                 </span>
-                <span className="acta-cruce">
-                  <span className="acta-equipo">
-                    {partido.local?.escudo_url && <img src={partido.local.escudo_url} alt="" width="34" height="34" />}
-                    <strong>{partido.local?.nombre || "Equipo local"}</strong>
-                  </span>
-                  <span className={`acta-marcador ${pendiente ? "pendiente" : ""}`} aria-label={pendiente ? "Resultado pendiente" : "Marcador sincronizado"}>
-                    {pendiente ? "Resultado pendiente" : `${partido.goles_local_clupik ?? "—"} : ${partido.goles_visitante_clupik ?? "—"}`}
-                  </span>
-                  <span className="acta-equipo visitante">
-                    <strong>{partido.visitante?.nombre || "Equipo visitante"}</strong>
-                    {partido.visitante?.escudo_url && <img src={partido.visitante.escudo_url} alt="" width="34" height="34" />}
-                  </span>
+                <span className="acta-marcador">VS</span>
+                <span className="acta-equipo visitante">
+                  <strong>{doc.visitante?.nombre || "Equipo visitante"}</strong>
+                  {doc.visitante?.escudo_url && <img src={doc.visitante.escudo_url} alt="" width="34" height="34" />}
                 </span>
-                <span className="acta-partido-pie">
-                  <span>
-                    {partido.resumen.eventos
-                      ? `${partido.resumen.eventos} eventos registrados`
-                      : partido.resumen.jugadoresAlineacion
-                        ? "Alineación cargada"
-                        : "Acta pendiente de digitalizar"}
-                  </span>
-                  <span>{partido.pabellon}</span>
-                  {partido.actaDigitalizada && (
-                    <span className="acta-ver-cronologia">Ver cronología <span aria-hidden="true">→</span></span>
-                  )}
-                </span>
-              </>
-            );
-            return partido.actaDigitalizada
-              ? <a className="acta-partido" href={`/actas/${partido.id}`} key={partido.id}>{contenido}</a>
-              : <article className="acta-partido" key={partido.id}>{contenido}</article>;
-          })}
+              </span>
+              <span className="acta-partido-pie">
+                <span>{doc.sanciones ? `${doc.sanciones} ${doc.sanciones === 1 ? "sanción" : "sanciones"}` : "Sin sanciones"}</span>
+                <a className="boton-inicio comite-boton-acta" href={`/actas/${doc.partidoId}`}>Ver acta del partido</a>
+                <a className="acta-ver-cronologia" href={`/comite/${doc.id}`}>Ver documento <span aria-hidden="true">→</span></a>
+              </span>
+            </article>
+          ))}
         </section>
       ) : (
-        <p className="actas-sin-resultados">No hay partidos que coincidan con estos filtros.</p>
+        <p className="actas-sin-resultados">No hay documentos que coincidan con estos filtros.</p>
       )}
     </>
   );

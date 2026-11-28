@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 const enlaces = [
   { href: "/arbitro", texto: "Actas" },
   { href: "/arbitro/partidos", texto: "Crear partidos / Actas" },
+  { href: "/arbitro/comite", texto: "Crear Comité" },
   { href: "/arbitro/log", texto: "Log" },
   { href: "/arbitro/gestion-pin", texto: "Gestión de PIN" },
   { href: "/arbitro/sin-ficha", texto: "Sin Ficha" },

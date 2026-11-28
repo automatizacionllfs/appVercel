@@ -25,6 +25,13 @@ function fechaLegible(valor) {
   });
 }
 
+// "-" cuenta como valor asignado ("nadie"), pero no como árbitro.
+const sinArbitro = (nombre) => !nombre || String(nombre).trim() === "" || String(nombre).trim() === "-";
+const asignado = (partido) => Boolean(partido.arbitro1 && partido.arbitro2 && partido.crono);
+const numeroArbitros = (partido) => asignado(partido)
+  ? [partido.arbitro1, partido.arbitro2].filter((nombre) => !sinArbitro(nombre)).length
+  : "-";
+
 export default function PruebaCrearPartido() {
   const [sesion, setSesion] = useState(undefined);
   const [grupos, setGrupos] = useState([]);
@@ -41,15 +48,16 @@ export default function PruebaCrearPartido() {
   const [desde, setDesde] = useFiltroSesion("partidos:desde", "");
   const [hasta, setHasta] = useFiltroSesion("partidos:hasta", "");
   const [partidosSeleccionados, setPartidosSeleccionados] = useState([]);
-  const [arbitrosPorPartido, setArbitrosPorPartido] = useState({});
   const [modalAsignacion, setModalAsignacion] = useState(false);
   const [asignacion, setAsignacion] = useState({ arbitro1Id: "", arbitro2Id: "", cronoId: "" });
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [descargando, setDescargando] = useState(false);
+  const [guardandoAsignacion, setGuardandoAsignacion] = useState(false);
   const [descargandoHorarios, setDescargandoHorarios] = useState(false);
   const [progresoDescarga, setProgresoDescarga] = useState({ actual: 0, total: 0 });
   const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
   const [partidoCreado, setPartidoCreado] = useState(null);
 
   useEffect(() => {
@@ -148,6 +156,7 @@ export default function PruebaCrearPartido() {
   async function crearPartido(evento) {
     evento.preventDefault();
     setError("");
+    setAviso("");
     setPartidoCreado(null);
     if (!window.confirm("Esto creará un partido real en Clupik, visible para la organización. ¿Continuar?")) return;
     setEnviando(true);
@@ -185,20 +194,17 @@ export default function PruebaCrearPartido() {
       : actuales.length < 12 ? [...actuales, id] : actuales);
   }
 
-  function cambiarCantidadArbitros(partidoId, cantidad) {
-    setArbitrosPorPartido((actuales) => ({ ...actuales, [partidoId]: Number(cantidad) }));
-  }
-
   async function descargarHorarios() {
     if (!partidosSeleccionados.length || descargandoHorarios) return;
     setError("");
+    setAviso("");
     setDescargandoHorarios(true);
     try {
       const seleccion = partidos
         .filter((partido) => partidosSeleccionados.includes(partido.id))
         .map((partido) => ({
           ...partido,
-          numeroArbitros: arbitrosPorPartido[partido.id] ?? 1,
+          numeroArbitros: numeroArbitros(partido),
         }));
       const archivo = await generarImagenHorarios(seleccion);
       const url = URL.createObjectURL(archivo);
@@ -216,15 +222,59 @@ export default function PruebaCrearPartido() {
     }
   }
 
+  function abrirAsignacion() {
+    const guardada = partidos.find((partido) => partidosSeleccionados.includes(partido.id) && asignado(partido));
+    if (guardada) {
+      setAsignacion({ arbitro1Id: guardada.arbitro1, arbitro2Id: guardada.arbitro2, cronoId: guardada.crono });
+    }
+    setError("");
+    setModalAsignacion(true);
+  }
+
+  async function guardarAsignacionBD(ids) {
+    const cambios = {
+      arbitro1: asignacion.arbitro1Id,
+      arbitro2: asignacion.arbitro2Id,
+      crono: asignacion.cronoId,
+    };
+    const { data, error: errorGuardar } = await supabase.from("partidos")
+      .update(cambios)
+      .in("id", ids)
+      .select("id");
+    if (errorGuardar) throw new Error(`No se pudo guardar la asignación: ${errorGuardar.message}`);
+    if ((data || []).length !== ids.length) {
+      throw new Error("No se pudo guardar la asignación en todos los partidos. Comprueba que tu cuenta es de administrador.");
+    }
+    setPartidos((actuales) => actuales.map((partido) => ids.includes(partido.id) ? { ...partido, ...cambios } : partido));
+  }
+
+  async function guardarAsignacion() {
+    if (!asignacionCompleta || !partidosSeleccionados.length) return;
+    setError("");
+    setAviso("");
+    setGuardandoAsignacion(true);
+    try {
+      await guardarAsignacionBD([...partidosSeleccionados]);
+      setModalAsignacion(false);
+      setAviso(`Asignación guardada en ${partidosSeleccionados.length} ${partidosSeleccionados.length === 1 ? "partido" : "partidos"}.`);
+    } catch (fallo) {
+      setError(fallo instanceof Error ? fallo.message : "No se pudo guardar la asignación.");
+    } finally {
+      setGuardandoAsignacion(false);
+    }
+  }
+
   async function descargarActas(evento) {
     evento.preventDefault();
     if (!asignacionCompleta || !partidosSeleccionados.length) return;
     setError("");
+    setAviso("");
     setDescargando(true);
     setProgresoDescarga({ actual: 0, total: partidosSeleccionados.length });
     const seleccion = [...partidosSeleccionados];
     let descargadas = 0;
     try {
+      await guardarAsignacionBD(seleccion);
       for (let index = 0; index < seleccion.length; index += 1) {
         const respuesta = await fetch("/api/clupik/partidos/actas", {
           method: "POST",
@@ -259,6 +309,7 @@ export default function PruebaCrearPartido() {
         }
       }
       setModalAsignacion(false);
+      setAviso("Asignación guardada y actas descargadas.");
     } catch (fallo) {
       const mensaje = fallo instanceof Error ? fallo.message : "No se pudieron descargar las actas.";
       setError(descargadas
@@ -277,12 +328,15 @@ export default function PruebaCrearPartido() {
     if (errorAcceso) setError(`No se pudo iniciar sesión: ${errorAcceso.message}`);
   }
 
+  const ocupado = descargando || guardandoAsignacion;
+
   return (
     <main>
       <NavegacionArbitro />
       <h1>Crear partidos y descargar actas</h1>
       <p className="suave">Herramienta para administradores. Los partidos se crean directamente en Clupik.</p>
-      {error && <p className="error" role="alert">{error}</p>}
+      {error && !modalAsignacion && <p className="error" role="alert">{error}</p>}
+      {aviso && <p className="mensaje-ok" role="status">{aviso}</p>}
       {sesion === undefined || cargando ? <p>Cargando…</p> : !sesion ? (
         <button className="primario" type="button" onClick={entrar}>Entrar con Google</button>
       ) : error && !grupos.length ? (
@@ -350,13 +404,14 @@ export default function PruebaCrearPartido() {
               <button type="button" className="mini" onClick={() => { setDesde(""); setHasta(""); }}>Ver todas las fechas</button>
             </div>
             {desde && hasta && desde > hasta && <p className="error">La fecha inicial no puede ser posterior a la fecha final.</p>}
-            <p className="suave">{partidosFiltrados.length} partidos · Selecciona hasta 12 para generar actas.</p>
+            <p className="suave">{partidosFiltrados.length} partidos · Selecciona hasta 12 para asignar árbitros y generar actas.</p>
             {!partidosFiltrados.length ? (
               <p className="suave">No hay partidos en este rango de fechas.</p>
             ) : (
               <div className="clupik-partidos-lista">
                 {partidosFiltrados.map((partido) => {
                   const seleccionado = partidosSeleccionados.includes(partido.id);
+                  const conArbitros = asignado(partido);
                   return (
                     <label className="clupik-partido-fila" key={partido.id}>
                       <input
@@ -369,6 +424,12 @@ export default function PruebaCrearPartido() {
                         <strong>{partido.local?.nombre || "Local"} – {partido.visitante?.nombre || "Visitante"}</strong>
                         <span>{partido.grupo?.nombre || "Grupo —"} · Jornada {partido.jornada || "—"} · {fechaLegible(partido.fecha)}</span>
                         <span>{partido.pabellon || "Pabellón no disponible"}</span>
+                        <span className="estado-partido">
+                          <i className={`semaforo-luz ${conArbitros ? "completo" : "incompleto"}`} />
+                          {conArbitros
+                            ? `Árbitros asignados · ${partido.arbitro1} / ${partido.arbitro2} · Crono: ${partido.crono}`
+                            : "Sin árbitros asignados"}
+                        </span>
                       </span>
                     </label>
                   );
@@ -376,55 +437,28 @@ export default function PruebaCrearPartido() {
               </div>
             )}
             {partidosSeleccionados.length > 0 && (
-              <>
-                <section className="clupik-horarios-config" aria-labelledby="clupik-horarios-titulo">
-                  <h3 id="clupik-horarios-titulo">Árbitros por partido</h3>
-                  <p className="suave">Indica cuántos árbitros aparecerán en cada partido de la plantilla. Esta selección es temporal y no se guarda.</p>
-                  <div className="clupik-horarios-lista">
-                    {partidos.filter((partido) => partidosSeleccionados.includes(partido.id)).map((partido) => {
-                      const nombrePartido = `${partido.local?.nombre || "Local"} – ${partido.visitante?.nombre || "Visitante"}`;
-                      return (
-                        <label className="clupik-horario-fila" key={partido.id}>
-                          <span>
-                            <strong>{nombrePartido}</strong>
-                            <span>{partido.grupo?.nombre || "Grupo —"} · Jornada {partido.jornada || "—"} · {fechaLegible(partido.fecha)}</span>
-                          </span>
-                          <select
-                            value={arbitrosPorPartido[partido.id] ?? 1}
-                            aria-label={`Cantidad de árbitros para ${nombrePartido}`}
-                            onChange={(evento) => cambiarCantidadArbitros(partido.id, evento.target.value)}
-                          >
-                            <option value={1}>1 árbitro</option>
-                            <option value={2}>2 árbitros</option>
-                          </select>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </section>
-                <div className="clupik-partidos-acciones">
-                  <span>{partidosSeleccionados.length} seleccionados</span>
-                  <button type="button" className="mini" onClick={descargarHorarios} disabled={descargandoHorarios}>
-                    {descargandoHorarios ? "Preparando horarios…" : "Descargar horarios"}
-                  </button>
-                  <button type="button" className="primario" onClick={() => setModalAsignacion(true)}>
-                    Asignar árbitros
-                  </button>
-                </div>
-              </>
+              <div className="clupik-partidos-acciones">
+                <span>{partidosSeleccionados.length} seleccionados</span>
+                <button type="button" className="mini" onClick={descargarHorarios} disabled={descargandoHorarios}>
+                  {descargandoHorarios ? "Preparando horarios…" : "Descargar horarios"}
+                </button>
+                <button type="button" className="primario" onClick={abrirAsignacion}>
+                  Asignar árbitros
+                </button>
+              </div>
             )}
           </section>
         </>
       )}
       {modalAsignacion && (
         <div className="clupik-modal-fondo" role="presentation" onMouseDown={(evento) => {
-          if (evento.target === evento.currentTarget && !descargando) setModalAsignacion(false);
+          if (evento.target === evento.currentTarget && !ocupado) setModalAsignacion(false);
         }}>
           <section className="clupik-modal" role="dialog" aria-modal="true" aria-labelledby="clupik-modal-titulo">
             <h2 id="clupik-modal-titulo">Asignar árbitros y crono</h2>
             <p className="suave">
-              La asignación se aplicará a los {partidosSeleccionados.length} PDF y no se guardará en Clupik.
-              Se descargarán como archivos separados; permite las descargas múltiples si el navegador lo solicita.
+              La asignación se guardará en los {partidosSeleccionados.length} partidos seleccionados (se usará también en el Comité y en el cartel de horarios).
+              «Descargar Actas» guarda la asignación y descarga un PDF por partido; permite las descargas múltiples si el navegador lo solicita.
             </p>
             {[
               ["arbitro1Id", "Árbitro 1"],
@@ -436,8 +470,8 @@ export default function PruebaCrearPartido() {
                 <select value={asignacion[campo]} onChange={(evento) => cambiarAsignacion(campo, evento.target.value)} required>
                   <option value="">Seleccionar</option>
                   {usuarios.map((usuario) => {
-                    const ocupado = Object.entries(asignacion).some(([otroCampo, id]) => otroCampo !== campo && String(id) === String(usuario.id));
-                    return <option key={usuario.id} value={usuario.id} disabled={ocupado}>{usuario.nombre}</option>;
+                    const ocupadoPorOtro = Object.entries(asignacion).some(([otroCampo, id]) => otroCampo !== campo && String(id) === String(usuario.id));
+                    return <option key={usuario.id} value={usuario.id} disabled={ocupadoPorOtro}>{usuario.nombre}</option>;
                   })}
                 </select>
               </label>
@@ -449,8 +483,11 @@ export default function PruebaCrearPartido() {
               </p>
             )}
             <div className="clupik-modal-acciones">
-              <button type="button" className="mini" disabled={descargando} onClick={() => setModalAsignacion(false)}>Cancelar</button>
-              <button type="button" className="primario" disabled={!asignacionCompleta || descargando} onClick={descargarActas}>
+              <button type="button" className="mini" disabled={ocupado} onClick={() => setModalAsignacion(false)}>Cancelar</button>
+              <button type="button" disabled={!asignacionCompleta || ocupado} onClick={guardarAsignacion}>
+                {guardandoAsignacion ? "Guardando…" : "Guardar asignación"}
+              </button>
+              <button type="button" className="primario" disabled={!asignacionCompleta || ocupado} onClick={descargarActas}>
                 {descargando ? "Descargando actas…" : "Descargar Actas"}
               </button>
             </div>

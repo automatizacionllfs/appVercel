@@ -66,7 +66,7 @@ export async function GET(request) {
       db.from("grupos").select("id,id_clupik,nombre").eq("temporada_id", temporada.id).order("nombre"),
       db.from("equipos").select("id,id_clupik,nombre,grupo_id,escudo_url").eq("temporada_id", temporada.id).order("nombre"),
       db.from("partidos")
-        .select("id,id_clupik,jornada,fecha,pabellon,local_id,visitante_id,grupo_id,local:equipos!partidos_local_id_fkey(id,id_clupik,nombre,escudo_url),visitante:equipos!partidos_visitante_id_fkey(id,id_clupik,nombre,escudo_url),grupo:grupos(nombre)")
+        .select("id,id_clupik,jornada,fecha,pabellon,arbitro1,arbitro2,crono,local_id,visitante_id,grupo_id,local:equipos!partidos_local_id_fkey(id,id_clupik,nombre,escudo_url),visitante:equipos!partidos_visitante_id_fkey(id,id_clupik,nombre,escudo_url),grupo:grupos(nombre)")
         .eq("temporada_id", temporada.id)
         .order("fecha", { ascending: true, nullsFirst: false })
         .limit(1000),

@@ -11,7 +11,7 @@ const enlaces = [
 
 const documentos = [
   { href: "/actas", texto: "Actas" },
-  { href: "/comite", texto: "Comite" },
+  { href: "/comite", texto: "Comité" },
 ];
 
 const enlacesPersonal = [

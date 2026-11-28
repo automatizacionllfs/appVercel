@@ -44,7 +44,7 @@ function IconoSilbato() {
   );
 }
 
-export default function DetalleActa({ partido, local, visitante, alineacionLocal = [], alineacionVisitante = [], eventos, mvpLocal, mvpVisitante, actaDigitalizada, volver }) {
+export default function DetalleActa({ partido, local, visitante, alineacionLocal = [], alineacionVisitante = [], eventos, mvpLocal, mvpVisitante, actaDigitalizada, volver, comiteId = null }) {
   const enlaceClupik = partido.id_clupik
     ? `https://www.llfspuertoreal.es/es/games/${encodeURIComponent(partido.id_clupik)}/location`
     : null;
@@ -89,6 +89,11 @@ export default function DetalleActa({ partido, local, visitante, alineacionLocal
             {enlaceClupik && (
               <a className="acta-enlace-clupik" href={enlaceClupik} target="_blank" rel="noopener noreferrer">
                 Ver en Clupik <span aria-hidden="true">↗</span>
+              </a>
+            )}
+            {comiteId && (
+              <a className="acta-enlace-clupik" href={`/comite/${comiteId}`}>
+                Ver documento del Comité <span aria-hidden="true">→</span>
               </a>
             )}
             <EditarActa partidoId={partido.id} />
@@ -179,8 +184,8 @@ export default function DetalleActa({ partido, local, visitante, alineacionLocal
             {!actaDigitalizada
               ? "La cronología estará disponible cuando se digitalice el acta."
               : hayDesajuste
-              ? "El acta digital y el marcador procedente de Clupik no coinciden. Se muestran ambos datos para facilitar su revisión; la información puede estar pendiente de sincronización."
-              : "La cronología recoge los eventos anotados en el acta digital. El marcador se sincroniza desde Clupik y ambos registros pueden actualizarse en momentos distintos."}
+                ? "El acta digital y el marcador procedente de Clupik no coinciden. Se muestran ambos datos para facilitar su revisión; la información puede estar pendiente de sincronización."
+                : "La cronología recoge los eventos anotados en el acta digital. El marcador se sincroniza desde Clupik y ambos registros pueden actualizarse en momentos distintos."}
           </p>
         </div>
       </aside>

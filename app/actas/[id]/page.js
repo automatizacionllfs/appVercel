@@ -37,6 +37,10 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
   if (errorPartido) throw new Error(`No se pudo cargar el partido: ${errorPartido.message}`);
   if (!partido) notFound();
 
+  const { data: documentoComite, error: errorComite } = await db.from("comite_documentos")
+    .select("id").eq("partido_id", partido.id).maybeSingle();
+  if (errorComite) throw new Error(`No se pudo consultar el Comité: ${errorComite.message}`);
+
   const [resultadoEquipos, resultadoEventos] = await Promise.all([
     db.from("equipos")
       .select("id,id_clupik,nombre,escudo_url")
@@ -93,6 +97,7 @@ export default async function PaginaDetalleActa({ params, searchParams }) {
   return (
     <main>
       <DetalleActa
+        comiteId={documentoComite?.id || null}
         partido={partido}
         local={equipoPorId.get(partido.local_id)}
         visitante={equipoPorId.get(partido.visitante_id)}
