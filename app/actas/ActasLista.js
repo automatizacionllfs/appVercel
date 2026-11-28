@@ -129,7 +129,7 @@ export default function ActasLista({ partidos }) {
                         ? "Alineación cargada"
                         : "Acta pendiente de digitalizar"}
                   </span>
-                  <span>{partido.pabellon || "Pabellón no disponible"}</span>
+                  <span>{partido.pabellon}</span>
                   {partido.actaDigitalizada && (
                     <span className="acta-ver-cronologia">Ver cronología <span aria-hidden="true">→</span></span>
                   )}
