@@ -22,9 +22,11 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(ellipse at 50% 0,
+    radial-gradient(
+      ellipse at 50% 0,
       rgb(214 229 242 / 58%),
-      transparent 34rem),
+      transparent 34rem
+    ),
     var(--fondo);
   color: var(--tinta);
   font:
@@ -285,7 +287,7 @@ body {
   background: var(--acento-claro);
 }
 
-.instalar-app>summary {
+.instalar-app > summary {
   display: flex;
   min-height: 48px;
   align-items: center;
@@ -296,15 +298,15 @@ body {
   list-style: none;
 }
 
-.instalar-app>summary::-webkit-details-marker {
+.instalar-app > summary::-webkit-details-marker {
   display: none;
 }
 
-.instalar-app>summary::marker {
+.instalar-app > summary::marker {
   content: "";
 }
 
-.instalar-app>summary strong {
+.instalar-app > summary strong {
   color: var(--acento);
 }
 
@@ -528,7 +530,7 @@ body {
   box-shadow: var(--sombra);
 }
 
-.sin-ficha-jugador>header {
+.sin-ficha-jugador > header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -565,7 +567,7 @@ body {
   color: var(--tinta);
 }
 
-.sin-ficha-asociar>.suave {
+.sin-ficha-asociar > .suave {
   grid-column: 1 / -1;
   font-size: 0.85rem;
 }
@@ -668,7 +670,7 @@ body {
   gap: 5px;
 }
 
-.entrenador-partido-titulo>strong {
+.entrenador-partido-titulo > strong {
   font-size: 1.08rem;
 }
 
@@ -827,7 +829,7 @@ body {
   margin: 24px 0;
 }
 
-.acta-alineacion>summary {
+.acta-alineacion > summary {
   display: flex;
   min-height: 56px;
   align-items: center;
@@ -845,26 +847,26 @@ body {
   list-style: none;
 }
 
-.acta-alineacion>summary::-webkit-details-marker {
+.acta-alineacion > summary::-webkit-details-marker {
   display: none;
 }
 
-.acta-alineacion>summary::after {
+.acta-alineacion > summary::after {
   content: "+";
   color: #b4232e;
   font-size: 1.5rem;
   line-height: 1;
 }
 
-.acta-alineacion[open]>summary {
+.acta-alineacion[open] > summary {
   margin-bottom: 12px;
 }
 
-.acta-alineacion[open]>summary::after {
+.acta-alineacion[open] > summary::after {
   content: "−";
 }
 
-.acta-alineacion>summary:focus-visible {
+.acta-alineacion > summary:focus-visible {
   outline: 3px solid #b4232e;
   outline-offset: 3px;
 }
@@ -1003,7 +1005,7 @@ body {
   min-height: 40px;
 }
 
-.alineacion-editor>button {
+.alineacion-editor > button {
   width: 100%;
   margin-top: 18px;
 }
@@ -1029,12 +1031,12 @@ body {
   background: #e9f6ee;
 }
 
-.alineacion-editor-jugador.activo .alineacion-editor-identidad>span {
+.alineacion-editor-jugador.activo .alineacion-editor-identidad > span {
   color: #11643a;
   font-weight: 750;
 }
 
-.alineacion-editor-jugador.fuera .alineacion-editor-identidad>span,
+.alineacion-editor-jugador.fuera .alineacion-editor-identidad > span,
 .alineacion-editor-jugador.fuera .avatar-jugador {
   opacity: 0.55;
 }
@@ -1069,7 +1071,7 @@ body {
   gap: 10px;
 }
 
-.alineacion-editor-identidad>span:last-child {
+.alineacion-editor-identidad > span:last-child {
   overflow-wrap: anywhere;
 }
 
@@ -1150,8 +1152,8 @@ body {
   gap: 10px;
 }
 
-.acta-resumen-acciones>button,
-.acta-mvp-descarga>button {
+.acta-resumen-acciones > button,
+.acta-mvp-descarga > button {
   min-height: 46px;
   padding: 0 16px;
   font-size: 0.95rem;
@@ -1366,7 +1368,7 @@ body {
     transform 0.16s ease;
 }
 
-.mi-jugador-enlace>span:last-child {
+.mi-jugador-enlace > span:last-child {
   color: #b4232e;
   font-size: 1.15rem;
   font-weight: 850;
@@ -1385,7 +1387,7 @@ body {
   color: #fff;
 }
 
-.mi-jugador-enlace.principal>span:last-child {
+.mi-jugador-enlace.principal > span:last-child {
   color: #fff;
 }
 
@@ -1433,15 +1435,29 @@ body {
   justify-content: space-between;
   gap: 10px;
 }
-.comite-admin-cabecera > div { display: grid; gap: 2px; min-width: 0; }
-.comite-admin-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.comite-admin-cabecera > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.comite-admin-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .comite-admin-fecha {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
   gap: 10px;
 }
-.comite-admin-fecha label { display: grid; gap: 6px; color: var(--suave); font-size: 0.88rem; font-weight: 650; }
+.comite-admin-fecha label {
+  display: grid;
+  gap: 6px;
+  color: var(--suave);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
 .comite-sancion-form {
   display: grid;
   gap: 12px;
@@ -1450,11 +1466,32 @@ body {
   border-radius: 12px;
   background: #f7f9fc;
 }
-.comite-sancion-form label { display: grid; gap: 6px; color: var(--suave); font-size: 0.88rem; font-weight: 650; }
-.comite-sancion-form textarea { margin: 0; min-height: 90px; }
-.comite-sancion-form-fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.comite-sancion-form-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
-.comite-boton-acta { min-height: 38px; margin-top: 0; font-size: 0.82rem; }
+.comite-sancion-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--suave);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+.comite-sancion-form textarea {
+  margin: 0;
+  min-height: 90px;
+}
+.comite-sancion-form-fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.comite-sancion-form-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.comite-boton-acta {
+  min-height: 38px;
+  margin-top: 0;
+  font-size: 0.82rem;
+}
 .comite-sancion {
   display: grid;
   gap: 10px;
@@ -1464,12 +1501,33 @@ body {
   border-radius: 14px;
   background: var(--papel);
 }
-.comite-sancion-persona { display: grid; gap: 2px; }
-.comite-sancion-persona strong { color: var(--acento-oscuro); font-size: 1.02rem; text-transform: uppercase; }
-.comite-sancion-campo { display: grid; gap: 3px; }
-.comite-sancion-campo > span:first-child { color: var(--suave); font-size: 0.78rem; font-weight: 750; }
-.comite-sancion-campo p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.comite-sancion-campo.pendiente p { color: #795800; font-weight: 700; }
+.comite-sancion-persona {
+  display: grid;
+  gap: 2px;
+}
+.comite-sancion-persona strong {
+  color: var(--acento-oscuro);
+  font-size: 1.02rem;
+  text-transform: uppercase;
+}
+.comite-sancion-campo {
+  display: grid;
+  gap: 3px;
+}
+.comite-sancion-campo > span:first-child {
+  color: var(--suave);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+.comite-sancion-campo p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.comite-sancion-campo.pendiente p {
+  color: #795800;
+  font-weight: 700;
+}
 .comite-datos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1480,11 +1538,32 @@ body {
   border-radius: 14px;
   background: var(--papel);
 }
-.comite-datos dt { color: var(--suave); font-size: 0.78rem; font-weight: 650; }
-.comite-datos dd { margin: 2px 0 0; color: var(--acento-oscuro); font-weight: 700; overflow-wrap: anywhere; }
-.comite-lista-sanciones { display: grid; gap: 12px; }
-
-
+.comite-datos-superiores {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+.comite-datos > .datos {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.comite-datos dt {
+  color: var(--suave);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+.comite-datos dd {
+  margin: 2px 0 0;
+  color: var(--acento-oscuro);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.comite-lista-sanciones {
+  display: grid;
+  gap: 12px;
+}
 
 @media (max-width: 600px) {
   .instalar-app {
@@ -1492,12 +1571,12 @@ body {
     margin-top: 10px;
   }
 
-  .instalar-app>summary {
+  .instalar-app > summary {
     min-height: 46px;
     padding: 9px 12px;
   }
 
-  .instalar-app>summary strong {
+  .instalar-app > summary strong {
     font-size: 0.9rem;
   }
 
@@ -1539,7 +1618,7 @@ main {
   padding: 30px 0 64px;
 }
 
-main>h1 {
+main > h1 {
   position: relative;
   overflow: hidden;
   margin: 0 0 24px;
@@ -1554,7 +1633,7 @@ main>h1 {
   line-height: 1.12;
 }
 
-main>h1::before {
+main > h1::before {
   display: block;
   margin-bottom: 10px;
   color: #d7e8f7;
@@ -1564,7 +1643,7 @@ main>h1::before {
   letter-spacing: 0.14em;
 }
 
-main>h1::after {
+main > h1::after {
   position: absolute;
   right: -34px;
   bottom: -90px;
@@ -1759,7 +1838,7 @@ textarea:disabled {
   gap: 10px;
 }
 
-.fila>* {
+.fila > * {
   min-width: 0;
   flex: 1;
 }
@@ -1772,7 +1851,7 @@ textarea:disabled {
   box-shadow: var(--sombra);
 }
 
-.rango-fechas>summary {
+.rango-fechas > summary {
   display: flex;
   min-height: 48px;
   align-items: center;
@@ -1782,11 +1861,11 @@ textarea:disabled {
   list-style: none;
 }
 
-.rango-fechas>summary::-webkit-details-marker {
+.rango-fechas > summary::-webkit-details-marker {
   display: none;
 }
 
-.rango-fechas>summary::after {
+.rango-fechas > summary::after {
   margin-left: auto;
   content: "+";
   color: var(--acento);
@@ -1794,24 +1873,24 @@ textarea:disabled {
   line-height: 1;
 }
 
-.rango-fechas[open]>summary {
+.rango-fechas[open] > summary {
   border-bottom: 1px solid var(--borde);
 }
 
-.rango-fechas[open]>summary::after {
+.rango-fechas[open] > summary::after {
   content: "−";
 }
 
-.rango-fechas>summary strong {
+.rango-fechas > summary strong {
   color: var(--tinta);
 }
 
-.rango-fechas>summary span {
+.rango-fechas > summary span {
   color: var(--suave);
   font-size: 0.85rem;
 }
 
-.rango-fechas>summary:focus-visible {
+.rango-fechas > summary:focus-visible {
   outline: 3px solid #b4232e;
   outline-offset: 3px;
 }
@@ -1995,13 +2074,13 @@ textarea:disabled {
   accent-color: var(--acento);
 }
 
-.clupik-partido-fila>span {
+.clupik-partido-fila > span {
   display: grid;
   min-width: 0;
   gap: 2px;
 }
 
-.clupik-partido-fila>span>span {
+.clupik-partido-fila > span > span {
   color: var(--suave);
   font-size: 0.84rem;
 }
@@ -2019,7 +2098,7 @@ textarea:disabled {
   flex-wrap: wrap;
 }
 
-.clupik-partidos-acciones>span {
+.clupik-partidos-acciones > span {
   margin-right: auto;
   color: var(--suave);
   font-weight: 700;
@@ -2062,13 +2141,13 @@ textarea:disabled {
   background: #fff;
 }
 
-.clupik-horario-fila>span {
+.clupik-horario-fila > span {
   display: grid;
   min-width: 0;
   gap: 3px;
 }
 
-.clupik-horario-fila>span>span {
+.clupik-horario-fila > span > span {
   color: var(--suave);
   font-size: 0.84rem;
 }
@@ -2172,7 +2251,7 @@ textarea:disabled {
   margin: 0 0 16px;
 }
 
-.resumen-estados>div {
+.resumen-estados > div {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -2451,7 +2530,7 @@ textarea:disabled {
   margin-top: 12px;
 }
 
-.captura-movil>.mini {
+.captura-movil > .mini {
   margin-top: 10px;
 }
 
@@ -2532,7 +2611,7 @@ textarea:disabled {
   background: var(--papel);
 }
 
-.evento>span {
+.evento > span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -2571,7 +2650,7 @@ textarea:disabled {
   background: #ffe0e0;
 }
 
-.evento.anulado>span {
+.evento.anulado > span {
   opacity: 0.55;
 }
 
@@ -2788,7 +2867,7 @@ table {
   cursor: pointer;
 }
 
-.log-cambios>div {
+.log-cambios > div {
   min-width: 260px;
   max-width: 440px;
   padding-top: 8px;
@@ -2951,7 +3030,7 @@ table {
   margin: 0;
 }
 
-.historial-jugador-resumen>div {
+.historial-jugador-resumen > div {
   padding: 12px;
   border-radius: 12px;
   background: var(--acento-claro);
@@ -2991,8 +3070,8 @@ table {
   background: var(--papel);
 }
 
-.historial-goles li>strong:last-child,
-.historial-premios li>strong:last-child {
+.historial-goles li > strong:last-child,
+.historial-premios li > strong:last-child {
   color: var(--acento);
   white-space: nowrap;
 }
@@ -3004,7 +3083,7 @@ table {
   gap: 12px;
 }
 
-.historial-iconos>span {
+.historial-iconos > span {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -3109,7 +3188,7 @@ table {
   margin: 0;
 }
 
-.metricas>div {
+.metricas > div {
   min-width: 0;
   padding: 12px;
   border-radius: 12px;
@@ -3130,7 +3209,7 @@ table {
   font-variant-numeric: tabular-nums;
 }
 
-.estadistica-card>.suave {
+.estadistica-card > .suave {
   margin-bottom: 0;
 }
 
@@ -3147,7 +3226,7 @@ table {
   margin: 18px 0 24px;
 }
 
-.goleadores-jornada>summary {
+.goleadores-jornada > summary {
   display: flex;
   min-height: 56px;
   align-items: center;
@@ -3166,31 +3245,31 @@ table {
   list-style: none;
 }
 
-.goleadores-jornada>summary::-webkit-details-marker {
+.goleadores-jornada > summary::-webkit-details-marker {
   display: none;
 }
 
-.goleadores-jornada>summary::after {
+.goleadores-jornada > summary::after {
   content: "+";
   color: #b4232e;
   font-size: 1.5rem;
   line-height: 1;
 }
 
-.goleadores-jornada[open]>summary {
+.goleadores-jornada[open] > summary {
   margin-bottom: 12px;
 }
 
-.goleadores-jornada[open]>summary::after {
+.goleadores-jornada[open] > summary::after {
   content: "−";
 }
 
-.goleadores-jornada>summary:focus-visible {
+.goleadores-jornada > summary:focus-visible {
   outline: 3px solid #b4232e;
   outline-offset: 3px;
 }
 
-.goleadores-jornada>.suave {
+.goleadores-jornada > .suave {
   padding: 0 14px;
 }
 
@@ -3469,7 +3548,7 @@ td .suave {
   margin-top: 2px;
 }
 
-main>p>a {
+main > p > a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -3606,7 +3685,7 @@ main>p>a {
   animation: info-datos-aparecer 0.18s ease-out;
 }
 
-.info-datos-contenido>p {
+.info-datos-contenido > p {
   grid-column: 1 / -1;
   margin: 0;
   color: var(--suave);
@@ -3914,7 +3993,7 @@ a.acta-partido:hover {
   text-align: center;
 }
 
-.actas-vacio>span {
+.actas-vacio > span {
   font-size: 2rem;
 }
 
@@ -4302,7 +4381,7 @@ a.acta-partido:hover {
   font-size: 0.92rem;
 }
 
-.acta-evento-detalle>span {
+.acta-evento-detalle > span {
   color: var(--suave);
   font-size: 0.82rem;
 }
@@ -4369,7 +4448,7 @@ a.acta-partido:hover {
   font-size: 0.84rem;
 }
 
-.acta-hito>div span {
+.acta-hito > div span {
   color: var(--suave);
   font-size: 0.76rem;
 }
@@ -4492,7 +4571,7 @@ a.acta-partido:hover {
     padding-top: 16px;
   }
 
-  main>h1 {
+  main > h1 {
     margin-bottom: 18px;
     padding: 24px 20px;
     border-radius: 16px;
@@ -4565,8 +4644,8 @@ a.acta-partido:hover {
     padding: 12px;
   }
 
-  .historial-goles li>span,
-  .historial-premios li>span {
+  .historial-goles li > span,
+  .historial-premios li > span {
     grid-column: 1 / -1;
     grid-row: 2;
   }
@@ -4575,7 +4654,7 @@ a.acta-partido:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .goleadores-jornada>summary {
+  .goleadores-jornada > summary {
     min-height: 50px;
     padding: 12px;
     font-size: 1rem;
@@ -4590,7 +4669,7 @@ a.acta-partido:hover {
     gap: 8px;
   }
 
-  .metricas>div {
+  .metricas > div {
     padding: 10px;
   }
 
@@ -4778,7 +4857,7 @@ a.acta-partido:hover {
     font-size: 0.85rem;
   }
 
-  .acta-evento-detalle>span {
+  .acta-evento-detalle > span {
     font-size: 0.75rem;
   }
 
@@ -4824,7 +4903,7 @@ a.acta-partido:hover {
     font-size: 0.96rem;
   }
 
-  .acta-alineacion>summary {
+  .acta-alineacion > summary {
     min-height: 50px;
     padding: 12px;
     font-size: 1rem;
@@ -4856,7 +4935,6 @@ a.acta-partido:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
